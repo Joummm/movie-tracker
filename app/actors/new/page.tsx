@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
-import { ActorForm } from "@/components/actors/actor-form";
+import { ActorForm } from "@/components/actors/ActorForm";
 
 export default async function NewActorPage() {
   const supabase = await createClient();
