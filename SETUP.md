@@ -189,3 +189,26 @@ bun run build
 ## Suporte
 
 Para questões ou problemas, abra uma issue no repositório do projeto.
+
+
+
+
+Preciso que para além do tipo de data existente haja um que seja data desconhecida, para permitir que o utilizador adicione um conteudo que assistiu mas não sabe quando
+
+Preciso de adiconar Atores, que podem ser associados a todos os conteudos, e vão ter uma página prórpia para ver as informações deles, ter a possibilidade de editar o perfil dele e ver as produções da qual ele participou.
+
+Preciso de adicionar a opção de adicionar Podcasts, ou seja ter um sistema parecido com as séries mas para os Podcasts
+
+Preciso que alteres os campos Nome para que sejam opcionais (inclusive na base de dados)
+
+Preciso que seja possivel criar do género de uma série para o tipo outros, se quiser adicionar uma lista de conteudos que estão em conjunto mas não é uma série.
+
+Preciso que todos os conteúdos tenham páginas em específico que abrem quando se clica no card dela na lista de conteúdos, que vai apresentar todos os dados relativos aquele conteúdo
+
+Preciso permitir adicionar uma crítica como opcional aos conteúdos.
+
+Preciso que nas séries me permita criar a estrutura toda da série ou seja dizer quantas temporadas são quantos episodios têm, as informações de nome, duração e assim que dá para adicionar para eles, e depois permitir-me apenas clicar num botão quando for assistido para colocar o resto das informações e mover para visto.
+
+Preciso de ter a possibilidade de que um mesmo conteúdo tenha várias visualizações ou seja quando eu vir outra vez posso adicionar uma nova data de visualização, mantendo a outra/as
+
+Preciso que a opção de exportar e importar toda a informação de uma conta continue a funcionar com as novas mudanças

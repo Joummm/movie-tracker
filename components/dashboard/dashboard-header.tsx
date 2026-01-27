@@ -9,9 +9,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Film, Menu, X, User, LogOut, Plus, List, Settings } from "lucide-react"
+import { 
+  Film, 
+  Menu, 
+  X, 
+  User, 
+  LogOut, 
+  Plus, 
+  List, 
+  Settings,
+  Users,
+  Mic,
+  FolderKanban,
+  Tv
+} from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 
@@ -21,12 +34,31 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ userName }: DashboardHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleLogout = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push("/")
+  }
+
+  // Não renderizar nada durante SSR para evitar inconsistências
+  if (!mounted) {
+    return (
+      <header className="border-b bg-card sticky top-0 z-50">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
+          <div className="flex items-center gap-2 font-semibold">
+            <Film className="h-6 w-6" />
+            <span>Movie Tracker</span>
+          </div>
+        </div>
+      </header>
+    )
   }
 
   return (
@@ -48,6 +80,18 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
             </Button>
             <Button asChild variant="ghost" size="sm">
               <Link href="/series">Séries</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/actors">
+                <Users className="h-4 w-4 mr-2" />
+                Atores
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/podcasts">
+                <Mic className="h-4 w-4 mr-2" />
+                Podcasts
+              </Link>
             </Button>
             <Button asChild variant="ghost" size="sm">
               <Link href="/lists">Listas</Link>
@@ -105,7 +149,22 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
               <Link href="/content">Conteúdos</Link>
             </Button>
             <Button asChild variant="ghost" className="justify-start" onClick={() => setMobileMenuOpen(false)}>
-              <Link href="/series">Séries</Link>
+              <Link href="/series">
+                <Tv className="h-4 w-4 mr-2" />
+                Séries
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" className="justify-start" onClick={() => setMobileMenuOpen(false)}>
+              <Link href="/actors">
+                <Users className="h-4 w-4 mr-2" />
+                Atores
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" className="justify-start" onClick={() => setMobileMenuOpen(false)}>
+              <Link href="/podcasts">
+                <Mic className="h-4 w-4 mr-2" />
+                Podcasts
+              </Link>
             </Button>
             <Button asChild variant="ghost" className="justify-start" onClick={() => setMobileMenuOpen(false)}>
               <Link href="/lists">
