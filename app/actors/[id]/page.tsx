@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
-import { ActorDetail } from "@/components/actors/actor-detail";
+import { ActorDetail } from "@/components/actors/ActorDetail";
 
 export default async function ActorDetailPage({
   params,
