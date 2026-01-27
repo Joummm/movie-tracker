@@ -1,42 +1,58 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ActorsForm } from "./actors-form"
-import type { 
-  Series, 
-  Podcast, 
+import type React from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ActorsForm } from "./actors-form";
+import type {
+  Series,
+  Podcast,
   Actor,
-  ContentWithSeries 
-} from "@/lib/types/database"
+  ContentWithSeries,
+} from "@/lib/types/database";
 
 interface EditContentFormProps {
   content: ContentWithSeries & {
     content_actors?: Array<{
-      id: string
-      actor_id: string
-      actor?: Actor
-      role_name?: string
-      created_at: string
-    }>
-    podcast_id?: string
-  }
-  userSeries: Series[]
-  userPodcasts?: Podcast[]
+      id: string;
+      actor_id: string;
+      actor?: Actor;
+      role_name?: string;
+      created_at: string;
+    }>;
+    podcast_id?: string;
+  };
+  userSeries: Series[];
+  userPodcasts?: Podcast[];
 }
 
-export function EditContentForm({ content, userSeries, userPodcasts = [] }: EditContentFormProps) {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [actors, setActors] = useState<Actor[]>([])
+export function EditContentForm({
+  content,
+  userSeries,
+  userPodcasts = [],
+}: EditContentFormProps) {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [actors, setActors] = useState<Actor[]>([]);
   const [formData, setFormData] = useState({
     name: content.name || "",
     coverImage: content.cover_image || "",
@@ -50,44 +66,41 @@ export function EditContentForm({ content, userSeries, userPodcasts = [] }: Edit
     season: content.season?.toString() || "",
     episode: content.episode?.toString() || "",
     releaseYear: content.release_year?.toString() || "",
-  })
+  });
 
   useEffect(() => {
-    loadActors()
-  }, [])
+    loadActors();
+  }, []);
 
   const loadActors = async () => {
-    const supabase = createClient()
-    const { data } = await supabase
-      .from("actors")
-      .select("*")
-      .order("name")
-    
+    const supabase = createClient();
+    const { data } = await supabase.from("actors").select("*").order("name");
+
     if (data) {
-      setActors(data)
+      setActors(data);
     }
-  }
+  };
 
   const getTypeLabel = () => {
     switch (content.type) {
       case "movie":
-        return "Filme"
+        return "Filme";
       case "episode":
-        return "Episódio"
+        return "Episódio";
       case "podcast_episode":
-        return "Episódio de Podcast"
+        return "Episódio de Podcast";
       case "short":
-        return "Short"
+        return "Short";
       default:
-        return "Conteúdo"
+        return "Conteúdo";
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
-    const supabase = createClient()
+    const supabase = createClient();
 
     const updateData: any = {
       name: formData.name || null,
@@ -97,14 +110,20 @@ export function EditContentForm({ content, userSeries, userPodcasts = [] }: Edit
       watched_date: formData.watchedDate,
       notes: formData.notes || null,
       review: formData.review || null,
-      release_year: formData.releaseYear ? Number.parseInt(formData.releaseYear) : null,
-    }
+      release_year: formData.releaseYear
+        ? Number.parseInt(formData.releaseYear)
+        : null,
+    };
 
     // Add episode-specific fields
     if (content.type === "episode") {
-      updateData.series_id = formData.seriesId || null
-      updateData.season = formData.season ? Number.parseInt(formData.season) : null
-      updateData.episode = formData.episode ? Number.parseInt(formData.episode) : null
+      updateData.series_id = formData.seriesId || null;
+      updateData.season = formData.season
+        ? Number.parseInt(formData.season)
+        : null;
+      updateData.episode = formData.episode
+        ? Number.parseInt(formData.episode)
+        : null;
     }
 
     // IMPORTANTE: De acordo com o schema, podcast_episode não está na tabela 'content'
@@ -112,26 +131,26 @@ export function EditContentForm({ content, userSeries, userPodcasts = [] }: Edit
     if (content.type === "podcast_episode") {
       // Aqui você precisaria decidir como lidar com episódios de podcast
       // Eles não estão na tabela 'content' mas sim em 'podcast_episodes'
-      console.warn("Episódios de podcast não estão na tabela content")
-      setIsLoading(false)
-      return
+      console.warn("Episódios de podcast não estão na tabela content");
+      setIsLoading(false);
+      return;
     }
 
-    let table = "content"
+    let table = "content";
 
     const { error } = await supabase
       .from(table)
       .update(updateData)
-      .eq("id", content.id)
+      .eq("id", content.id);
 
     if (error) {
-      alert("Erro ao atualizar conteúdo: " + error.message)
-      setIsLoading(false)
+      alert("Erro ao atualizar conteúdo: " + error.message);
+      setIsLoading(false);
     } else {
-      router.push("/content")
-      router.refresh()
+      router.push("/content");
+      router.refresh();
     }
-  }
+  };
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -152,7 +171,9 @@ export function EditContentForm({ content, userSeries, userPodcasts = [] }: Edit
                 <Select
                   required
                   value={formData.seriesId}
-                  onValueChange={(value) => setFormData({ ...formData, seriesId: value })}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, seriesId: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma série" />
@@ -171,8 +192,9 @@ export function EditContentForm({ content, userSeries, userPodcasts = [] }: Edit
             {content.type === "podcast_episode" && (
               <div className="p-4 border border-amber-200 bg-amber-50 rounded-md">
                 <p className="text-amber-800">
-                  <strong>Atenção:</strong> Episódios de podcast são gerenciados separadamente.
-                  Use a seção de podcasts para editar este conteúdo.
+                  <strong>Atenção:</strong> Episódios de podcast são gerenciados
+                  separadamente. Use a seção de podcasts para editar este
+                  conteúdo.
                 </p>
               </div>
             )}
@@ -184,19 +206,25 @@ export function EditContentForm({ content, userSeries, userPodcasts = [] }: Edit
                 id="name"
                 required
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="Nome do conteúdo"
               />
             </div>
 
             {/* Imagem de capa (não para episódios) */}
-            {(content.type === "movie" || content.type === "short" || content.type === "other") && (
+            {(content.type === "movie" ||
+              content.type === "short" ||
+              content.type === "other") && (
               <div className="space-y-2">
                 <Label htmlFor="coverImage">URL da Imagem de Capa</Label>
                 <Input
                   id="coverImage"
                   value={formData.coverImage}
-                  onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, coverImage: e.target.value })
+                  }
                   placeholder="https://..."
                 />
               </div>
@@ -213,7 +241,9 @@ export function EditContentForm({ content, userSeries, userPodcasts = [] }: Edit
                     min="1"
                     required
                     value={formData.season}
-                    onChange={(e) => setFormData({ ...formData, season: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, season: e.target.value })
+                    }
                   />
                 </div>
 
@@ -225,7 +255,9 @@ export function EditContentForm({ content, userSeries, userPodcasts = [] }: Edit
                     min="1"
                     required
                     value={formData.episode}
-                    onChange={(e) => setFormData({ ...formData, episode: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, episode: e.target.value })
+                    }
                   />
                 </div>
 
@@ -237,7 +269,9 @@ export function EditContentForm({ content, userSeries, userPodcasts = [] }: Edit
                     min="1800"
                     max={new Date().getFullYear() + 5}
                     value={formData.releaseYear}
-                    onChange={(e) => setFormData({ ...formData, releaseYear: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, releaseYear: e.target.value })
+                    }
                     placeholder="2024"
                   />
                 </div>
@@ -255,7 +289,9 @@ export function EditContentForm({ content, userSeries, userPodcasts = [] }: Edit
                   max="10"
                   step="0.1"
                   value={formData.rating}
-                  onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, rating: e.target.value })
+                  }
                   placeholder="8.5"
                 />
               </div>
@@ -267,7 +303,9 @@ export function EditContentForm({ content, userSeries, userPodcasts = [] }: Edit
                   type="number"
                   min="1"
                   value={formData.duration}
-                  onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, duration: e.target.value })
+                  }
                   placeholder={content.type === "episode" ? "45" : "120"}
                 />
               </div>
@@ -281,7 +319,9 @@ export function EditContentForm({ content, userSeries, userPodcasts = [] }: Edit
                 type="date"
                 required
                 value={formData.watchedDate}
-                onChange={(e) => setFormData({ ...formData, watchedDate: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, watchedDate: e.target.value })
+                }
               />
             </div>
 
@@ -291,7 +331,9 @@ export function EditContentForm({ content, userSeries, userPodcasts = [] }: Edit
               <Textarea
                 id="notes"
                 value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
                 placeholder="Adicione suas notas sobre o conteúdo..."
                 rows={3}
               />
@@ -303,7 +345,9 @@ export function EditContentForm({ content, userSeries, userPodcasts = [] }: Edit
               <Textarea
                 id="review"
                 value={formData.review}
-                onChange={(e) => setFormData({ ...formData, review: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, review: e.target.value })
+                }
                 placeholder="Adicione sua review completa..."
                 rows={5}
               />
@@ -322,10 +366,17 @@ export function EditContentForm({ content, userSeries, userPodcasts = [] }: Edit
 
             {/* Botões de ação */}
             <div className="flex gap-2 justify-end pt-4">
-              <Button type="button" variant="outline" onClick={() => router.back()}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
+              >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isLoading || content.type === "podcast_episode"}>
+              <Button
+                type="submit"
+                disabled={isLoading || content.type === "podcast_episode"}
+              >
                 {isLoading ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </div>
@@ -333,5 +384,5 @@ export function EditContentForm({ content, userSeries, userPodcasts = [] }: Edit
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

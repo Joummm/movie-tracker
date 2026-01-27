@@ -1,39 +1,45 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Film, Tv, Video, MoreHorizontal, Star } from "lucide-react"
-import type { ContentWithSeries } from "@/lib/types/database"
-import Image from "next/image"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Film, Tv, Video, MoreHorizontal, Star } from "lucide-react";
+import type { ContentWithSeries } from "@/lib/types/database";
+import Image from "next/image";
 
 interface RecentContentProps {
-  content: ContentWithSeries[]
+  content: ContentWithSeries[];
 }
 
 export function RecentContent({ content }: RecentContentProps) {
   const getIcon = (type: string) => {
     switch (type) {
       case "movie":
-        return <Film className="h-4 w-4" />
+        return <Film className="h-4 w-4" />;
       case "episode":
-        return <Tv className="h-4 w-4" />
+        return <Tv className="h-4 w-4" />;
       case "short":
-        return <Video className="h-4 w-4" />
+        return <Video className="h-4 w-4" />;
       default:
-        return <MoreHorizontal className="h-4 w-4" />
+        return <MoreHorizontal className="h-4 w-4" />;
     }
-  }
+  };
 
   const getTypeLabel = (type: string) => {
     switch (type) {
       case "movie":
-        return "Filme"
+        return "Filme";
       case "episode":
-        return "Episódio"
+        return "Episódio";
       case "short":
-        return "Short"
+        return "Short";
       default:
-        return "Outro"
+        return "Outro";
     }
-  }
+  };
 
   return (
     <Card className="w-full">
@@ -44,7 +50,9 @@ export function RecentContent({ content }: RecentContentProps) {
       <CardContent>
         <div className="space-y-3">
           {content.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">Nenhum conteúdo ainda</p>
+            <p className="text-sm text-muted-foreground text-center py-8">
+              Nenhum conteúdo ainda
+            </p>
           ) : (
             content.map((item) => (
               <div key={item.id} className="flex items-center gap-3">
@@ -57,7 +65,9 @@ export function RecentContent({ content }: RecentContentProps) {
                       className="object-cover"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center">{getIcon(item.type)}</div>
+                    <div className="flex h-full items-center justify-center">
+                      {getIcon(item.type)}
+                    </div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -76,7 +86,9 @@ export function RecentContent({ content }: RecentContentProps) {
                 {item.rating && (
                   <div className="flex items-center gap-1 text-sm flex-shrink-0">
                     <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                    <span className="font-medium">{item.rating.toFixed(1)}</span>
+                    <span className="font-medium">
+                      {item.rating.toFixed(1)}
+                    </span>
                   </div>
                 )}
               </div>
@@ -85,5 +97,5 @@ export function RecentContent({ content }: RecentContentProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,27 +1,43 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
+import type React from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface AddPodcastEpisodeProps {
-  podcastId: string
-  userId: string
-  onBack?: () => void
+  podcastId: string;
+  userId: string;
+  onBack?: () => void;
 }
 
-export function AddPodcastEpisode({ podcastId, userId, onBack }: AddPodcastEpisodeProps) {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [unknownDate, setUnknownDate] = useState(false)
+export function AddPodcastEpisode({
+  podcastId,
+  userId,
+  onBack,
+}: AddPodcastEpisodeProps) {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [unknownDate, setUnknownDate] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     episode_number: "1",
@@ -31,14 +47,14 @@ export function AddPodcastEpisode({ podcastId, userId, onBack }: AddPodcastEpiso
     watched_date: new Date().toISOString().split("T")[0],
     notes: "",
     review: "",
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
-    const supabase = createClient()
-    
+    const supabase = createClient();
+
     const episodeData = {
       user_id: userId,
       podcast_id: podcastId,
@@ -50,26 +66,26 @@ export function AddPodcastEpisode({ podcastId, userId, onBack }: AddPodcastEpiso
       watched_date: unknownDate ? null : formData.watched_date,
       notes: formData.notes || null,
       review: formData.review || null,
-    }
+    };
 
     try {
       const { error } = await supabase
         .from("podcast_episodes")
-        .insert(episodeData)
+        .insert(episodeData);
 
-      if (error) throw error
+      if (error) throw error;
 
       if (onBack) {
-        onBack()
+        onBack();
       } else {
-        router.push(`/podcasts/${podcastId}`)
-        router.refresh()
+        router.push(`/podcasts/${podcastId}`);
+        router.refresh();
       }
     } catch (error: any) {
-      alert("Erro ao adicionar episódio: " + error.message)
-      setIsLoading(false)
+      alert("Erro ao adicionar episódio: " + error.message);
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -93,7 +109,9 @@ export function AddPodcastEpisode({ podcastId, userId, onBack }: AddPodcastEpiso
                   type="number"
                   min="1"
                   value={formData.season}
-                  onChange={(e) => setFormData({ ...formData, season: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, season: e.target.value })
+                  }
                   placeholder="1"
                 />
               </div>
@@ -106,7 +124,9 @@ export function AddPodcastEpisode({ podcastId, userId, onBack }: AddPodcastEpiso
                   min="1"
                   required
                   value={formData.episode_number}
-                  onChange={(e) => setFormData({ ...formData, episode_number: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, episode_number: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -116,7 +136,9 @@ export function AddPodcastEpisode({ podcastId, userId, onBack }: AddPodcastEpiso
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="Nome do episódio (opcional)"
               />
             </div>
@@ -131,7 +153,9 @@ export function AddPodcastEpisode({ podcastId, userId, onBack }: AddPodcastEpiso
                   max="10"
                   step="0.1"
                   value={formData.rating}
-                  onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, rating: e.target.value })
+                  }
                   placeholder="8.5"
                 />
               </div>
@@ -143,7 +167,9 @@ export function AddPodcastEpisode({ podcastId, userId, onBack }: AddPodcastEpiso
                   type="number"
                   min="1"
                   value={formData.duration}
-                  onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, duration: e.target.value })
+                  }
                   placeholder="45"
                 />
               </div>
@@ -155,9 +181,14 @@ export function AddPodcastEpisode({ podcastId, userId, onBack }: AddPodcastEpiso
                 <Checkbox
                   id="unknownDatePodcast"
                   checked={unknownDate}
-                  onCheckedChange={(checked) => setUnknownDate(checked === true)}
+                  onCheckedChange={(checked) =>
+                    setUnknownDate(checked === true)
+                  }
                 />
-                <Label htmlFor="unknownDatePodcast" className="text-sm font-normal cursor-pointer">
+                <Label
+                  htmlFor="unknownDatePodcast"
+                  className="text-sm font-normal cursor-pointer"
+                >
                   Data desconhecida
                 </Label>
               </div>
@@ -167,7 +198,9 @@ export function AddPodcastEpisode({ podcastId, userId, onBack }: AddPodcastEpiso
                   type="date"
                   required
                   value={formData.watched_date}
-                  onChange={(e) => setFormData({ ...formData, watched_date: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, watched_date: e.target.value })
+                  }
                 />
               )}
             </div>
@@ -177,7 +210,9 @@ export function AddPodcastEpisode({ podcastId, userId, onBack }: AddPodcastEpiso
               <Textarea
                 id="notes"
                 value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
                 placeholder="Adicione suas notas sobre o episódio..."
                 rows={3}
               />
@@ -188,14 +223,20 @@ export function AddPodcastEpisode({ podcastId, userId, onBack }: AddPodcastEpiso
               <Textarea
                 id="review"
                 value={formData.review}
-                onChange={(e) => setFormData({ ...formData, review: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, review: e.target.value })
+                }
                 placeholder="Escreva sua crítica sobre o episódio..."
                 rows={4}
               />
             </div>
 
             <div className="flex gap-2 justify-end">
-              <Button type="button" variant="outline" onClick={onBack || (() => router.back())}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onBack || (() => router.back())}
+              >
                 Cancelar
               </Button>
               <Button type="submit" disabled={isLoading}>
@@ -206,5 +247,5 @@ export function AddPodcastEpisode({ podcastId, userId, onBack }: AddPodcastEpiso
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

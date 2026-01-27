@@ -347,7 +347,7 @@ export const translations = {
     seriesCreated: "Série créée avec succès",
     seriesUpdated: "Série mise à jour avec succès",
   },
-} as const
+} as const;
 
-export type Locale = keyof typeof translations
-export type TranslationKey = keyof (typeof translations)["pt"]
+export type Locale = keyof typeof translations;
+export type TranslationKey = keyof (typeof translations)["pt"];

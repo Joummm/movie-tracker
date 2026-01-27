@@ -1,71 +1,77 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { X, User, Plus, Briefcase, Search } from "lucide-react"
-import type { Actor, RoleType } from "@/lib/types/database"
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { X, User, Plus, Briefcase, Search } from "lucide-react";
+import type { Actor, RoleType } from "@/lib/types/database";
 
 interface ContentActorAssociationProps {
-  contentId?: string
-  seriesId?: string
-  userId: string
-  existingAssociations?: any[]
+  contentId?: string;
+  seriesId?: string;
+  userId: string;
+  existingAssociations?: any[];
 }
 
 export function ContentActorAssociation({
   contentId,
   seriesId,
   userId,
-  existingAssociations = []
+  existingAssociations = [],
 }: ContentActorAssociationProps) {
-  const [actors, setActors] = useState<Actor[]>([])
-  const [filteredActors, setFilteredActors] = useState<Actor[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedActorId, setSelectedActorId] = useState("")
-  const [roleName, setRoleName] = useState("")
-  const [selectedRoles, setSelectedRoles] = useState<RoleType[]>(["actor"])
-  const [associations, setAssociations] = useState(existingAssociations)
-  const [isLoading, setIsLoading] = useState(false)
-  const [showNewActorForm, setShowNewActorForm] = useState(false)
-  const [newActorName, setNewActorName] = useState("")
+  const [actors, setActors] = useState<Actor[]>([]);
+  const [filteredActors, setFilteredActors] = useState<Actor[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedActorId, setSelectedActorId] = useState("");
+  const [roleName, setRoleName] = useState("");
+  const [selectedRoles, setSelectedRoles] = useState<RoleType[]>(["actor"]);
+  const [associations, setAssociations] = useState(existingAssociations);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showNewActorForm, setShowNewActorForm] = useState(false);
+  const [newActorName, setNewActorName] = useState("");
 
   useEffect(() => {
-    loadActors()
-  }, [])
+    loadActors();
+  }, []);
 
   useEffect(() => {
     if (searchTerm) {
-      const filtered = actors.filter(actor =>
-        actor.name?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-      setFilteredActors(filtered)
+      const filtered = actors.filter((actor) =>
+        actor.name?.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+      setFilteredActors(filtered);
     } else {
-      setFilteredActors(actors)
+      setFilteredActors(actors);
     }
-  }, [searchTerm, actors])
+  }, [searchTerm, actors]);
 
   const loadActors = async () => {
-    const supabase = createClient()
+    const supabase = createClient();
     const { data } = await supabase
       .from("actors")
       .select("*")
       .eq("user_id", userId)
-      .order("name")
-    setActors(data || [])
-    setFilteredActors(data || [])
-  }
+      .order("name");
+    setActors(data || []);
+    setFilteredActors(data || []);
+  };
 
   const createNewActor = async () => {
-    if (!newActorName.trim()) return
-    
-    setIsLoading(true)
-    const supabase = createClient()
-    
+    if (!newActorName.trim()) return;
+
+    setIsLoading(true);
+    const supabase = createClient();
+
     const { data: newActor, error } = await supabase
       .from("actors")
       .insert({
@@ -73,27 +79,27 @@ export function ContentActorAssociation({
         name: newActorName,
       })
       .select()
-      .single()
+      .single();
 
     if (error) {
-      alert("Erro ao criar ator: " + error.message)
-      setIsLoading(false)
-      return
+      alert("Erro ao criar ator: " + error.message);
+      setIsLoading(false);
+      return;
     }
 
-    setActors(prev => [...prev, newActor])
-    setSelectedActorId(newActor.id)
-    setNewActorName("")
-    setShowNewActorForm(false)
-    setIsLoading(false)
-  }
+    setActors((prev) => [...prev, newActor]);
+    setSelectedActorId(newActor.id);
+    setNewActorName("");
+    setShowNewActorForm(false);
+    setIsLoading(false);
+  };
 
   const addAssociation = async () => {
-    if (!selectedActorId) return
-    
-    setIsLoading(true)
-    const supabase = createClient()
-    
+    if (!selectedActorId) return;
+
+    setIsLoading(true);
+    const supabase = createClient();
+
     // Create content_actor association
     const { data: contentActor, error } = await supabase
       .from("content_actors")
@@ -104,12 +110,12 @@ export function ContentActorAssociation({
         role_name: roleName || null,
       })
       .select()
-      .single()
+      .single();
 
     if (error) {
-      alert("Erro ao associar ator: " + error.message)
-      setIsLoading(false)
-      return
+      alert("Erro ao associar ator: " + error.message);
+      setIsLoading(false);
+      return;
     }
 
     // Create actor roles
@@ -118,67 +124,71 @@ export function ContentActorAssociation({
         content_actor_id: contentActor.id,
         role,
         character_name: role === "actor" ? roleName : null,
-      })
+      });
     }
 
     // Refresh associations
     const { data: newAssociations } = await supabase
       .from("content_actors")
-      .select(`
+      .select(
+        `
         *,
         actor:actors(*),
         actor_roles(*)
-      `)
-      .eq(contentId ? "content_id" : "series_id", contentId || seriesId)
+      `,
+      )
+      .eq(contentId ? "content_id" : "series_id", contentId || seriesId);
 
-    setAssociations(newAssociations || [])
-    setSelectedActorId("")
-    setRoleName("")
-    setSelectedRoles(["actor"])
-    setIsLoading(false)
-  }
+    setAssociations(newAssociations || []);
+    setSelectedActorId("");
+    setRoleName("");
+    setSelectedRoles(["actor"]);
+    setIsLoading(false);
+  };
 
   const removeAssociation = async (associationId: string) => {
-    setIsLoading(true)
-    const supabase = createClient()
-    
-    await supabase.from("content_actors").delete().eq("id", associationId)
-    
+    setIsLoading(true);
+    const supabase = createClient();
+
+    await supabase.from("content_actors").delete().eq("id", associationId);
+
     // Refresh associations
     const { data: newAssociations } = await supabase
       .from("content_actors")
-      .select(`
+      .select(
+        `
         *,
         actor:actors(*),
         actor_roles(*)
-      `)
-      .eq(contentId ? "content_id" : "series_id", contentId || seriesId)
+      `,
+      )
+      .eq(contentId ? "content_id" : "series_id", contentId || seriesId);
 
-    setAssociations(newAssociations || [])
-    setIsLoading(false)
-  }
+    setAssociations(newAssociations || []);
+    setIsLoading(false);
+  };
 
   const toggleRole = (role: RoleType) => {
-    setSelectedRoles(prev => {
+    setSelectedRoles((prev) => {
       if (prev.includes(role)) {
-        return prev.filter(r => r !== role)
+        return prev.filter((r) => r !== role);
       } else {
-        return [...prev, role]
+        return [...prev, role];
       }
-    })
-  }
+    });
+  };
 
   const getRoleLabel = (role: RoleType) => {
     const labels: Record<RoleType, string> = {
-      'actor': 'Ator',
-      'director': 'Realizador',
-      'writer': 'Escritor',
-      'producer': 'Produtor',
-      'composer': 'Compositor',
-      'cinematographer': 'Diretor de Fotografia'
-    }
-    return labels[role]
-  }
+      actor: "Ator",
+      director: "Realizador",
+      writer: "Escritor",
+      producer: "Produtor",
+      composer: "Compositor",
+      cinematographer: "Diretor de Fotografia",
+    };
+    return labels[role];
+  };
 
   return (
     <div className="space-y-4">
@@ -236,8 +246,8 @@ export function ContentActorAssociation({
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setShowNewActorForm(false)
-                    setNewActorName("")
+                    setShowNewActorForm(false);
+                    setNewActorName("");
                   }}
                 >
                   Cancelar
@@ -257,7 +267,9 @@ export function ContentActorAssociation({
               <SelectContent>
                 {filteredActors.length === 0 ? (
                   <div className="px-2 py-6 text-center text-sm text-muted-foreground">
-                    {searchTerm ? "Nenhum ator encontrado" : "Nenhum ator disponível"}
+                    {searchTerm
+                      ? "Nenhum ator encontrado"
+                      : "Nenhum ator disponível"}
                   </div>
                 ) : (
                   filteredActors.map((actor) => (
@@ -284,7 +296,16 @@ export function ContentActorAssociation({
         <div className="space-y-2">
           <Label>Funções</Label>
           <div className="flex flex-wrap gap-2">
-            {(['actor', 'director', 'writer', 'producer', 'composer', 'cinematographer'] as RoleType[]).map((role) => (
+            {(
+              [
+                "actor",
+                "director",
+                "writer",
+                "producer",
+                "composer",
+                "cinematographer",
+              ] as RoleType[]
+            ).map((role) => (
               <Badge
                 key={role}
                 variant={selectedRoles.includes(role) ? "default" : "outline"}
@@ -312,11 +333,16 @@ export function ContentActorAssociation({
           <h4 className="font-medium">Associações atuais</h4>
           <div className="space-y-2">
             {associations.map((association) => (
-              <div key={association.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div
+                key={association.id}
+                className="flex items-center justify-between p-3 border rounded-lg"
+              >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{association.actor?.name || "Ator desconhecido"}</span>
+                    <span className="font-medium">
+                      {association.actor?.name || "Ator desconhecido"}
+                    </span>
                   </div>
                   <div className="text-sm text-muted-foreground ml-6 space-y-1">
                     {association.actor_roles?.map((role: any) => (
@@ -344,5 +370,5 @@ export function ContentActorAssociation({
         </div>
       )}
     </div>
-  )
+  );
 }

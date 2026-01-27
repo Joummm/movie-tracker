@@ -1,38 +1,45 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { SeriesList } from "@/components/series/series-list"
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { SeriesList } from "@/components/series/series-list";
 
 export default async function SeriesPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const {
     data: { user },
     error,
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (error || !user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   // Get all series with first and last episode dates
   const { data: series } = await supabase
     .from("series")
     .select("*, content(watched_date, season, episode, rating)")
     .eq("user_id", user.id)
-    .order("name")
+    .order("name");
 
   // Process series to calculate first and last episode dates and average rating
   const seriesWithDates = series?.map((s) => {
-    const episodes = (s.content as any[]) || []
-    const sortedDates = episodes.map((e) => e.watched_date).sort()
+    const episodes = (s.content as any[]) || [];
+    const sortedDates = episodes.map((e) => e.watched_date).sort();
 
     // Calculate average rating
-    const ratedEpisodes = episodes.filter((e) => e.rating !== null)
+    const ratedEpisodes = episodes.filter((e) => e.rating !== null);
     const avgRating =
-      ratedEpisodes.length > 0 ? ratedEpisodes.reduce((acc, e) => acc + (e.rating || 0), 0) / ratedEpisodes.length : 0
+      ratedEpisodes.length > 0
+        ? ratedEpisodes.reduce((acc, e) => acc + (e.rating || 0), 0) /
+          ratedEpisodes.length
+        : 0;
 
     return {
       ...s,
@@ -41,8 +48,8 @@ export default async function SeriesPage() {
       totalEpisodes: episodes.length,
       seasons: [...new Set(episodes.map((e) => e.season))].length,
       avgRating,
-    }
-  })
+    };
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -51,5 +58,5 @@ export default async function SeriesPage() {
         <SeriesList series={seriesWithDates || []} />
       </main>
     </div>
-  )
+  );
 }

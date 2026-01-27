@@ -1,37 +1,53 @@
-import { redirect, notFound } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { EditContentForm } from "@/components/content/edit-content-form"
+import { redirect, notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { EditContentForm } from "@/components/content/edit-content-form";
 
-export default async function EditContentPage({ params }: { params: Promise<{ id: string }> }) {
-  const supabase = await createClient()
-  const { id } = await params
+export default async function EditContentPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const supabase = await createClient();
+  const { id } = await params;
 
   const {
     data: { user },
     error,
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (error || !user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   // Get the content item
-  const { data: content } = await supabase.from("content").select("*, series(*)").eq("id", id).single()
+  const { data: content } = await supabase
+    .from("content")
+    .select("*, series(*)")
+    .eq("id", id)
+    .single();
 
   if (!content) {
-    notFound()
+    notFound();
   }
 
   // Check if user owns this content
   if (content.user_id !== user.id) {
-    redirect("/content")
+    redirect("/content");
   }
 
   // Get user's series if content is an episode
-  const { data: series } = await supabase.from("series").select("*").eq("user_id", user.id).order("name")
+  const { data: series } = await supabase
+    .from("series")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("name");
 
   return (
     <div className="min-h-screen bg-background">
@@ -40,5 +56,5 @@ export default async function EditContentPage({ params }: { params: Promise<{ id
         <EditContentForm content={content} userSeries={series || []} />
       </main>
     </div>
-  )
+  );
 }

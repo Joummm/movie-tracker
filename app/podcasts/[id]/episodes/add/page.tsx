@@ -1,26 +1,30 @@
-import { redirect, notFound } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { AddPodcastEpisode } from "@/components/podcasts/add-podcast-episode"
+import { redirect, notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { AddPodcastEpisode } from "@/components/podcasts/add-podcast-episode";
 
-export default async function AddPodcastEpisodePage({ 
-  params 
-}: { 
-  params: Promise<{ id: string }> 
+export default async function AddPodcastEpisodePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
 }) {
-  const supabase = await createClient()
-  const { id } = await params
+  const supabase = await createClient();
+  const { id } = await params;
 
   const {
     data: { user },
     error,
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (error || !user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   // Verify podcast exists and belongs to user
   const { data: podcast } = await supabase
@@ -28,10 +32,10 @@ export default async function AddPodcastEpisodePage({
     .select("*")
     .eq("id", id)
     .eq("user_id", user.id)
-    .single()
+    .single();
 
   if (!podcast) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -41,5 +45,5 @@ export default async function AddPodcastEpisodePage({
         <AddPodcastEpisode podcastId={id} userId={user.id} />
       </main>
     </div>
-  )
+  );
 }

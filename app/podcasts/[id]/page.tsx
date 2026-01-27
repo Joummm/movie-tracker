@@ -1,39 +1,49 @@
-import { redirect, notFound } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { PodcastDetail } from "@/components/podcasts/podcast-detail"
-import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
-import Link from "next/link"
+import { redirect, notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { PodcastDetail } from "@/components/podcasts/podcast-detail";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import Link from "next/link";
 
-export default async function PodcastDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const supabase = await createClient()
-  const { id } = await params
+export default async function PodcastDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const supabase = await createClient();
+  const { id } = await params;
 
   const {
     data: { user },
     error,
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (error || !user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   // Get podcast details
   const { data: podcast } = await supabase
     .from("podcasts")
-    .select(`
+    .select(
+      `
       *,
       episodes:podcast_episodes(*)
-    `)
+    `,
+    )
     .eq("id", id)
     .eq("user_id", user.id)
-    .single()
+    .single();
 
   if (!podcast) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -43,9 +53,7 @@ export default async function PodcastDetailPage({ params }: { params: Promise<{ 
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <Button variant="ghost" asChild>
-              <Link href="/podcasts">
-                ← Voltar
-              </Link>
+              <Link href="/podcasts">← Voltar</Link>
             </Button>
             <Button asChild>
               <Link href={`/podcasts/${podcast.id}/episodes/add`}>
@@ -58,5 +66,5 @@ export default async function PodcastDetailPage({ params }: { params: Promise<{ 
         </div>
       </main>
     </div>
-  )
+  );
 }

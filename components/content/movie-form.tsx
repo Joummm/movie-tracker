@@ -1,30 +1,42 @@
-"use client"
+"use client";
 
-import { Checkbox } from "@/components/ui/checkbox"
+import { Checkbox } from "@/components/ui/checkbox";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { ContentType, DatePrecision } from "@/lib/types/database"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { ContentType, DatePrecision } from "@/lib/types/database";
 
 interface MovieFormProps {
-  type: ContentType
-  userId: string
-  onBack: () => void
+  type: ContentType;
+  userId: string;
+  onBack: () => void;
 }
 
 export function MovieForm({ type, userId, onBack }: MovieFormProps) {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [datePrecision, setDatePrecision] = useState<DatePrecision>("full")
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [datePrecision, setDatePrecision] = useState<DatePrecision>("full");
   const [formData, setFormData] = useState({
     name: "",
     coverImage: "",
@@ -35,60 +47,62 @@ export function MovieForm({ type, userId, onBack }: MovieFormProps) {
     watchedYear: new Date().getFullYear().toString(),
     watchedMonth: (new Date().getMonth() + 1).toString(),
     notes: "",
-  })
-  const [unknownDate, setUnknownDate] = useState(false)
+  });
+  const [unknownDate, setUnknownDate] = useState(false);
 
   const getTypeLabel = () => {
     switch (type) {
       case "movie":
-        return "Filme"
+        return "Filme";
       case "short":
-        return "Short"
+        return "Short";
       default:
-        return "Conteúdo"
+        return "Conteúdo";
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
-    const supabase = createClient()
-    
+    const supabase = createClient();
+
     // Build date data based on precision
     const dateData: Record<string, unknown> = {
       date_precision: datePrecision,
-    }
-    
+    };
+
     if (datePrecision === "full") {
-      dateData.watched_date = formData.watchedDate
+      dateData.watched_date = formData.watchedDate;
     } else if (datePrecision === "month") {
-      dateData.watched_year = Number.parseInt(formData.watchedYear)
-      dateData.watched_month = Number.parseInt(formData.watchedMonth)
+      dateData.watched_year = Number.parseInt(formData.watchedYear);
+      dateData.watched_month = Number.parseInt(formData.watchedMonth);
     } else if (datePrecision === "year") {
-      dateData.watched_year = Number.parseInt(formData.watchedYear)
+      dateData.watched_year = Number.parseInt(formData.watchedYear);
     }
-    
+
     const { error } = await supabase.from("content").insert({
       user_id: userId,
       type,
       name: formData.name || null,
       cover_image: formData.coverImage || null,
-      release_year: formData.releaseYear ? Number.parseInt(formData.releaseYear) : null,
+      release_year: formData.releaseYear
+        ? Number.parseInt(formData.releaseYear)
+        : null,
       rating: formData.rating ? Number.parseFloat(formData.rating) : null,
       duration: formData.duration ? Number.parseInt(formData.duration) : null,
       notes: formData.notes || null,
       ...dateData,
-    })
+    });
 
     if (error) {
-      alert("Erro ao adicionar conteúdo: " + error.message)
-      setIsLoading(false)
+      alert("Erro ao adicionar conteúdo: " + error.message);
+      setIsLoading(false);
     } else {
-      router.push("/content")
-      router.refresh()
+      router.push("/content");
+      router.refresh();
     }
-  }
+  };
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -107,7 +121,9 @@ export function MovieForm({ type, userId, onBack }: MovieFormProps) {
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="Nome do conteúdo (opcional)"
               />
             </div>
@@ -117,7 +133,9 @@ export function MovieForm({ type, userId, onBack }: MovieFormProps) {
               <Input
                 id="coverImage"
                 value={formData.coverImage}
-                onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, coverImage: e.target.value })
+                }
                 placeholder="https://..."
               />
             </div>
@@ -130,7 +148,9 @@ export function MovieForm({ type, userId, onBack }: MovieFormProps) {
                 min="1800"
                 max={new Date().getFullYear() + 5}
                 value={formData.releaseYear}
-                onChange={(e) => setFormData({ ...formData, releaseYear: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, releaseYear: e.target.value })
+                }
                 placeholder="2024"
               />
             </div>
@@ -145,7 +165,9 @@ export function MovieForm({ type, userId, onBack }: MovieFormProps) {
                   max="10"
                   step="0.1"
                   value={formData.rating}
-                  onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, rating: e.target.value })
+                  }
                   placeholder="8.5"
                 />
               </div>
@@ -157,7 +179,9 @@ export function MovieForm({ type, userId, onBack }: MovieFormProps) {
                   type="number"
                   min="1"
                   value={formData.duration}
-                  onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, duration: e.target.value })
+                  }
                   placeholder="120"
                 />
               </div>
@@ -165,7 +189,10 @@ export function MovieForm({ type, userId, onBack }: MovieFormProps) {
 
             <div className="space-y-2">
               <Label>Data que assistiu</Label>
-              <Select value={datePrecision} onValueChange={(v) => setDatePrecision(v as DatePrecision)}>
+              <Select
+                value={datePrecision}
+                onValueChange={(v) => setDatePrecision(v as DatePrecision)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -175,22 +202,26 @@ export function MovieForm({ type, userId, onBack }: MovieFormProps) {
                   <SelectItem value="year">Apenas ano</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               {datePrecision === "full" && (
                 <Input
                   id="watchedDate"
                   type="date"
                   required
                   value={formData.watchedDate}
-                  onChange={(e) => setFormData({ ...formData, watchedDate: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, watchedDate: e.target.value })
+                  }
                 />
               )}
-              
+
               {datePrecision === "month" && (
                 <div className="grid grid-cols-2 gap-2">
-                  <Select 
-                    value={formData.watchedMonth} 
-                    onValueChange={(v) => setFormData({ ...formData, watchedMonth: v })}
+                  <Select
+                    value={formData.watchedMonth}
+                    onValueChange={(v) =>
+                      setFormData({ ...formData, watchedMonth: v })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Mês" />
@@ -215,19 +246,23 @@ export function MovieForm({ type, userId, onBack }: MovieFormProps) {
                     min="1900"
                     max={new Date().getFullYear() + 1}
                     value={formData.watchedYear}
-                    onChange={(e) => setFormData({ ...formData, watchedYear: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, watchedYear: e.target.value })
+                    }
                     placeholder="Ano"
                   />
                 </div>
               )}
-              
+
               {datePrecision === "year" && (
                 <Input
                   type="number"
                   min="1900"
                   max={new Date().getFullYear() + 1}
                   value={formData.watchedYear}
-                  onChange={(e) => setFormData({ ...formData, watchedYear: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, watchedYear: e.target.value })
+                  }
                   placeholder="Ano"
                 />
               )}
@@ -238,7 +273,9 @@ export function MovieForm({ type, userId, onBack }: MovieFormProps) {
               <Textarea
                 id="notes"
                 value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
                 placeholder="Adicione suas notas sobre o conteúdo..."
                 rows={3}
               />
@@ -256,5 +293,5 @@ export function MovieForm({ type, userId, onBack }: MovieFormProps) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

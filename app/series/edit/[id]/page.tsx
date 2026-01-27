@@ -1,27 +1,40 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { EditSeriesForm } from "@/components/series/edit-series-form"
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { EditSeriesForm } from "@/components/series/edit-series-form";
 
-export default async function EditSeriesPage({ params }: { params: Promise<{ id: string }> }) {
-  const supabase = await createClient()
-  const { id } = await params
+export default async function EditSeriesPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const supabase = await createClient();
+  const { id } = await params;
 
   const {
     data: { user },
     error,
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (error || !user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
-  const { data: series } = await supabase.from("series").select("*").eq("id", id).eq("user_id", user.id).single()
+  const { data: series } = await supabase
+    .from("series")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
 
   if (!series) {
-    redirect("/series")
+    redirect("/series");
   }
 
   return (
@@ -31,5 +44,5 @@ export default async function EditSeriesPage({ params }: { params: Promise<{ id:
         <EditSeriesForm series={series} />
       </main>
     </div>
-  )
+  );
 }

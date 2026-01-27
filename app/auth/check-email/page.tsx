@@ -1,6 +1,12 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Mail } from "lucide-react"
-import Link from "next/link"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Mail } from "lucide-react";
+import Link from "next/link";
 
 export default function CheckEmailPage() {
   return (
@@ -13,15 +19,21 @@ export default function CheckEmailPage() {
                 <Mail className="h-6 w-6 text-primary" />
               </div>
             </div>
-            <CardTitle className="text-2xl text-center">Verifique seu email</CardTitle>
+            <CardTitle className="text-2xl text-center">
+              Verifique seu email
+            </CardTitle>
             <CardDescription className="text-center">
-              Enviamos um link de confirmação para o seu email. Por favor, clique no link para ativar sua conta.
+              Enviamos um link de confirmação para o seu email. Por favor,
+              clique no link para ativar sua conta.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground text-center">
               Depois de confirmar, você pode{" "}
-              <Link href="/auth/login" className="underline underline-offset-4 text-foreground">
+              <Link
+                href="/auth/login"
+                className="underline underline-offset-4 text-foreground"
+              >
                 fazer login aqui
               </Link>
             </p>
@@ -29,5 +41,5 @@ export default function CheckEmailPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

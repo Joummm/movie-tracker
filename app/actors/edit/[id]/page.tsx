@@ -1,22 +1,30 @@
-import { redirect, notFound } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { ActorForm } from "@/components/actors/actor-form"
+import { redirect, notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { ActorForm } from "@/components/actors/actor-form";
 
-export default async function EditActorPage({ params }: { params: Promise<{ id: string }> }) {
-  const supabase = await createClient()
-  const { id } = await params
+export default async function EditActorPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const supabase = await createClient();
+  const { id } = await params;
 
   const {
     data: { user },
     error,
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (error || !user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   // Get actor details
   const { data: actor } = await supabase
@@ -24,10 +32,10 @@ export default async function EditActorPage({ params }: { params: Promise<{ id: 
     .select("*")
     .eq("id", id)
     .eq("user_id", user.id)
-    .single()
+    .single();
 
   if (!actor) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -37,5 +45,5 @@ export default async function EditActorPage({ params }: { params: Promise<{ id: 
         <ActorForm actor={actor} userId={user.id} isEdit />
       </main>
     </div>
-  )
+  );
 }

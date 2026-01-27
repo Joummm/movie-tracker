@@ -1,8 +1,8 @@
-import { ActorCard } from "./actor-card"
-import type { Actor } from "@/lib/types/database"
+import { ActorCard } from "./actor-card";
+import type { Actor } from "@/lib/types/database";
 
 interface ActorsListProps {
-  actors: Actor[]
+  actors: Actor[];
 }
 
 export function ActorsList({ actors }: ActorsListProps) {
@@ -14,7 +14,7 @@ export function ActorsList({ actors }: ActorsListProps) {
           Adicione atores para associar aos seus conteúdos
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -23,5 +23,5 @@ export function ActorsList({ actors }: ActorsListProps) {
         <ActorCard key={actor.id} actor={actor} />
       ))}
     </div>
-  )
+  );
 }

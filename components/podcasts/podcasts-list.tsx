@@ -1,99 +1,111 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/hooks/use-toast"
-import { MoreVertical, Edit, Trash2, PlayCircle, Calendar, Mic, Headphones, Plus } from "lucide-react"
-import type { Podcast } from "@/lib/types/database"
-import Image from "next/image"
-import { createClient } from "@/lib/supabase/client"
-import Link from "next/link"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import {
+  MoreVertical,
+  Edit,
+  Trash2,
+  PlayCircle,
+  Calendar,
+  Mic,
+  Headphones,
+  Plus,
+} from "lucide-react";
+import type { Podcast } from "@/lib/types/database";
+import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+} from "@/components/ui/dropdown-menu";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface PodcastsListProps {
-  podcasts: Podcast[]
+  podcasts: Podcast[];
 }
 
 export function PodcastsList({ podcasts }: PodcastsListProps) {
-  const router = useRouter()
-  const [mounted, setMounted] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [selectedPodcast, setSelectedPodcast] = useState<string | null>(null)
-  const { toast } = useToast()
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedPodcast, setSelectedPodcast] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "in_progress":
-        return "A Ouvir"
+        return "A Ouvir";
       case "completed":
-        return "Completo"
+        return "Completo";
       case "abandoned":
-        return "Abandonado"
+        return "Abandonado";
       default:
-        return status
+        return status;
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "in_progress":
-        return "bg-blue-500 hover:bg-blue-600"
+        return "bg-blue-500 hover:bg-blue-600";
       case "completed":
-        return "bg-green-500 hover:bg-green-600"
+        return "bg-green-500 hover:bg-green-600";
       case "abandoned":
-        return "bg-gray-500 hover:bg-gray-600"
+        return "bg-gray-500 hover:bg-gray-600";
       default:
-        return "bg-gray-500 hover:bg-gray-600"
+        return "bg-gray-500 hover:bg-gray-600";
     }
-  }
+  };
 
   const getDisplayName = (podcast: Podcast) => {
-    return podcast.name || "Podcast sem título"
-  }
+    return podcast.name || "Podcast sem título";
+  };
 
   const getEpisodeCount = (podcast: Podcast) => {
-    return podcast.episodes?.length || 0
-  }
+    return podcast.episodes?.length || 0;
+  };
 
   const handleDelete = async () => {
-    if (!selectedPodcast) return
-    
-    setIsDeleting(true)
-    const supabase = createClient()
-    const { error } = await supabase.from("podcasts").delete().eq("id", selectedPodcast)
+    if (!selectedPodcast) return;
+
+    setIsDeleting(true);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("podcasts")
+      .delete()
+      .eq("id", selectedPodcast);
 
     if (error) {
       toast({
         title: "Erro",
         description: "Erro ao apagar podcast",
         variant: "destructive",
-      })
-      setIsDeleting(false)
+      });
+      setIsDeleting(false);
     } else {
       toast({
         title: "Sucesso",
         description: "Podcast apagado com sucesso",
-      })
-      router.refresh()
+      });
+      router.refresh();
     }
-    
-    setShowDeleteDialog(false)
-    setSelectedPodcast(null)
-  }
+
+    setShowDeleteDialog(false);
+    setSelectedPodcast(null);
+  };
 
   if (!mounted) {
     return (
@@ -108,14 +120,16 @@ export function PodcastsList({ podcasts }: PodcastsListProps) {
           </Card>
         ))}
       </div>
-    )
+    );
   }
 
   if (podcasts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <Headphones className="h-12 w-12 text-muted-foreground mb-4" />
-        <p className="text-lg text-muted-foreground">Nenhum podcast adicionado</p>
+        <p className="text-lg text-muted-foreground">
+          Nenhum podcast adicionado
+        </p>
         <p className="text-sm text-muted-foreground mt-2">
           Comece adicionando podcasts que você ouve
         </p>
@@ -126,14 +140,17 @@ export function PodcastsList({ podcasts }: PodcastsListProps) {
           </Link>
         </Button>
       </div>
-    )
+    );
   }
 
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {podcasts.map((podcast) => (
-          <Card key={podcast.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+          <Card
+            key={podcast.id}
+            className="overflow-hidden hover:shadow-lg transition-shadow"
+          >
             <div className="relative aspect-square bg-muted">
               {podcast.cover_image ? (
                 <Image
@@ -171,8 +188,8 @@ export function PodcastsList({ podcasts }: PodcastsListProps) {
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => {
-                        setSelectedPodcast(podcast.id)
-                        setShowDeleteDialog(true)
+                        setSelectedPodcast(podcast.id);
+                        setShowDeleteDialog(true);
                       }}
                       className="text-destructive"
                     >
@@ -185,7 +202,9 @@ export function PodcastsList({ podcasts }: PodcastsListProps) {
             </div>
             <CardContent className="p-4">
               <div className="flex items-start justify-between gap-2 mb-2">
-                <h3 className="font-semibold text-sm line-clamp-2">{getDisplayName(podcast)}</h3>
+                <h3 className="font-semibold text-sm line-clamp-2">
+                  {getDisplayName(podcast)}
+                </h3>
                 <Badge className={`text-xs ${getStatusColor(podcast.status)}`}>
                   {getStatusLabel(podcast.status)}
                 </Badge>
@@ -197,13 +216,14 @@ export function PodcastsList({ podcasts }: PodcastsListProps) {
                     <span>Host: {podcast.host}</span>
                   </p>
                 )}
-                
+
                 <div className="flex items-center gap-2">
                   <span className="flex items-center gap-1">
                     <PlayCircle className="h-3 w-3" />
-                    {getEpisodeCount(podcast)} episódio{getEpisodeCount(podcast) !== 1 ? 's' : ''}
+                    {getEpisodeCount(podcast)} episódio
+                    {getEpisodeCount(podcast) !== 1 ? "s" : ""}
                   </span>
-                  
+
                   {podcast.release_year && (
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
@@ -213,26 +233,17 @@ export function PodcastsList({ podcasts }: PodcastsListProps) {
                 </div>
 
                 {podcast.description && (
-                  <p className="text-xs line-clamp-2 mt-2">{podcast.description}</p>
+                  <p className="text-xs line-clamp-2 mt-2">
+                    {podcast.description}
+                  </p>
                 )}
               </div>
 
               <div className="flex gap-2 mt-4">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex-1"
-                  asChild
-                >
-                  <Link href={`/podcasts/${podcast.id}`}>
-                    Ver Detalhes
-                  </Link>
+                <Button variant="outline" size="sm" className="flex-1" asChild>
+                  <Link href={`/podcasts/${podcast.id}`}>Ver Detalhes</Link>
                 </Button>
-                <Button 
-                  size="sm" 
-                  className="flex-1"
-                  asChild
-                >
+                <Button size="sm" className="flex-1" asChild>
                   <Link href={`/podcasts/${podcast.id}/episodes/add`}>
                     <Plus className="h-4 w-4 mr-2" />
                     Episódio
@@ -254,5 +265,5 @@ export function PodcastsList({ podcasts }: PodcastsListProps) {
         cancelText="Cancelar"
       />
     </>
-  )
+  );
 }

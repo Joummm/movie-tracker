@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { Film } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Film } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -9,9 +9,12 @@ export default function HomePage() {
         <div className="rounded-full bg-primary/10 p-4">
           <Film className="h-12 w-12 text-primary" />
         </div>
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Movie Tracker</h1>
+        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+          Movie Tracker
+        </h1>
         <p className="text-lg text-muted-foreground max-w-md">
-          Acompanhe todos os filmes e séries que você assiste. Organize por data, avalie e guarde suas memórias.
+          Acompanhe todos os filmes e séries que você assiste. Organize por
+          data, avalie e guarde suas memórias.
         </p>
       </div>
       <div className="flex gap-4">
@@ -23,5 +26,5 @@ export default function HomePage() {
         </Button>
       </div>
     </div>
-  )
+  );
 }

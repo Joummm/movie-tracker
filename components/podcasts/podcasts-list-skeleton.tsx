@@ -21,5 +21,5 @@ export function PodcastsListSkeleton() {
         </div>
       ))}
     </div>
-  )
+  );
 }

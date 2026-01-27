@@ -1,36 +1,42 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { PodcastsList } from "@/components/podcasts/podcasts-list"
-import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
-import Link from "next/link"
-import { Suspense } from "react"
-import { PodcastsListSkeleton } from "@/components/podcasts/podcasts-list-skeleton"
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { PodcastsList } from "@/components/podcasts/podcasts-list";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import Link from "next/link";
+import { Suspense } from "react";
+import { PodcastsListSkeleton } from "@/components/podcasts/podcasts-list-skeleton";
 
 export default async function PodcastsPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const {
     data: { user },
     error,
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (error || !user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   // Get all podcasts for this user
   const { data: podcasts } = await supabase
     .from("podcasts")
-    .select(`
+    .select(
+      `
       *,
       episodes:podcast_episodes(*)
-    `)
+    `,
+    )
     .eq("user_id", user.id)
-    .order("name")
+    .order("name");
 
   return (
     <div className="min-h-screen bg-background">
@@ -52,5 +58,5 @@ export default async function PodcastsPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

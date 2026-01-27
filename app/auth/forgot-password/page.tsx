@@ -1,49 +1,55 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import { useState } from "react"
-import { useToast } from "@/hooks/use-toast"
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Link from "next/link";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [emailSent, setEmailSent] = useState(false)
-  const { toast } = useToast()
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const { toast } = useToast();
 
   const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const supabase = createClient()
-    setIsLoading(true)
+    e.preventDefault();
+    const supabase = createClient();
+    setIsLoading(true);
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin}/auth/reset-password`,
-      })
+      });
 
-      if (error) throw error
+      if (error) throw error;
 
-      setEmailSent(true)
+      setEmailSent(true);
       toast({
         title: "Email enviado",
         description: "Verifique seu email para redefinir sua senha",
-      })
+      });
     } catch (error: unknown) {
       toast({
         title: "Erro",
         description: error instanceof Error ? error.message : "Ocorreu um erro",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
@@ -78,7 +84,10 @@ export default function ForgotPasswordPage() {
                 </div>
                 <div className="mt-4 text-center text-sm">
                   Lembrou sua senha?{" "}
-                  <Link href="/auth/login" className="underline underline-offset-4">
+                  <Link
+                    href="/auth/login"
+                    className="underline underline-offset-4"
+                  >
                     Voltar para login
                   </Link>
                 </div>
@@ -86,7 +95,8 @@ export default function ForgotPasswordPage() {
             ) : (
               <div className="flex flex-col gap-4">
                 <p className="text-sm text-muted-foreground">
-                  Um email foi enviado para <strong>{email}</strong> com instruções para redefinir sua senha.
+                  Um email foi enviado para <strong>{email}</strong> com
+                  instruções para redefinir sua senha.
                 </p>
                 <Button asChild>
                   <Link href="/auth/login">Voltar para Login</Link>
@@ -97,5 +107,5 @@ export default function ForgotPasswordPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

@@ -1,66 +1,79 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { createClient } from "@/lib/supabase/client"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Film, Star, Clock, Calendar } from "lucide-react"
-import type { Content, Series } from "@/lib/types/database"
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Film, Star, Clock, Calendar } from "lucide-react";
+import type { Content, Series } from "@/lib/types/database";
 
 interface SeriesDetailDialogProps {
-  series: Series
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  series: Series;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 interface EpisodeBySeason {
-  [season: number]: Content[]
+  [season: number]: Content[];
 }
 
-export function SeriesDetailDialog({ series, open, onOpenChange }: SeriesDetailDialogProps) {
-  const [episodes, setEpisodes] = useState<EpisodeBySeason>({})
+export function SeriesDetailDialog({
+  series,
+  open,
+  onOpenChange,
+}: SeriesDetailDialogProps) {
+  const [episodes, setEpisodes] = useState<EpisodeBySeason>({});
   const [stats, setStats] = useState({
     totalEpisodes: 0,
     seasons: 0,
     avgRating: 0,
     firstDate: null as string | null,
     lastDate: null as string | null,
-  })
+  });
 
   useEffect(() => {
     if (open) {
-      loadEpisodes()
+      loadEpisodes();
     }
-  }, [open, series.id])
+  }, [open, series.id]);
 
   const loadEpisodes = async () => {
-    const supabase = createClient()
+    const supabase = createClient();
     const { data } = await supabase
       .from("content")
       .select("*")
       .eq("series_id", series.id)
       .order("season", { ascending: true })
-      .order("episode", { ascending: true })
+      .order("episode", { ascending: true });
 
     if (data) {
       const grouped = data.reduce((acc, ep) => {
-        const season = ep.season || 0
+        const season = ep.season || 0;
         if (!acc[season]) {
-          acc[season] = []
+          acc[season] = [];
         }
-        acc[season].push(ep)
-        return acc
-      }, {} as EpisodeBySeason)
-      setEpisodes(grouped)
+        acc[season].push(ep);
+        return acc;
+      }, {} as EpisodeBySeason);
+      setEpisodes(grouped);
 
       // Calculate stats
-      const sortedDates = data.map((e) => e.watched_date).sort()
-      const ratedEpisodes = data.filter((e) => e.rating !== null)
+      const sortedDates = data.map((e) => e.watched_date).sort();
+      const ratedEpisodes = data.filter((e) => e.rating !== null);
       const avgRating =
-        ratedEpisodes.length > 0 ? ratedEpisodes.reduce((acc, e) => acc + (e.rating || 0), 0) / ratedEpisodes.length : 0
+        ratedEpisodes.length > 0
+          ? ratedEpisodes.reduce((acc, e) => acc + (e.rating || 0), 0) /
+            ratedEpisodes.length
+          : 0;
 
       setStats({
         totalEpisodes: data.length,
@@ -68,18 +81,18 @@ export function SeriesDetailDialog({ series, open, onOpenChange }: SeriesDetailD
         avgRating,
         firstDate: sortedDates[0] || null,
         lastDate: sortedDates[sortedDates.length - 1] || null,
-      })
+      });
     }
-  }
+  };
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return "N/A"
+    if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("pt-PT", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
-    })
-  }
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -91,8 +104,10 @@ export function SeriesDetailDialog({ series, open, onOpenChange }: SeriesDetailD
               <DialogDescription className="mt-2 space-y-1">
                 <div className="flex items-center gap-2">
                   <Film className="h-4 w-4" />
-                  {stats.totalEpisodes} {stats.totalEpisodes === 1 ? "episódio" : "episódios"}
-                  {stats.seasons > 0 && ` em ${stats.seasons} ${stats.seasons === 1 ? "temporada" : "temporadas"}`}
+                  {stats.totalEpisodes}{" "}
+                  {stats.totalEpisodes === 1 ? "episódio" : "episódios"}
+                  {stats.seasons > 0 &&
+                    ` em ${stats.seasons} ${stats.seasons === 1 ? "temporada" : "temporadas"}`}
                 </div>
                 {series.release_year && (
                   <div className="flex items-center gap-2">
@@ -131,24 +146,35 @@ export function SeriesDetailDialog({ series, open, onOpenChange }: SeriesDetailD
           <ScrollArea className="h-[400px] pr-4">
             <div className="space-y-6">
               {Object.keys(episodes).length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">A carregar episódios...</p>
+                <p className="text-center text-muted-foreground py-8">
+                  A carregar episódios...
+                </p>
               ) : (
                 Object.keys(episodes)
                   .sort((a, b) => Number(a) - Number(b))
                   .map((season) => (
                     <div key={season}>
-                      <h3 className="font-semibold text-lg mb-3">Temporada {season}</h3>
+                      <h3 className="font-semibold text-lg mb-3">
+                        Temporada {season}
+                      </h3>
                       <div className="space-y-2">
                         {episodes[Number(season)].map((episode) => (
-                          <Card key={episode.id} className="hover:bg-accent transition-colors">
+                          <Card
+                            key={episode.id}
+                            className="hover:bg-accent transition-colors"
+                          >
                             <CardContent className="p-3 sm:p-4">
                               <div className="space-y-2">
                                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                                  <Badge variant="outline" className="w-fit text-xs">
+                                  <Badge
+                                    variant="outline"
+                                    className="w-fit text-xs"
+                                  >
                                     S{episode.season}E{episode.episode}
                                   </Badge>
                                   <span className="font-medium text-sm sm:text-base truncate">
-                                    {episode.name || `Episódio ${episode.episode}`}
+                                    {episode.name ||
+                                      `Episódio ${episode.episode}`}
                                   </span>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
@@ -170,7 +196,9 @@ export function SeriesDetailDialog({ series, open, onOpenChange }: SeriesDetailD
                                   )}
                                 </div>
                                 {episode.notes && (
-                                  <p className="text-xs sm:text-sm text-muted-foreground italic">{episode.notes}</p>
+                                  <p className="text-xs sm:text-sm text-muted-foreground italic">
+                                    {episode.notes}
+                                  </p>
                                 )}
                               </div>
                             </CardContent>
@@ -185,5 +213,5 @@ export function SeriesDetailDialog({ series, open, onOpenChange }: SeriesDetailD
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

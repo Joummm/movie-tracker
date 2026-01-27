@@ -1,16 +1,22 @@
-"use client"
+"use client";
 
-import React from "react"
+import React from "react";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -18,51 +24,53 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Plus, List, Pencil, Trash2, ImageIcon } from "lucide-react"
-import type { ContentList } from "@/lib/types/database"
+} from "@/components/ui/dialog";
+import { Plus, List, Pencil, Trash2, ImageIcon } from "lucide-react";
+import type { ContentList } from "@/lib/types/database";
 
 export default function ListsPage() {
-  const router = useRouter()
-  const [lists, setLists] = useState<ContentList[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [userId, setUserId] = useState<string>("")
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingList, setEditingList] = useState<ContentList | null>(null)
+  const router = useRouter();
+  const [lists, setLists] = useState<ContentList[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState<string>("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingList, setEditingList] = useState<ContentList | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     coverImage: "",
-  })
+  });
 
   useEffect(() => {
-    loadData()
-  }, [])
+    loadData();
+  }, []);
 
   async function loadData() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
-      router.push("/auth/login")
-      return
+      router.push("/auth/login");
+      return;
     }
 
-    setUserId(user.id)
+    setUserId(user.id);
 
     const { data: listsData } = await supabase
       .from("content_lists")
       .select("*")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
+      .order("created_at", { ascending: false });
 
-    setLists(listsData || [])
-    setIsLoading(false)
+    setLists(listsData || []);
+    setIsLoading(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    const supabase = createClient()
+    e.preventDefault();
+    const supabase = createClient();
 
     if (editingList) {
       await supabase
@@ -72,44 +80,44 @@ export default function ListsPage() {
           description: formData.description || null,
           cover_image: formData.coverImage || null,
         })
-        .eq("id", editingList.id)
+        .eq("id", editingList.id);
     } else {
       await supabase.from("content_lists").insert({
         user_id: userId,
         name: formData.name,
         description: formData.description || null,
         cover_image: formData.coverImage || null,
-      })
+      });
     }
 
-    setIsDialogOpen(false)
-    setEditingList(null)
-    setFormData({ name: "", description: "", coverImage: "" })
-    loadData()
+    setIsDialogOpen(false);
+    setEditingList(null);
+    setFormData({ name: "", description: "", coverImage: "" });
+    loadData();
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Tem certeza que deseja apagar esta lista?")) return
-    
-    const supabase = createClient()
-    await supabase.from("content_lists").delete().eq("id", id)
-    loadData()
+    if (!confirm("Tem certeza que deseja apagar esta lista?")) return;
+
+    const supabase = createClient();
+    await supabase.from("content_lists").delete().eq("id", id);
+    loadData();
   }
 
   function openEditDialog(list: ContentList) {
-    setEditingList(list)
+    setEditingList(list);
     setFormData({
       name: list.name,
       description: list.description || "",
       coverImage: list.cover_image || "",
-    })
-    setIsDialogOpen(true)
+    });
+    setIsDialogOpen(true);
   }
 
   function openNewDialog() {
-    setEditingList(null)
-    setFormData({ name: "", description: "", coverImage: "" })
-    setIsDialogOpen(true)
+    setEditingList(null);
+    setFormData({ name: "", description: "", coverImage: "" });
+    setIsDialogOpen(true);
   }
 
   if (isLoading) {
@@ -122,7 +130,7 @@ export default function ListsPage() {
           </div>
         </main>
       </div>
-    )
+    );
   }
 
   return (
@@ -132,7 +140,9 @@ export default function ListsPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold">Minhas Listas</h1>
-            <p className="text-muted-foreground">Organize os seus conteúdos em listas personalizadas</p>
+            <p className="text-muted-foreground">
+              Organize os seus conteúdos em listas personalizadas
+            </p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -143,9 +153,13 @@ export default function ListsPage() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{editingList ? "Editar Lista" : "Nova Lista"}</DialogTitle>
+                <DialogTitle>
+                  {editingList ? "Editar Lista" : "Nova Lista"}
+                </DialogTitle>
                 <DialogDescription>
-                  {editingList ? "Atualize as informações da lista" : "Crie uma nova lista para organizar os seus conteúdos"}
+                  {editingList
+                    ? "Atualize as informações da lista"
+                    : "Crie uma nova lista para organizar os seus conteúdos"}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -155,7 +169,9 @@ export default function ListsPage() {
                     id="name"
                     required
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     placeholder="Nome da lista"
                   />
                 </div>
@@ -164,7 +180,9 @@ export default function ListsPage() {
                   <Textarea
                     id="description"
                     value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
                     placeholder="Descrição da lista"
                     rows={3}
                   />
@@ -174,22 +192,30 @@ export default function ListsPage() {
                   <Input
                     id="coverImage"
                     value={formData.coverImage}
-                    onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, coverImage: e.target.value })
+                    }
                     placeholder="https://..."
                   />
                   {formData.coverImage && (
                     <div className="mt-2 rounded-md overflow-hidden w-32 h-20">
-                      <img 
-                        src={formData.coverImage || "/placeholder.svg"} 
-                        alt="Preview" 
+                      <img
+                        src={formData.coverImage || "/placeholder.svg"}
+                        alt="Preview"
                         className="w-full h-full object-cover"
-                        onError={(e) => e.currentTarget.style.display = 'none'}
+                        onError={(e) =>
+                          (e.currentTarget.style.display = "none")
+                        }
                       />
                     </div>
                   )}
                 </div>
                 <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                  >
                     Cancelar
                   </Button>
                   <Button type="submit">
@@ -205,8 +231,12 @@ export default function ListsPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16">
               <List className="h-16 w-16 text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Nenhuma lista criada</h3>
-              <p className="text-muted-foreground mb-4">Crie a sua primeira lista para organizar os conteúdos</p>
+              <h3 className="text-xl font-semibold mb-2">
+                Nenhuma lista criada
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                Crie a sua primeira lista para organizar os conteúdos
+              </p>
               <Button onClick={openNewDialog}>
                 <Plus className="h-4 w-4 mr-2" />
                 Criar Lista
@@ -216,8 +246,8 @@ export default function ListsPage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {lists.map((list) => (
-              <Card 
-                key={list.id} 
+              <Card
+                key={list.id}
                 className="cursor-pointer hover:bg-accent/50 transition-colors"
                 onClick={() => router.push(`/lists/${list.id}`)}
               >
@@ -225,8 +255,8 @@ export default function ListsPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       {list.cover_image ? (
-                        <img 
-                          src={list.cover_image || "/placeholder.svg"} 
+                        <img
+                          src={list.cover_image || "/placeholder.svg"}
                           alt={list.name}
                           className="w-12 h-12 rounded-md object-cover"
                         />
@@ -244,7 +274,10 @@ export default function ListsPage() {
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="flex gap-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Button
                         variant="ghost"
                         size="icon"
@@ -270,5 +303,5 @@ export default function ListsPage() {
         )}
       </main>
     </div>
-  )
+  );
 }

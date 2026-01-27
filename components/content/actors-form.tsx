@@ -1,58 +1,70 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { X, Plus } from "lucide-react"
-import type { Actor, ContentActor } from "@/lib/types/database"
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { X, Plus } from "lucide-react";
+import type { Actor, ContentActor } from "@/lib/types/database";
 
 interface ActorsFormProps {
-  contentId?: string
-  seriesId?: string
-  podcastId?: string
-  userId: string
-  existingActors?: ContentActor[]
+  contentId?: string;
+  seriesId?: string;
+  podcastId?: string;
+  userId: string;
+  existingActors?: ContentActor[];
 }
 
-export function ActorsForm({ contentId, seriesId, podcastId, userId, existingActors = [] }: ActorsFormProps) {
-  const [actors, setActors] = useState<ContentActor[]>(existingActors)
-  const [availableActors, setAvailableActors] = useState<Actor[]>([])
+export function ActorsForm({
+  contentId,
+  seriesId,
+  podcastId,
+  userId,
+  existingActors = [],
+}: ActorsFormProps) {
+  const [actors, setActors] = useState<ContentActor[]>(existingActors);
+  const [availableActors, setAvailableActors] = useState<Actor[]>([]);
   const [newActor, setNewActor] = useState({
     name: "",
     photo_url: "",
     role_name: "",
-  })
-  const [selectedActorId, setSelectedActorId] = useState<string>("")
-  const [isLoading, setIsLoading] = useState(false)
+  });
+  const [selectedActorId, setSelectedActorId] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    loadAvailableActors()
-  }, [])
+    loadAvailableActors();
+  }, []);
 
   const loadAvailableActors = async () => {
-    const supabase = createClient()
+    const supabase = createClient();
     const { data } = await supabase
       .from("actors")
       .select("*")
       .eq("user_id", userId)
-      .order("name")
-    
-    setAvailableActors(data || [])
-  }
+      .order("name");
+
+    setAvailableActors(data || []);
+  };
 
   const handleAddExistingActor = async () => {
-    if (!selectedActorId) return
+    if (!selectedActorId) return;
 
-    setIsLoading(true)
-    const supabase = createClient()
-    
+    setIsLoading(true);
+    const supabase = createClient();
+
     const { data, error } = await supabase
       .from("content_actors")
       .insert({
@@ -63,22 +75,22 @@ export function ActorsForm({ contentId, seriesId, podcastId, userId, existingAct
         role_name: newActor.role_name,
       })
       .select("*, actor(*)")
-      .single()
+      .single();
 
     if (!error && data) {
-      setActors([...actors, data])
-      setSelectedActorId("")
-      setNewActor({ ...newActor, role_name: "" })
+      setActors([...actors, data]);
+      setSelectedActorId("");
+      setNewActor({ ...newActor, role_name: "" });
     }
-    setIsLoading(false)
-  }
+    setIsLoading(false);
+  };
 
   const handleCreateNewActor = async () => {
-    if (!newActor.name) return
+    if (!newActor.name) return;
 
-    setIsLoading(true)
-    const supabase = createClient()
-    
+    setIsLoading(true);
+    const supabase = createClient();
+
     // First create the actor
     const { data: actorData, error: actorError } = await supabase
       .from("actors")
@@ -88,12 +100,12 @@ export function ActorsForm({ contentId, seriesId, podcastId, userId, existingAct
         photo_url: newActor.photo_url || null,
       })
       .select()
-      .single()
+      .single();
 
     if (actorError) {
-      alert("Erro ao criar ator: " + actorError.message)
-      setIsLoading(false)
-      return
+      alert("Erro ao criar ator: " + actorError.message);
+      setIsLoading(false);
+      return;
     }
 
     // Then associate with content
@@ -107,28 +119,25 @@ export function ActorsForm({ contentId, seriesId, podcastId, userId, existingAct
         role_name: newActor.role_name,
       })
       .select("*, actor(*)")
-      .single()
+      .single();
 
     if (!contentActorError && contentActorData) {
-      setActors([...actors, contentActorData])
-      setAvailableActors([...availableActors, actorData])
-      setNewActor({ name: "", photo_url: "", role_name: "" })
+      setActors([...actors, contentActorData]);
+      setAvailableActors([...availableActors, actorData]);
+      setNewActor({ name: "", photo_url: "", role_name: "" });
     }
-    setIsLoading(false)
-  }
+    setIsLoading(false);
+  };
 
   const handleRemoveActor = async (actorId: string) => {
-    setIsLoading(true)
-    const supabase = createClient()
-    
-    await supabase
-      .from("content_actors")
-      .delete()
-      .eq("id", actorId)
+    setIsLoading(true);
+    const supabase = createClient();
 
-    setActors(actors.filter(actor => actor.id !== actorId))
-    setIsLoading(false)
-  }
+    await supabase.from("content_actors").delete().eq("id", actorId);
+
+    setActors(actors.filter((actor) => actor.id !== actorId));
+    setIsLoading(false);
+  };
 
   return (
     <div className="space-y-4">
@@ -145,7 +154,11 @@ export function ActorsForm({ contentId, seriesId, podcastId, userId, existingAct
           <Label>Atores Associados</Label>
           <div className="flex flex-wrap gap-2">
             {actors.map((actor) => (
-              <Badge key={actor.id} variant="secondary" className="flex items-center gap-1">
+              <Badge
+                key={actor.id}
+                variant="secondary"
+                className="flex items-center gap-1"
+              >
                 {actor.actor?.name}
                 {actor.role_name && ` (${actor.role_name})`}
                 <Button
@@ -183,7 +196,9 @@ export function ActorsForm({ contentId, seriesId, podcastId, userId, existingAct
           <Input
             placeholder="Nome do personagem (opcional)"
             value={newActor.role_name}
-            onChange={(e) => setNewActor({ ...newActor, role_name: e.target.value })}
+            onChange={(e) =>
+              setNewActor({ ...newActor, role_name: e.target.value })
+            }
             className="flex-1"
           />
           <Button
@@ -205,13 +220,17 @@ export function ActorsForm({ contentId, seriesId, podcastId, userId, existingAct
             <Input
               placeholder="Nome do ator *"
               value={newActor.name}
-              onChange={(e) => setNewActor({ ...newActor, name: e.target.value })}
+              onChange={(e) =>
+                setNewActor({ ...newActor, name: e.target.value })
+              }
               className="flex-1"
             />
             <Input
               placeholder="URL da foto (opcional)"
               value={newActor.photo_url}
-              onChange={(e) => setNewActor({ ...newActor, photo_url: e.target.value })}
+              onChange={(e) =>
+                setNewActor({ ...newActor, photo_url: e.target.value })
+              }
               className="flex-1"
             />
           </div>
@@ -219,7 +238,9 @@ export function ActorsForm({ contentId, seriesId, podcastId, userId, existingAct
             <Input
               placeholder="Nome do personagem (opcional)"
               value={newActor.role_name}
-              onChange={(e) => setNewActor({ ...newActor, role_name: e.target.value })}
+              onChange={(e) =>
+                setNewActor({ ...newActor, role_name: e.target.value })
+              }
               className="flex-1"
             />
             <Button
@@ -235,5 +256,5 @@ export function ActorsForm({ contentId, seriesId, podcastId, userId, existingAct
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -107,11 +107,13 @@ bun run build
 **Nota**: O Netlify requer configuração adicional para projetos Next.js.
 
 1. Instale o plugin Netlify para Next.js:
+
    ```bash
    npm install @netlify/plugin-nextjs
    ```
 
 2. Crie um ficheiro `netlify.toml` na raiz:
+
    ```toml
    [build]
      command = "npm run build"
@@ -189,9 +191,6 @@ bun run build
 ## Suporte
 
 Para questões ou problemas, abra uma issue no repositório do projeto.
-
-
-
 
 Preciso que para além do tipo de data existente haja um que seja data desconhecida, para permitir que o utilizador adicione um conteudo que assistiu mas não sabe quando
 

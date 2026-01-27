@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,44 +8,44 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { 
-  Film, 
-  Menu, 
-  X, 
-  User, 
-  LogOut, 
-  Plus, 
-  List, 
+} from "@/components/ui/dropdown-menu";
+import {
+  Film,
+  Menu,
+  X,
+  User,
+  LogOut,
+  Plus,
+  List,
   Settings,
   Users,
   Mic,
   FolderKanban,
-  Tv
-} from "lucide-react"
-import Link from "next/link"
-import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+  Tv,
+} from "lucide-react";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 interface DashboardHeaderProps {
-  userName: string
+  userName: string;
 }
 
 export function DashboardHeader({ userName }: DashboardHeaderProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
-  const router = useRouter()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push("/")
-  }
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/");
+  };
 
   // Não renderizar nada durante SSR para evitar inconsistências
   if (!mounted) {
@@ -58,13 +58,16 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
           </div>
         </div>
       </header>
-    )
+    );
   }
 
   return (
     <header className="border-b bg-card sticky top-0 z-50">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
-        <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 font-semibold"
+        >
           <Film className="h-6 w-6" />
           <span>Movie Tracker</span>
         </Link>
@@ -124,7 +127,10 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
                 Definições
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="text-red-600 focus:text-red-600"
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 Sair
               </DropdownMenuItem>
@@ -132,8 +138,17 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
           </DropdownMenu>
 
           {/* Mobile Menu Button */}
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
           </Button>
         </div>
       </div>
@@ -142,37 +157,71 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
       {mobileMenuOpen && (
         <div className="md:hidden border-t bg-card">
           <nav className="container mx-auto flex flex-col p-4 gap-2">
-            <Button asChild variant="ghost" className="justify-start" onClick={() => setMobileMenuOpen(false)}>
+            <Button
+              asChild
+              variant="ghost"
+              className="justify-start"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               <Link href="/dashboard">Dashboard</Link>
             </Button>
-            <Button asChild variant="ghost" className="justify-start" onClick={() => setMobileMenuOpen(false)}>
+            <Button
+              asChild
+              variant="ghost"
+              className="justify-start"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               <Link href="/content">Conteúdos</Link>
             </Button>
-            <Button asChild variant="ghost" className="justify-start" onClick={() => setMobileMenuOpen(false)}>
+            <Button
+              asChild
+              variant="ghost"
+              className="justify-start"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               <Link href="/series">
                 <Tv className="h-4 w-4 mr-2" />
                 Séries
               </Link>
             </Button>
-            <Button asChild variant="ghost" className="justify-start" onClick={() => setMobileMenuOpen(false)}>
+            <Button
+              asChild
+              variant="ghost"
+              className="justify-start"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               <Link href="/actors">
                 <Users className="h-4 w-4 mr-2" />
                 Atores
               </Link>
             </Button>
-            <Button asChild variant="ghost" className="justify-start" onClick={() => setMobileMenuOpen(false)}>
+            <Button
+              asChild
+              variant="ghost"
+              className="justify-start"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               <Link href="/podcasts">
                 <Mic className="h-4 w-4 mr-2" />
                 Podcasts
               </Link>
             </Button>
-            <Button asChild variant="ghost" className="justify-start" onClick={() => setMobileMenuOpen(false)}>
+            <Button
+              asChild
+              variant="ghost"
+              className="justify-start"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               <Link href="/lists">
                 <List className="h-4 w-4 mr-2" />
                 Listas
               </Link>
             </Button>
-            <Button asChild className="justify-start" onClick={() => setMobileMenuOpen(false)}>
+            <Button
+              asChild
+              className="justify-start"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               <Link href="/content/add">
                 <Plus className="h-4 w-4 mr-2" />
                 Adicionar Conteúdo
@@ -182,5 +231,5 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
         </div>
       )}
     </header>
-  )
+  );
 }

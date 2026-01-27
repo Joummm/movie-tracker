@@ -1,26 +1,26 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu"
-import { Languages } from "lucide-react"
-import { useI18n } from "@/lib/i18n/context"
-import type { Locale } from "@/lib/i18n/translations"
+} from "@/components/ui/dropdown-menu";
+import { Languages } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
+import type { Locale } from "@/lib/i18n/translations";
 
 const languages = {
   pt: "Português",
   en: "English",
   es: "Español",
   fr: "Français",
-}
+};
 
 export function LanguageSelector() {
-  const { locale, setLocale } = useI18n()
+  const { locale, setLocale } = useI18n();
 
   return (
     <DropdownMenu>
@@ -43,5 +43,5 @@ export function LanguageSelector() {
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

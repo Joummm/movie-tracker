@@ -1,24 +1,32 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { ContentTypeSelector } from "@/components/content/content-type-selector"
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { ContentTypeSelector } from "@/components/content/ContentTypeSelector";
 
 export default async function AddContentPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const {
     data: { user },
     error,
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (error || !user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   // Get user's series for the dropdown
-  const { data: series } = await supabase.from("series").select("*").eq("user_id", user.id).order("name")
+  const { data: series } = await supabase
+    .from("series")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("name");
 
   return (
     <div className="min-h-screen bg-background">
@@ -27,5 +35,5 @@ export default async function AddContentPage() {
         <ContentTypeSelector userSeries={series || []} userId={user.id} />
       </main>
     </div>
-  )
+  );
 }

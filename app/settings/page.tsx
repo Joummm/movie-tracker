@@ -1,73 +1,91 @@
-"use client"
+"use client";
 
-import React from "react"
+import React from "react";
 
-import { useState, useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Download, Upload, FileJson, AlertCircle, CheckCircle2 } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Download,
+  Upload,
+  FileJson,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ExportData {
-  version: string
-  exportedAt: string
-  profile: Record<string, unknown>
-  series: Record<string, unknown>[]
-  content: Record<string, unknown>[]
-  lists: Record<string, unknown>[]
-  listItems: Record<string, unknown>[]
+  version: string;
+  exportedAt: string;
+  profile: Record<string, unknown>;
+  series: Record<string, unknown>[];
+  content: Record<string, unknown>[];
+  lists: Record<string, unknown>[];
+  listItems: Record<string, unknown>[];
 }
 
 export default function SettingsPage() {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(true)
-  const [isExporting, setIsExporting] = useState(false)
-  const [isImporting, setIsImporting] = useState(false)
-  const [userId, setUserId] = useState("")
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [userId, setUserId] = useState("");
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    checkAuth()
-  }, [])
+    checkAuth();
+  }, []);
 
   async function checkAuth() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
-      router.push("/auth/login")
-      return
+      router.push("/auth/login");
+      return;
     }
 
-    setUserId(user.id)
-    setIsLoading(false)
+    setUserId(user.id);
+    setIsLoading(false);
   }
 
   async function handleExport() {
-    setIsExporting(true)
-    setMessage(null)
+    setIsExporting(true);
+    setMessage(null);
 
     try {
-      const supabase = createClient()
+      const supabase = createClient();
 
       // Fetch all user data
-      const [profileRes, seriesRes, contentRes, listsRes, listItemsRes] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", userId).single(),
-        supabase.from("series").select("*").eq("user_id", userId),
-        supabase.from("content").select("*").eq("user_id", userId),
-        supabase.from("content_lists").select("*").eq("user_id", userId),
-        supabase.from("list_items").select("*"),
-      ])
+      const [profileRes, seriesRes, contentRes, listsRes, listItemsRes] =
+        await Promise.all([
+          supabase.from("profiles").select("*").eq("id", userId).single(),
+          supabase.from("series").select("*").eq("user_id", userId),
+          supabase.from("content").select("*").eq("user_id", userId),
+          supabase.from("content_lists").select("*").eq("user_id", userId),
+          supabase.from("list_items").select("*"),
+        ]);
 
       // Filter list items to only include items from user's lists
-      const userListIds = (listsRes.data || []).map(l => l.id)
-      const userListItems = (listItemsRes.data || []).filter(item => 
-        userListIds.includes(item.list_id)
-      )
+      const userListIds = (listsRes.data || []).map((l) => l.id);
+      const userListItems = (listItemsRes.data || []).filter((item) =>
+        userListIds.includes(item.list_id),
+      );
 
       const exportData: ExportData = {
         version: "1.0",
@@ -77,53 +95,58 @@ export default function SettingsPage() {
         content: contentRes.data || [],
         lists: listsRes.data || [],
         listItems: userListItems,
-      }
+      };
 
       // Create and download file
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `media-tracker-export-${new Date().toISOString().split("T")[0]}.json`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `media-tracker-export-${new Date().toISOString().split("T")[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
-      setMessage({ type: "success", text: "Dados exportados com sucesso!" })
+      setMessage({ type: "success", text: "Dados exportados com sucesso!" });
     } catch (error) {
-      console.error("Export error:", error)
-      setMessage({ type: "error", text: "Erro ao exportar dados. Tente novamente." })
+      console.error("Export error:", error);
+      setMessage({
+        type: "error",
+        text: "Erro ao exportar dados. Tente novamente.",
+      });
     }
 
-    setIsExporting(false)
+    setIsExporting(false);
   }
 
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setIsImporting(true)
-    setMessage(null)
+    setIsImporting(true);
+    setMessage(null);
 
     try {
-      const text = await file.text()
-      const data: ExportData = JSON.parse(text)
+      const text = await file.text();
+      const data: ExportData = JSON.parse(text);
 
       if (!data.version || !data.series || !data.content) {
-        throw new Error("Ficheiro inválido")
+        throw new Error("Ficheiro inválido");
       }
 
-      const supabase = createClient()
+      const supabase = createClient();
 
       // Create mapping for old IDs to new IDs
-      const seriesIdMap = new Map<string, string>()
-      const listIdMap = new Map<string, string>()
-      const contentIdMap = new Map<string, string>()
+      const seriesIdMap = new Map<string, string>();
+      const listIdMap = new Map<string, string>();
+      const contentIdMap = new Map<string, string>();
 
       // Import series
       for (const series of data.series) {
-        const oldId = series.id as string
+        const oldId = series.id as string;
         const { data: newSeries, error } = await supabase
           .from("series")
           .insert({
@@ -134,18 +157,18 @@ export default function SettingsPage() {
             release_year: series.release_year,
           })
           .select()
-          .single()
+          .single();
 
         if (!error && newSeries) {
-          seriesIdMap.set(oldId, newSeries.id)
+          seriesIdMap.set(oldId, newSeries.id);
         }
       }
 
       // Import content
       for (const content of data.content) {
-        const oldId = content.id as string
-        const oldSeriesId = content.series_id as string | null
-        const newSeriesId = oldSeriesId ? seriesIdMap.get(oldSeriesId) : null
+        const oldId = content.id as string;
+        const oldSeriesId = content.series_id as string | null;
+        const newSeriesId = oldSeriesId ? seriesIdMap.get(oldSeriesId) : null;
 
         const { data: newContent, error } = await supabase
           .from("content")
@@ -167,16 +190,16 @@ export default function SettingsPage() {
             notes: content.notes,
           })
           .select()
-          .single()
+          .single();
 
         if (!error && newContent) {
-          contentIdMap.set(oldId, newContent.id)
+          contentIdMap.set(oldId, newContent.id);
         }
       }
 
       // Import lists
       for (const list of data.lists) {
-        const oldId = list.id as string
+        const oldId = list.id as string;
         const { data: newList, error } = await supabase
           .from("content_lists")
           .insert({
@@ -187,22 +210,24 @@ export default function SettingsPage() {
             is_public: list.is_public || false,
           })
           .select()
-          .single()
+          .single();
 
         if (!error && newList) {
-          listIdMap.set(oldId, newList.id)
+          listIdMap.set(oldId, newList.id);
         }
       }
 
       // Import list items
       for (const item of data.listItems) {
-        const oldListId = item.list_id as string
-        const oldContentId = item.content_id as string | null
-        const oldSeriesId = item.series_id as string | null
+        const oldListId = item.list_id as string;
+        const oldContentId = item.content_id as string | null;
+        const oldSeriesId = item.series_id as string | null;
 
-        const newListId = listIdMap.get(oldListId)
-        const newContentId = oldContentId ? contentIdMap.get(oldContentId) : null
-        const newSeriesId = oldSeriesId ? seriesIdMap.get(oldSeriesId) : null
+        const newListId = listIdMap.get(oldListId);
+        const newContentId = oldContentId
+          ? contentIdMap.get(oldContentId)
+          : null;
+        const newSeriesId = oldSeriesId ? seriesIdMap.get(oldSeriesId) : null;
 
         if (newListId && (newContentId || newSeriesId)) {
           await supabase.from("list_items").insert({
@@ -211,22 +236,25 @@ export default function SettingsPage() {
             series_id: newSeriesId,
             position: item.position,
             notes: item.notes,
-          })
+          });
         }
       }
 
-      setMessage({ 
-        type: "success", 
-        text: `Importação concluída! ${data.series.length} séries, ${data.content.length} conteúdos e ${data.lists.length} listas importadas.` 
-      })
+      setMessage({
+        type: "success",
+        text: `Importação concluída! ${data.series.length} séries, ${data.content.length} conteúdos e ${data.lists.length} listas importadas.`,
+      });
     } catch (error) {
-      console.error("Import error:", error)
-      setMessage({ type: "error", text: "Erro ao importar dados. Verifique se o ficheiro é válido." })
+      console.error("Import error:", error);
+      setMessage({
+        type: "error",
+        text: "Erro ao importar dados. Verifique se o ficheiro é válido.",
+      });
     }
 
-    setIsImporting(false)
+    setIsImporting(false);
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+      fileInputRef.current.value = "";
     }
   }
 
@@ -240,7 +268,7 @@ export default function SettingsPage() {
           </div>
         </main>
       </div>
-    )
+    );
   }
 
   return (
@@ -253,13 +281,18 @@ export default function SettingsPage() {
         </div>
 
         {message && (
-          <Alert variant={message.type === "error" ? "destructive" : "default"} className="mb-6">
+          <Alert
+            variant={message.type === "error" ? "destructive" : "default"}
+            className="mb-6"
+          >
             {message.type === "success" ? (
               <CheckCircle2 className="h-4 w-4" />
             ) : (
               <AlertCircle className="h-4 w-4" />
             )}
-            <AlertTitle>{message.type === "success" ? "Sucesso" : "Erro"}</AlertTitle>
+            <AlertTitle>
+              {message.type === "success" ? "Sucesso" : "Erro"}
+            </AlertTitle>
             <AlertDescription>{message.text}</AlertDescription>
           </Alert>
         )}
@@ -277,10 +310,15 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">
-                O ficheiro incluirá todas as suas séries, conteúdos, listas e configurações.
-                Pode usar este ficheiro para fazer backup ou migrar para outra conta.
+                O ficheiro incluirá todas as suas séries, conteúdos, listas e
+                configurações. Pode usar este ficheiro para fazer backup ou
+                migrar para outra conta.
               </p>
-              <Button onClick={handleExport} disabled={isExporting} className="w-full">
+              <Button
+                onClick={handleExport}
+                disabled={isExporting}
+                className="w-full"
+              >
                 {isExporting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
@@ -319,8 +357,8 @@ export default function SettingsPage() {
                 className="hidden"
                 id="import-file"
               />
-              <Button 
-                onClick={() => fileInputRef.current?.click()} 
+              <Button
+                onClick={() => fileInputRef.current?.click()}
                 disabled={isImporting}
                 variant="outline"
                 className="w-full"
@@ -342,5 +380,5 @@ export default function SettingsPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

@@ -1,21 +1,34 @@
-"use client"
+"use client";
 
-import { useRouter, useSearchParams } from "next/navigation"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
-import { Calendar, CalendarDays, CalendarRange, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react"
-import { Label } from "@/components/ui/label"
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import {
+  Calendar,
+  CalendarDays,
+  CalendarRange,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown,
+} from "lucide-react";
+import { Label } from "@/components/ui/label";
 
 interface ContentFiltersProps {
-  years: number[]
-  releaseYears: number[]
-  selectedYear?: string
-  selectedMonth?: string
-  selectedWeek?: string
-  selectedDay?: string
-  selectedView: string
-  selectedType: string
-  selectedReleaseYear?: string
+  years: number[];
+  releaseYears: number[];
+  selectedYear?: string;
+  selectedMonth?: string;
+  selectedWeek?: string;
+  selectedDay?: string;
+  selectedView: string;
+  selectedType: string;
+  selectedReleaseYear?: string;
 }
 
 export function ContentFilters({
@@ -29,88 +42,90 @@ export function ContentFilters({
   selectedType,
   selectedReleaseYear,
 }: ContentFiltersProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const updateFilter = (key: string, value: string) => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams.toString());
     if (value && value !== "all") {
-      params.set(key, value)
+      params.set(key, value);
     } else {
-      params.delete(key)
+      params.delete(key);
     }
     // Reset month/week/day when changing year or view
     if (key === "year" || key === "view") {
-      params.delete("month")
-      params.delete("week")
-      params.delete("day")
+      params.delete("month");
+      params.delete("week");
+      params.delete("day");
     }
     if (key === "month") {
-      params.delete("day")
-      params.delete("week")
+      params.delete("day");
+      params.delete("week");
     }
     if (key === "releaseYear") {
-      params.delete("year")
-      params.delete("month")
-      params.delete("week")
-      params.delete("day")
-      params.delete("view")
+      params.delete("year");
+      params.delete("month");
+      params.delete("week");
+      params.delete("day");
+      params.delete("view");
     }
     if (key === "year") {
-      params.delete("releaseYear")
+      params.delete("releaseYear");
     }
-    router.push(`/content?${params.toString()}`)
-  }
+    router.push(`/content?${params.toString()}`);
+  };
 
   const navigateDay = (direction: "prev" | "next") => {
-    if (!selectedDay) return
-    const currentDate = new Date(selectedDay)
-    currentDate.setDate(currentDate.getDate() + (direction === "next" ? 1 : -1))
-    const newDay = currentDate.toISOString().split("T")[0]
-    updateFilter("day", newDay)
-  }
+    if (!selectedDay) return;
+    const currentDate = new Date(selectedDay);
+    currentDate.setDate(
+      currentDate.getDate() + (direction === "next" ? 1 : -1),
+    );
+    const newDay = currentDate.toISOString().split("T")[0];
+    updateFilter("day", newDay);
+  };
 
   const navigateWeek = (direction: "prev" | "next") => {
-    if (!selectedWeek || !selectedYear) return
-    const week = Number.parseInt(selectedWeek)
-    const year = Number.parseInt(selectedYear)
-    let newWeek = direction === "next" ? week + 1 : week - 1
-    let newYear = year
+    if (!selectedWeek || !selectedYear) return;
+    const week = Number.parseInt(selectedWeek);
+    const year = Number.parseInt(selectedYear);
+    let newWeek = direction === "next" ? week + 1 : week - 1;
+    let newYear = year;
 
     if (newWeek > 52) {
-      newWeek = 1
-      newYear += 1
+      newWeek = 1;
+      newYear += 1;
     } else if (newWeek < 1) {
-      newWeek = 52
-      newYear -= 1
+      newWeek = 52;
+      newYear -= 1;
     }
 
-    const params = new URLSearchParams(searchParams.toString())
-    params.set("week", newWeek.toString())
-    params.set("year", newYear.toString())
-    router.push(`/content?${params.toString()}`)
-  }
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("week", newWeek.toString());
+    params.set("year", newYear.toString());
+    router.push(`/content?${params.toString()}`);
+  };
 
   const navigateMonth = (direction: "prev" | "next") => {
-    if (!selectedMonth || !selectedYear) return
-    const month = Number.parseInt(selectedMonth)
-    const year = Number.parseInt(selectedYear)
-    let newMonth = direction === "next" ? month + 1 : month - 1
-    let newYear = year
+    if (!selectedMonth || !selectedYear) return;
+    const month = Number.parseInt(selectedMonth);
+    const year = Number.parseInt(selectedYear);
+    let newMonth = direction === "next" ? month + 1 : month - 1;
+    let newYear = year;
 
     if (newMonth > 12) {
-      newMonth = 1
-      newYear += 1
+      newMonth = 1;
+      newYear += 1;
     } else if (newMonth < 1) {
-      newMonth = 12
-      newYear -= 1
+      newMonth = 12;
+      newYear -= 1;
     }
 
-    const params = new URLSearchParams(searchParams.toString())
-    params.set("month", newMonth.toString())
-    params.set("year", newYear.toString())
-    router.push(`/content?${params.toString()}`)
-  }
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("month", newMonth.toString());
+    params.set("year", newYear.toString());
+    router.push(`/content?${params.toString()}`);
+  };
 
   const months = [
     { value: "1", label: "Janeiro" },
@@ -125,9 +140,9 @@ export function ContentFilters({
     { value: "10", label: "Outubro" },
     { value: "11", label: "Novembro" },
     { value: "12", label: "Dezembro" },
-  ]
+  ];
 
-  const selectedSort = searchParams.get("sort") || "newest"
+  const selectedSort = searchParams.get("sort") || "newest";
 
   return (
     <div className="flex flex-col gap-4">
@@ -135,10 +150,16 @@ export function ContentFilters({
         <h1 className="text-3xl font-bold">Meus Conteúdos</h1>
         <div className="flex gap-2 flex-wrap">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="sort-select" className="text-xs text-muted-foreground">
+            <Label
+              htmlFor="sort-select"
+              className="text-xs text-muted-foreground"
+            >
               Ordenar por
             </Label>
-            <Select value={selectedSort} onValueChange={(value) => updateFilter("sort", value)}>
+            <Select
+              value={selectedSort}
+              onValueChange={(value) => updateFilter("sort", value)}
+            >
               <SelectTrigger id="sort-select" className="w-45">
                 <ArrowUpDown className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Ordenar" />
@@ -155,10 +176,16 @@ export function ContentFilters({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="type-select" className="text-xs text-muted-foreground">
+            <Label
+              htmlFor="type-select"
+              className="text-xs text-muted-foreground"
+            >
               Tipo de conteúdo
             </Label>
-            <Select value={selectedType} onValueChange={(value) => updateFilter("type", value)}>
+            <Select
+              value={selectedType}
+              onValueChange={(value) => updateFilter("type", value)}
+            >
               <SelectTrigger id="type-select" className="w-37.5">
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
@@ -175,7 +202,10 @@ export function ContentFilters({
 
           {releaseYears.length > 0 && (
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="release-year-select" className="text-xs text-muted-foreground">
+              <Label
+                htmlFor="release-year-select"
+                className="text-xs text-muted-foreground"
+              >
                 Ano de lançamento
               </Label>
               <Select
@@ -198,10 +228,16 @@ export function ContentFilters({
           )}
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="year-select" className="text-xs text-muted-foreground">
+            <Label
+              htmlFor="year-select"
+              className="text-xs text-muted-foreground"
+            >
               Ano assistido
             </Label>
-            <Select value={selectedYear || "all"} onValueChange={(value) => updateFilter("year", value)}>
+            <Select
+              value={selectedYear || "all"}
+              onValueChange={(value) => updateFilter("year", value)}
+            >
               <SelectTrigger id="year-select" className="w-30">
                 <SelectValue placeholder="Ano" />
               </SelectTrigger>
@@ -221,7 +257,9 @@ export function ContentFilters({
       {selectedYear && (
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground">Visualização:</span>
+            <span className="text-sm font-medium text-muted-foreground">
+              Visualização:
+            </span>
           </div>
           <div className="flex gap-2 flex-wrap">
             <Button
@@ -262,9 +300,16 @@ export function ContentFilters({
 
       {selectedYear && selectedView === "days" && (
         <div className="flex flex-col gap-2">
-          <span className="text-sm font-medium text-muted-foreground">Selecione um dia:</span>
+          <span className="text-sm font-medium text-muted-foreground">
+            Selecione um dia:
+          </span>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={() => navigateDay("prev")} disabled={!selectedDay}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigateDay("prev")}
+              disabled={!selectedDay}
+            >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <input
@@ -273,7 +318,12 @@ export function ContentFilters({
               onChange={(e) => updateFilter("day", e.target.value)}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             />
-            <Button variant="outline" size="icon" onClick={() => navigateDay("next")} disabled={!selectedDay}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigateDay("next")}
+              disabled={!selectedDay}
+            >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -282,18 +332,25 @@ export function ContentFilters({
 
       {selectedYear && selectedView === "weeks" && (
         <div className="flex flex-col gap-2">
-          <span className="text-sm font-medium text-muted-foreground">Selecione uma semana:</span>
+          <span className="text-sm font-medium text-muted-foreground">
+            Selecione uma semana:
+          </span>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={() => navigateWeek("prev")} disabled={!selectedWeek}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigateWeek("prev")}
+              disabled={!selectedWeek}
+            >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Select
               value={selectedWeek || ""}
               onValueChange={(value) => {
-                const params = new URLSearchParams(searchParams.toString())
-                params.set("week", value)
-                params.set("view", "weeks")
-                router.push(`/content?${params.toString()}`)
+                const params = new URLSearchParams(searchParams.toString());
+                params.set("week", value);
+                params.set("view", "weeks");
+                router.push(`/content?${params.toString()}`);
               }}
             >
               <SelectTrigger>
@@ -307,7 +364,12 @@ export function ContentFilters({
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="outline" size="icon" onClick={() => navigateWeek("next")} disabled={!selectedWeek}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigateWeek("next")}
+              disabled={!selectedWeek}
+            >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -316,17 +378,31 @@ export function ContentFilters({
 
       {selectedYear && selectedView === "months" && (
         <div className="flex flex-col gap-2">
-          <span className="text-sm font-medium text-muted-foreground">Selecione um mês:</span>
+          <span className="text-sm font-medium text-muted-foreground">
+            Selecione um mês:
+          </span>
           <div className="flex items-center gap-2 mb-2">
-            <Button variant="outline" size="icon" onClick={() => navigateMonth("prev")} disabled={!selectedMonth}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigateMonth("prev")}
+              disabled={!selectedMonth}
+            >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <div className="flex-1 text-center font-medium">
               {selectedMonth
-                ? months.find((m) => m.value === selectedMonth)?.label + " " + selectedYear
+                ? months.find((m) => m.value === selectedMonth)?.label +
+                  " " +
+                  selectedYear
                 : "Escolha um mês"}
             </div>
-            <Button variant="outline" size="icon" onClick={() => navigateMonth("next")} disabled={!selectedMonth}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigateMonth("next")}
+              disabled={!selectedMonth}
+            >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -345,5 +421,5 @@ export function ContentFilters({
         </div>
       )}
     </div>
-  )
+  );
 }
