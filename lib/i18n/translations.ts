@@ -1,0 +1,353 @@
+export const translations = {
+  pt: {
+    // Navigation
+    dashboard: "Dashboard",
+    content: "Conteúdos",
+    series: "Séries",
+    addContent: "Adicionar Conteúdo",
+    logout: "Sair",
+
+    // Content Types
+    movie: "Filme",
+    episode: "Episódio",
+    short: "Short",
+    other: "Outro",
+
+    // Actions
+    edit: "Editar",
+    delete: "Apagar",
+    save: "Guardar",
+    cancel: "Cancelar",
+    confirm: "Confirmar",
+    add: "Adicionar",
+
+    // Dashboard
+    recentlyWatched: "Recentemente Assistido",
+    yourLast5: "Seus últimos 5 conteúdos",
+    totalContent: "Total de Conteúdos",
+    movies: "Filmes",
+    episodes: "Episódios",
+    shorts: "Shorts",
+    others: "Outros",
+    watchTime: "Tempo Assistido",
+    hours: "horas",
+    avgRating: "Avaliação Média",
+    contentByMonth: "Conteúdo por Mês",
+
+    // Content
+    filters: "Filtros",
+    viewBy: "Visualizar por",
+    sortBy: "Ordenar por",
+    year: "Ano",
+    month: "Mês",
+    week: "Semana",
+    day: "Dia",
+    releaseYear: "Ano de Lançamento",
+    type: "Tipo",
+    all: "Todos",
+    alphabeticalAZ: "Alfabética (A-Z)",
+    alphabeticalZA: "Alfabética (Z-A)",
+    newest: "Mais Recente",
+    oldest: "Mais Antigo",
+    highestRated: "Melhor Avaliado",
+    lowestRated: "Pior Avaliado",
+
+    // Series
+    mySeries: "Minhas Séries",
+    completed: "Completa",
+    viewDetails: "Ver Detalhes",
+    startDate: "Início",
+    lastDate: "Último",
+    avgEpisodeRating: "Avaliação Média dos Episódios",
+
+    // Forms
+    name: "Nome",
+    rating: "Avaliação",
+    duration: "Duração",
+    coverImage: "Imagem de Capa",
+    watchedDate: "Data Assistida",
+    season: "Temporada",
+    episodeNumber: "Episódio",
+    selectSeries: "Selecionar Série",
+    createNewSeries: "Criar Nova Série",
+    seriesName: "Nome da Série",
+    markAsCompleted: "Marcar como completa",
+
+    // Messages
+    noContent: "Nenhum conteúdo ainda",
+    noSeries: "Nenhuma série encontrada",
+    deleteConfirm: "Tem certeza que deseja apagar?",
+    deleteDescription: "Esta ação não pode ser desfeita.",
+    success: "Sucesso",
+    error: "Erro",
+    contentCreated: "Conteúdo criado com sucesso",
+    contentUpdated: "Conteúdo atualizado com sucesso",
+    contentDeleted: "Conteúdo apagado com sucesso",
+    seriesCreated: "Série criada com sucesso",
+    seriesUpdated: "Série atualizada com sucesso",
+  },
+  en: {
+    // Navigation
+    dashboard: "Dashboard",
+    content: "Content",
+    series: "Series",
+    addContent: "Add Content",
+    logout: "Logout",
+
+    // Content Types
+    movie: "Movie",
+    episode: "Episode",
+    short: "Short",
+    other: "Other",
+
+    // Actions
+    edit: "Edit",
+    delete: "Delete",
+    save: "Save",
+    cancel: "Cancel",
+    confirm: "Confirm",
+    add: "Add",
+
+    // Dashboard
+    recentlyWatched: "Recently Watched",
+    yourLast5: "Your last 5 contents",
+    totalContent: "Total Content",
+    movies: "Movies",
+    episodes: "Episodes",
+    shorts: "Shorts",
+    others: "Others",
+    watchTime: "Watch Time",
+    hours: "hours",
+    avgRating: "Average Rating",
+    contentByMonth: "Content by Month",
+
+    // Content
+    filters: "Filters",
+    viewBy: "View by",
+    sortBy: "Sort by",
+    year: "Year",
+    month: "Month",
+    week: "Week",
+    day: "Day",
+    releaseYear: "Release Year",
+    type: "Type",
+    all: "All",
+    alphabeticalAZ: "Alphabetical (A-Z)",
+    alphabeticalZA: "Alphabetical (Z-A)",
+    newest: "Newest",
+    oldest: "Oldest",
+    highestRated: "Highest Rated",
+    lowestRated: "Lowest Rated",
+
+    // Series
+    mySeries: "My Series",
+    completed: "Completed",
+    viewDetails: "View Details",
+    startDate: "Start",
+    lastDate: "Last",
+    avgEpisodeRating: "Average Episode Rating",
+
+    // Forms
+    name: "Name",
+    rating: "Rating",
+    duration: "Duration",
+    coverImage: "Cover Image",
+    watchedDate: "Watched Date",
+    season: "Season",
+    episodeNumber: "Episode",
+    selectSeries: "Select Series",
+    createNewSeries: "Create New Series",
+    seriesName: "Series Name",
+    markAsCompleted: "Mark as completed",
+
+    // Messages
+    noContent: "No content yet",
+    noSeries: "No series found",
+    deleteConfirm: "Are you sure you want to delete?",
+    deleteDescription: "This action cannot be undone.",
+    success: "Success",
+    error: "Error",
+    contentCreated: "Content created successfully",
+    contentUpdated: "Content updated successfully",
+    contentDeleted: "Content deleted successfully",
+    seriesCreated: "Series created successfully",
+    seriesUpdated: "Series updated successfully",
+  },
+  es: {
+    // Navigation
+    dashboard: "Panel",
+    content: "Contenido",
+    series: "Series",
+    addContent: "Agregar Contenido",
+    logout: "Salir",
+
+    // Content Types
+    movie: "Película",
+    episode: "Episodio",
+    short: "Corto",
+    other: "Otro",
+
+    // Actions
+    edit: "Editar",
+    delete: "Eliminar",
+    save: "Guardar",
+    cancel: "Cancelar",
+    confirm: "Confirmar",
+    add: "Agregar",
+
+    // Dashboard
+    recentlyWatched: "Visto Recientemente",
+    yourLast5: "Tus últimos 5 contenidos",
+    totalContent: "Total de Contenido",
+    movies: "Películas",
+    episodes: "Episodios",
+    shorts: "Cortos",
+    others: "Otros",
+    watchTime: "Tiempo de Visualización",
+    hours: "horas",
+    avgRating: "Calificación Promedio",
+    contentByMonth: "Contenido por Mes",
+
+    // Content
+    filters: "Filtros",
+    viewBy: "Ver por",
+    sortBy: "Ordenar por",
+    year: "Año",
+    month: "Mes",
+    week: "Semana",
+    day: "Día",
+    releaseYear: "Año de Lanzamiento",
+    type: "Tipo",
+    all: "Todos",
+    alphabeticalAZ: "Alfabético (A-Z)",
+    alphabeticalZA: "Alfabético (Z-A)",
+    newest: "Más Reciente",
+    oldest: "Más Antiguo",
+    highestRated: "Mejor Calificado",
+    lowestRated: "Peor Calificado",
+
+    // Series
+    mySeries: "Mis Series",
+    completed: "Completada",
+    viewDetails: "Ver Detalles",
+    startDate: "Inicio",
+    lastDate: "Último",
+    avgEpisodeRating: "Calificación Promedio de Episodios",
+
+    // Forms
+    name: "Nombre",
+    rating: "Calificación",
+    duration: "Duración",
+    coverImage: "Imagen de Portada",
+    watchedDate: "Fecha Vista",
+    season: "Temporada",
+    episodeNumber: "Episodio",
+    selectSeries: "Seleccionar Serie",
+    createNewSeries: "Crear Nueva Serie",
+    seriesName: "Nombre de la Serie",
+    markAsCompleted: "Marcar como completada",
+
+    // Messages
+    noContent: "Aún no hay contenido",
+    noSeries: "No se encontraron series",
+    deleteConfirm: "¿Estás seguro de que deseas eliminar?",
+    deleteDescription: "Esta acción no se puede deshacer.",
+    success: "Éxito",
+    error: "Error",
+    contentCreated: "Contenido creado con éxito",
+    contentUpdated: "Contenido actualizado con éxito",
+    contentDeleted: "Contenido eliminado con éxito",
+    seriesCreated: "Serie creada con éxito",
+    seriesUpdated: "Serie actualizada con éxito",
+  },
+  fr: {
+    // Navigation
+    dashboard: "Tableau de bord",
+    content: "Contenu",
+    series: "Séries",
+    addContent: "Ajouter du Contenu",
+    logout: "Déconnexion",
+
+    // Content Types
+    movie: "Film",
+    episode: "Épisode",
+    short: "Court",
+    other: "Autre",
+
+    // Actions
+    edit: "Modifier",
+    delete: "Supprimer",
+    save: "Enregistrer",
+    cancel: "Annuler",
+    confirm: "Confirmer",
+    add: "Ajouter",
+
+    // Dashboard
+    recentlyWatched: "Récemment Regardé",
+    yourLast5: "Vos 5 derniers contenus",
+    totalContent: "Contenu Total",
+    movies: "Films",
+    episodes: "Épisodes",
+    shorts: "Courts",
+    others: "Autres",
+    watchTime: "Temps de Visionnage",
+    hours: "heures",
+    avgRating: "Note Moyenne",
+    contentByMonth: "Contenu par Mois",
+
+    // Content
+    filters: "Filtres",
+    viewBy: "Voir par",
+    sortBy: "Trier par",
+    year: "Année",
+    month: "Mois",
+    week: "Semaine",
+    day: "Jour",
+    releaseYear: "Année de Sortie",
+    type: "Type",
+    all: "Tous",
+    alphabeticalAZ: "Alphabétique (A-Z)",
+    alphabeticalZA: "Alphabétique (Z-A)",
+    newest: "Plus Récent",
+    oldest: "Plus Ancien",
+    highestRated: "Mieux Noté",
+    lowestRated: "Moins Bien Noté",
+
+    // Series
+    mySeries: "Mes Séries",
+    completed: "Terminée",
+    viewDetails: "Voir les Détails",
+    startDate: "Début",
+    lastDate: "Dernier",
+    avgEpisodeRating: "Note Moyenne des Épisodes",
+
+    // Forms
+    name: "Nom",
+    rating: "Note",
+    duration: "Durée",
+    coverImage: "Image de Couverture",
+    watchedDate: "Date Regardée",
+    season: "Saison",
+    episodeNumber: "Épisode",
+    selectSeries: "Sélectionner une Série",
+    createNewSeries: "Créer une Nouvelle Série",
+    seriesName: "Nom de la Série",
+    markAsCompleted: "Marquer comme terminée",
+
+    // Messages
+    noContent: "Pas encore de contenu",
+    noSeries: "Aucune série trouvée",
+    deleteConfirm: "Êtes-vous sûr de vouloir supprimer?",
+    deleteDescription: "Cette action ne peut pas être annulée.",
+    success: "Succès",
+    error: "Erreur",
+    contentCreated: "Contenu créé avec succès",
+    contentUpdated: "Contenu mis à jour avec succès",
+    contentDeleted: "Contenu supprimé avec succès",
+    seriesCreated: "Série créée avec succès",
+    seriesUpdated: "Série mise à jour avec succès",
+  },
+} as const
+
+export type Locale = keyof typeof translations
+export type TranslationKey = keyof (typeof translations)["pt"]
