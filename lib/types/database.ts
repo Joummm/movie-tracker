@@ -1,10 +1,28 @@
-export type ContentType = 'movie' | 'short' | 'episode' | 'other'
+// ==================
+// ENUMS / TYPES
+// ==================
+
+export type ContentType = 'movie' | 'short' | 'episode' | 'podcast_episode' |'other'
 export type DatePrecision = 'full' | 'month' | 'year' | 'unknown'
 export type SeriesStatus = 'in_progress' | 'abandoned' | 'completed'
-export type SeriesTrackingStatus = 'not_started' | 'watching' | 'completed' | 'abandoned' | 'on_hold'
 export type PodcastStatus = 'in_progress' | 'abandoned' | 'completed'
-export type RoleType = 'actor' | 'director' | 'writer' | 'producer' | 'composer' | 'cinematographer'
-export type ContentGroupType = 'collection' | 'franchise' | 'anthology' | 'universe'
+export type RoleType =
+  | 'actor'
+  | 'director'
+  | 'writer'
+  | 'producer'
+  | 'composer'
+  | 'cinematographer'
+
+export type CollectionType =
+  | 'custom'
+  | 'franchise'
+  | 'anthology'
+  | 'universe'
+
+// ==================
+// PROFILE
+// ==================
 
 export interface Profile {
   id: string
@@ -13,21 +31,9 @@ export interface Profile {
   updated_at: string
 }
 
-export interface Series {
-  id: string
-  user_id: string
-  name?: string
-  cover_image?: string
-  release_year?: number
-  status: SeriesStatus
-  tracking_status: SeriesTrackingStatus
-  current_season: number
-  current_episode: number
-  total_seasons: number
-  total_episodes: number
-  created_at: string
-  updated_at: string
-}
+// ==================
+// CONTENT
+// ==================
 
 export interface Content {
   id: string
@@ -45,17 +51,86 @@ export interface Content {
   watched_year?: number
   watched_month?: number
   watched_day?: number
-  date_precision: DatePrecision
   date_unknown: boolean
   notes?: string
   review?: string
   created_at: string
   updated_at: string
+  podcast_id?: string
+  series?: Series
+  podcast?: Podcast
 }
 
-export interface ContentWithSeries extends Content {
-  series?: Series
+// ==================
+// CONTENT VIEWINGS (rewatches / history)
+// ==================
+
+export interface ContentViewing {
+  id: string
+  content_id: string
+  watched_date?: string
+  watched_year?: number
+  watched_month?: number
+  date_precision: DatePrecision
+  date_unknown: boolean
+  rating?: number
+  notes?: string
+  created_at: string
 }
+
+// ==================
+// SERIES
+// ==================
+
+export interface Series {
+  id: string
+  user_id: string
+  name?: string
+  cover_image?: string
+  release_year?: number
+  status: SeriesStatus
+  total_seasons: number
+  total_episodes: number
+  created_at: string
+  updated_at: string
+}
+
+// ==================
+// SERIES SEASONS
+// ==================
+
+export interface SeriesSeason {
+  id: string
+  series_id: string
+  season_number: number
+  name?: string
+  episode_count: number
+  created_at: string
+  episodes?: SeriesEpisode[]
+}
+
+// ==================
+// SERIES EPISODES
+// ==================
+
+export interface SeriesEpisode {
+  id: string
+  series_id: string
+  season_id: string
+  episode_number: number
+  name?: string
+  duration?: number
+  is_watched: boolean
+  content_id?: string
+  created_at: string
+  updated_at: string
+  season?: SeriesSeason
+  content?: Content
+}
+
+// ==================
+// ACTORS
+// ==================
 
 export interface Actor {
   id: string
@@ -65,13 +140,17 @@ export interface Actor {
   birth_date?: string
   death_date?: string
   nationality?: string
-  gender: string
+  gender?: string
   biography?: string
   tmdb_id?: string
   imdb_id?: string
   created_at: string
   updated_at: string
 }
+
+// ==================
+// CONTENT ACTORS
+// ==================
 
 export interface ContentActor {
   id: string
@@ -83,16 +162,11 @@ export interface ContentActor {
   actor?: Actor
   content?: Content
   series?: Series
-  actor_roles?: ActorRole[]
 }
 
-export interface ActorRole {
-  id: string
-  content_actor_id: string
-  role: RoleType
-  character_name?: string
-  created_at: string
-}
+// ==================
+// PODCASTS
+// ==================
 
 export interface Podcast {
   id: string
@@ -108,12 +182,16 @@ export interface Podcast {
   episodes?: PodcastEpisode[]
 }
 
+// ==================
+// PODCAST EPISODES
+// ==================
+
 export interface PodcastEpisode {
   id: string
   user_id: string
   podcast_id: string
   name?: string
-  episode_number: number
+  episode_number?: number
   season: number
   cover_image?: string
   rating?: number
@@ -130,80 +208,88 @@ export interface PodcastEpisode {
   podcast?: Podcast
 }
 
-export interface Review {
-  id: string
-  user_id: string
-  content_id?: string
-  series_id?: string
-  podcast_id?: string
-  podcast_episode_id?: string
-  title?: string
-  content: string
-  rating?: number
-  is_spoiler: boolean
-  is_public: boolean
-  created_at: string
-  updated_at: string
-  user?: Profile
-  content_item?: Content
-  series?: Series
-  podcast?: Podcast
-  podcast_episode?: PodcastEpisode
-}
+// ==================
+// COLLECTIONS
+// ==================
 
-export interface ContentGroup {
+export interface Collection {
   id: string
   user_id: string
   name?: string
   description?: string
   cover_image?: string
-  group_type: ContentGroupType
+  collection_type: CollectionType
   created_at: string
   updated_at: string
-  items?: ContentGroupItem[]
+  items?: CollectionItem[]
 }
 
-export interface ContentGroupItem {
+export interface CollectionItem {
   id: string
-  group_id: string
+  collection_id: string
   content_id?: string
   series_id?: string
+  podcast_id?: string
   position: number
   created_at: string
   content?: Content
   series?: Series
+  podcast?: Podcast
 }
 
-export interface SeriesSeason {
-  id: string
-  series_id: string
-  season_number: number
-  name?: string
-  description?: string
-  release_year?: number
-  poster_image?: string
-  episode_count: number
-  created_at: string
-  episodes?: SeriesEpisode[]
-}
+// ==================
+// LISTS
+// ==================
 
-export interface SeriesEpisode {
+export interface List {
   id: string
-  series_id: string
-  season_id: string
-  episode_number: number
-  name?: string
+  user_id: string
+  name: string
   description?: string
-  release_date?: string
-  duration?: number
-  rating?: number
-  is_watched: boolean
-  watched_date?: string
-  watched_rating?: number
-  notes?: string
-  content_id?: string
+  cover_image?: string
+  is_public: boolean
   created_at: string
   updated_at: string
-  season?: SeriesSeason
+  items?: ListItem[]
+}
+
+export interface ListItem {
+  id: string
+  list_id: string
+  content_id?: string
+  series_id?: string
+  position: number
+  added_at: string
+  notes?: string
   content?: Content
+  series?: Series
+
+}
+
+// ==================
+// EXTENDED TYPES (atualizado)
+// ==================
+
+// Tipo estendido para Content com relacionamentos completos
+export interface ContentWithSeries extends Content {
+  series?: Series
+  seasons?: SeriesSeason[]
+  podcast?: Podcast  // Adicionado
+}
+
+// Tipo para PodcastEpisode com dados de podcast
+export interface PodcastEpisodeWithPodcast extends PodcastEpisode {
+  podcast?: Podcast
+}
+
+// Tipo para Series com episódios
+export interface SeriesWithEpisodes extends Series {
+  episodes?: SeriesEpisode[]
+  seasons?: SeriesSeason[]
+}
+
+// Tipo para ListItem com relacionamentos completos
+export interface ListItemWithContent extends ListItem {
+  content?: ContentWithSeries
+  series?: SeriesWithEpisodes
 }

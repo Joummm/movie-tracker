@@ -139,7 +139,7 @@ export function ContentFilters({
               Ordenar por
             </Label>
             <Select value={selectedSort} onValueChange={(value) => updateFilter("sort", value)}>
-              <SelectTrigger id="sort-select" className="w-[180px]">
+              <SelectTrigger id="sort-select" className="w-45">
                 <ArrowUpDown className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Ordenar" />
               </SelectTrigger>
@@ -159,13 +159,14 @@ export function ContentFilters({
               Tipo de conteúdo
             </Label>
             <Select value={selectedType} onValueChange={(value) => updateFilter("type", value)}>
-              <SelectTrigger id="type-select" className="w-[150px]">
+              <SelectTrigger id="type-select" className="w-37.5">
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="movie">Filmes</SelectItem>
                 <SelectItem value="episode">Episódios</SelectItem>
+                <SelectItem value="podcast">Podcasts</SelectItem>
                 <SelectItem value="short">Shorts</SelectItem>
                 <SelectItem value="other">Outros</SelectItem>
               </SelectContent>
@@ -181,7 +182,7 @@ export function ContentFilters({
                 value={selectedReleaseYear || "all"}
                 onValueChange={(value) => updateFilter("releaseYear", value)}
               >
-                <SelectTrigger id="release-year-select" className="w-[180px]">
+                <SelectTrigger id="release-year-select" className="w-45">
                   <SelectValue placeholder="Ano Lançamento" />
                 </SelectTrigger>
                 <SelectContent>
@@ -201,7 +202,7 @@ export function ContentFilters({
               Ano assistido
             </Label>
             <Select value={selectedYear || "all"} onValueChange={(value) => updateFilter("year", value)}>
-              <SelectTrigger id="year-select" className="w-[120px]">
+              <SelectTrigger id="year-select" className="w-30">
                 <SelectValue placeholder="Ano" />
               </SelectTrigger>
               <SelectContent>
