@@ -1,17 +1,18 @@
-// app/series/[id]/cast/new/page.tsx
+// app/series/[id]/seasons/[seasonId]/edit/page.tsx
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
-import { NewCastForm } from "@/components/series/forms/new-cast-form";
+import { EditSeasonForm } from "@/components/series/forms/edit-season-form";
 
-interface NewCastPageProps {
+interface EditSeasonPageProps {
   params: Promise<{
     id: string;
+    seasonId: string;
   }>;
 }
 
-export default async function NewCastPage({ params }: NewCastPageProps) {
-  const { id } = await params;
+export default async function EditSeasonPage({ params }: EditSeasonPageProps) {
+  const { id, seasonId } = await params;
   const supabase = await createClient();
   const seriesId = id;
 
@@ -43,23 +44,29 @@ export default async function NewCastPage({ params }: NewCastPageProps) {
     redirect("/series");
   }
 
-  // Get existing actors/persons
-  const { data: persons } = await supabase
-    .from("actors")
+  // Get season information
+  const { data: season } = await supabase
+    .from("series_seasons")
     .select("*")
+    .eq("id", seasonId)
+    .eq("series_id", seriesId)
     .eq("user_id", user.id)
-    .order("name");
+    .single();
+
+  if (!season) {
+    redirect(`/series/${seriesId}/seasons`);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <DashboardHeader userName={profile?.display_name || "User"} />
       <main className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
-          <NewCastForm
+          <EditSeasonForm
             userId={user.id}
             seriesId={seriesId}
             seriesName={series.name || "Série"}
-            existingPersons={persons || []}
+            season={season}
           />
         </div>
       </main>

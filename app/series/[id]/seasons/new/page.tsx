@@ -52,18 +52,19 @@ export default async function NewSeasonPage({ params }: NewSeasonPageProps) {
     .order("season_number");
 
   // Calculate next season number - CORREÇÃO AQUI
-  const regularSeasons = existingSeasons?.filter(s => !s.is_special) || [];
-  const nextSeasonNumber = regularSeasons.length > 0 
-    ? Math.max(...regularSeasons.map(s => s.season_number)) + 1
-    : 1;
+  const regularSeasons = existingSeasons?.filter((s) => !s.is_special) || [];
+  const nextSeasonNumber =
+    regularSeasons.length > 0
+      ? Math.max(...regularSeasons.map((s) => s.season_number)) + 1
+      : 1;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <DashboardHeader userName={profile?.display_name || "User"} />
       <main className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
-          <NewSeasonForm 
-            userId={user.id} 
+          <NewSeasonForm
+            userId={user.id}
             seriesId={seriesId}
             seriesName={series.name || "Série"}
             nextSeasonNumber={nextSeasonNumber}

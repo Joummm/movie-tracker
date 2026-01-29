@@ -46,7 +46,8 @@ export default async function CastPage({ params }: CastPageProps) {
   // Get all cast for this series
   const { data: cast } = await supabase
     .from("series_cast")
-    .select(`
+    .select(
+      `
       *,
       actors!series_cast_actor_id_fkey (
         id,
@@ -54,7 +55,8 @@ export default async function CastPage({ params }: CastPageProps) {
         photo_url,
         role
       )
-    `)
+    `,
+    )
     .eq("series_id", seriesId)
     .order("is_main_cast", { ascending: false })
     .order("character_name");
@@ -64,7 +66,7 @@ export default async function CastPage({ params }: CastPageProps) {
       <DashboardHeader userName={profile?.display_name || "User"} />
       <main className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
-          <CastManagement 
+          <CastManagement
             seriesId={seriesId}
             seriesName={series.name || "Série"}
             cast={cast || []}

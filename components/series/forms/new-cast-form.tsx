@@ -15,7 +15,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -30,7 +36,7 @@ import {
   X,
   Plus,
   Search,
-  Users
+  Users,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -49,7 +55,12 @@ interface NewCastFormProps {
   existingPersons: Person[];
 }
 
-export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: NewCastFormProps) {
+export function NewCastForm({
+  userId,
+  seriesId,
+  seriesName,
+  existingPersons,
+}: NewCastFormProps) {
   const router = useRouter();
   const supabase = createClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -72,7 +83,7 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
   });
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -83,7 +94,7 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.actor_id && !formData.new_person_name) {
       alert("Por favor, selecione um ator existente ou crie um novo.");
       return;
@@ -125,7 +136,9 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
         actor_id: actorId,
         character_name: formData.character_name,
         is_main_cast: formData.is_main_cast,
-        episode_count: formData.episode_count ? parseInt(formData.episode_count) : null,
+        episode_count: formData.episode_count
+          ? parseInt(formData.episode_count)
+          : null,
         season_range: formData.season_range || null,
         notes: formData.notes || null,
       };
@@ -140,7 +153,6 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
 
       alert("Ator adicionado ao elenco com sucesso!");
       router.push(`/series/${seriesId}`);
-      
     } catch (error: any) {
       console.error("Erro ao adicionar ator:", error);
       alert(`Erro ao adicionar ator: ${error.message}`);
@@ -150,9 +162,10 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
   };
 
   // Filter existing persons based on search
-  const filteredPersons = existingPersons.filter(person =>
-    person.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    person.role.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredPersons = existingPersons.filter(
+    (person) =>
+      person.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      person.role.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -169,13 +182,15 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Adicionar ao Elenco</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Adicionar ao Elenco
+            </h1>
             <p className="text-muted-foreground">
               Adicione um ator ou membro da equipe à série "{seriesName}"
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
             type="button"
@@ -203,7 +218,11 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Main Form */}
           <div className="lg:col-span-2 space-y-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="space-y-6"
+            >
               <TabsList className="grid grid-cols-2 w-full">
                 <TabsTrigger value="select" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
@@ -242,10 +261,9 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
                         <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>Nenhuma pessoa encontrada</p>
                         <p className="text-sm mt-2">
-                          {searchQuery 
+                          {searchQuery
                             ? "Tente outra busca ou crie uma nova pessoa"
-                            : "Crie sua primeira pessoa para adicionar ao elenco"
-                          }
+                            : "Crie sua primeira pessoa para adicionar ao elenco"}
                         </p>
                       </div>
                     ) : (
@@ -253,7 +271,9 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
                         {filteredPersons.map((person) => (
                           <div
                             key={person.id}
-                            onClick={() => setFormData({...formData, actor_id: person.id})}
+                            onClick={() =>
+                              setFormData({ ...formData, actor_id: person.id })
+                            }
                             className={`flex items-center gap-4 p-4 rounded-lg border cursor-pointer transition-colors ${
                               formData.actor_id === person.id
                                 ? "bg-primary/10 border-primary"
@@ -277,13 +297,17 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <p className="font-semibold truncate">{person.name}</p>
+                                <p className="font-semibold truncate">
+                                  {person.name}
+                                </p>
                                 <Badge variant="outline" className="text-xs">
                                   {person.role}
                                 </Badge>
                               </div>
                               <p className="text-sm text-muted-foreground truncate">
-                                {person.photo_url ? "Foto disponível" : "Sem foto"}
+                                {person.photo_url
+                                  ? "Foto disponível"
+                                  : "Sem foto"}
                               </p>
                             </div>
                             {formData.actor_id === person.id && (
@@ -342,8 +366,10 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
                       <Label htmlFor="new_person_role">Função Principal</Label>
                       <Select
                         value={formData.new_person_role}
-                        onValueChange={(value: "actor" | "director" | "producer") =>
-                          setFormData({...formData, new_person_role: value})
+                        onValueChange={(
+                          value: "actor" | "director" | "producer",
+                        ) =>
+                          setFormData({ ...formData, new_person_role: value })
                         }
                         disabled={isLoading}
                       >
@@ -351,15 +377,24 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
                           <SelectValue placeholder="Selecione a função" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="actor" className="flex items-center gap-2">
+                          <SelectItem
+                            value="actor"
+                            className="flex items-center gap-2"
+                          >
                             <User className="h-4 w-4" />
                             Ator/Atriz
                           </SelectItem>
-                          <SelectItem value="director" className="flex items-center gap-2">
+                          <SelectItem
+                            value="director"
+                            className="flex items-center gap-2"
+                          >
                             <Film className="h-4 w-4" />
                             Diretor(a)
                           </SelectItem>
-                          <SelectItem value="producer" className="flex items-center gap-2">
+                          <SelectItem
+                            value="producer"
+                            className="flex items-center gap-2"
+                          >
                             <Award className="h-4 w-4" />
                             Produtor(a)
                           </SelectItem>
@@ -381,7 +416,10 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="character_name" className="flex items-center gap-2">
+                  <Label
+                    htmlFor="character_name"
+                    className="flex items-center gap-2"
+                  >
                     <Film className="h-4 w-4" />
                     Nome do Personagem <span className="text-red-500">*</span>
                   </Label>
@@ -398,7 +436,10 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="episode_count" className="flex items-center gap-2">
+                    <Label
+                      htmlFor="episode_count"
+                      className="flex items-center gap-2"
+                    >
                       <Hash className="h-4 w-4" />
                       Número de Episódios
                     </Label>
@@ -415,7 +456,10 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="season_range" className="flex items-center gap-2">
+                    <Label
+                      htmlFor="season_range"
+                      className="flex items-center gap-2"
+                    >
                       <Calendar className="h-4 w-4" />
                       Temporadas
                     </Label>
@@ -444,7 +488,10 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t">
-                  <Label htmlFor="is_main_cast" className="cursor-pointer flex items-center gap-2">
+                  <Label
+                    htmlFor="is_main_cast"
+                    className="cursor-pointer flex items-center gap-2"
+                  >
                     <Award className="h-4 w-4" />
                     Elenco Principal
                   </Label>
@@ -452,7 +499,7 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
                     id="is_main_cast"
                     checked={formData.is_main_cast}
                     onCheckedChange={(checked) =>
-                      setFormData({...formData, is_main_cast: checked})
+                      setFormData({ ...formData, is_main_cast: checked })
                     }
                     disabled={isLoading}
                   />
@@ -467,17 +514,20 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
             <Card className="sticky top-6">
               <CardHeader>
                 <CardTitle>Preview</CardTitle>
-                <CardDescription>
-                  Como a participação aparecerá
-                </CardDescription>
+                <CardDescription>Como a participação aparecerá</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
                   <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                     {formData.actor_id ? (
-                      existingPersons.find(p => p.id === formData.actor_id)?.photo_url ? (
+                      existingPersons.find((p) => p.id === formData.actor_id)
+                        ?.photo_url ? (
                         <img
-                          src={existingPersons.find(p => p.id === formData.actor_id)?.photo_url}
+                          src={
+                            existingPersons.find(
+                              (p) => p.id === formData.actor_id,
+                            )?.photo_url
+                          }
                           alt="Person preview"
                           className="h-full w-full object-cover"
                         />
@@ -497,11 +547,16 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
                   <div>
                     <p className="font-semibold">
                       {formData.actor_id
-                        ? existingPersons.find(p => p.id === formData.actor_id)?.name
+                        ? existingPersons.find(
+                            (p) => p.id === formData.actor_id,
+                          )?.name
                         : formData.new_person_name || "Nome da Pessoa"}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      como <span className="font-medium">{formData.character_name || "Personagem"}</span>
+                      como{" "}
+                      <span className="font-medium">
+                        {formData.character_name || "Personagem"}
+                      </span>
                     </p>
                     {formData.is_main_cast && (
                       <Badge variant="secondary" className="mt-1 text-xs">
@@ -518,7 +573,9 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
                     <span className="text-muted-foreground">Função</span>
                     <span className="font-medium">
                       {formData.actor_id
-                        ? existingPersons.find(p => p.id === formData.actor_id)?.role
+                        ? existingPersons.find(
+                            (p) => p.id === formData.actor_id,
+                          )?.role
                         : formData.new_person_role}
                     </span>
                   </div>
@@ -526,14 +583,18 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
                   {formData.episode_count && (
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Episódios</span>
-                      <span className="font-medium">{formData.episode_count}</span>
+                      <span className="font-medium">
+                        {formData.episode_count}
+                      </span>
                     </div>
                   )}
 
                   {formData.season_range && (
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Temporadas</span>
-                      <span className="font-medium">{formData.season_range}</span>
+                      <span className="font-medium">
+                        {formData.season_range}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -596,7 +657,8 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
                       Campos marcados com * são obrigatórios
                     </div>
                     <p>
-                      Pessoas criadas aqui ficam disponíveis para outras séries e conteúdos.
+                      Pessoas criadas aqui ficam disponíveis para outras séries
+                      e conteúdos.
                     </p>
                   </div>
                 </CardContent>
@@ -617,11 +679,7 @@ export function NewCastForm({ userId, seriesId, seriesName, existingPersons }: N
             <X className="h-4 w-4" />
             Cancelar
           </Button>
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="flex-1 gap-2"
-          >
+          <Button type="submit" disabled={isLoading} className="flex-1 gap-2">
             <Save className="h-4 w-4" />
             {isLoading ? "Adicionando..." : "Adicionar"}
           </Button>

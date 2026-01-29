@@ -25,7 +25,7 @@ import {
   Users,
   ArrowLeft,
   Award,
-  Film
+  Film,
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -53,7 +53,12 @@ interface CastManagementProps {
   userId: string;
 }
 
-export function CastManagement({ seriesId, seriesName, cast, userId }: CastManagementProps) {
+export function CastManagement({
+  seriesId,
+  seriesName,
+  cast,
+  userId,
+}: CastManagementProps) {
   const router = useRouter();
   const supabase = createClient();
   const [searchQuery, setSearchQuery] = useState("");
@@ -62,21 +67,21 @@ export function CastManagement({ seriesId, seriesName, cast, userId }: CastManag
 
   const filteredCast = cast.filter((member) => {
     // Apply search filter
-    const matchesSearch = 
+    const matchesSearch =
       member.actors.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       member.character_name.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     // Apply role filter
-    const matchesFilter = 
+    const matchesFilter =
       filter === "all" ||
       (filter === "main" && member.is_main_cast) ||
       (filter === "guest" && !member.is_main_cast);
-    
+
     return matchesSearch && matchesFilter;
   });
 
-  const mainCast = filteredCast.filter(member => member.is_main_cast);
-  const guestCast = filteredCast.filter(member => !member.is_main_cast);
+  const mainCast = filteredCast.filter((member) => member.is_main_cast);
+  const guestCast = filteredCast.filter((member) => !member.is_main_cast);
 
   const handleDelete = async (castId: string) => {
     if (!confirm("Tem certeza que deseja remover este membro do elenco?")) {
@@ -117,13 +122,15 @@ export function CastManagement({ seriesId, seriesName, cast, userId }: CastManag
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Elenco da Série</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Elenco da Série
+            </h1>
             <p className="text-muted-foreground">
               Gerencie o elenco de "{seriesName}"
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button asChild>
             <Link href={`/series/${seriesId}/cast/new`}>
@@ -201,7 +208,9 @@ export function CastManagement({ seriesId, seriesName, cast, userId }: CastManag
               <CastCard
                 key={member.id}
                 member={member}
-                onEdit={() => router.push(`/series/${seriesId}/cast/${member.id}/edit`)}
+                onEdit={() =>
+                  router.push(`/series/${seriesId}/cast/${member.id}/edit`)
+                }
                 onDelete={() => handleDelete(member.id)}
                 isDeleting={isDeleting === member.id}
               />
@@ -223,7 +232,9 @@ export function CastManagement({ seriesId, seriesName, cast, userId }: CastManag
               <CastCard
                 key={member.id}
                 member={member}
-                onEdit={() => router.push(`/series/${seriesId}/cast/${member.id}/edit`)}
+                onEdit={() =>
+                  router.push(`/series/${seriesId}/cast/${member.id}/edit`)
+                }
                 onDelete={() => handleDelete(member.id)}
                 isDeleting={isDeleting === member.id}
                 compact
@@ -239,10 +250,9 @@ export function CastManagement({ seriesId, seriesName, cast, userId }: CastManag
           <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p>Nenhum membro do elenco encontrado</p>
           <p className="text-sm mt-2">
-            {searchQuery || filter !== "all" 
+            {searchQuery || filter !== "all"
               ? "Tente ajustar sua busca ou filtro"
-              : "Adicione seu primeiro membro ao elenco"
-            }
+              : "Adicione seu primeiro membro ao elenco"}
           </p>
           {!searchQuery && filter === "all" && (
             <Button className="mt-4" asChild>
@@ -266,14 +276,23 @@ interface CastCardProps {
   compact?: boolean;
 }
 
-function CastCard({ member, onEdit, onDelete, isDeleting, compact = false }: CastCardProps) {
+function CastCard({
+  member,
+  onEdit,
+  onDelete,
+  isDeleting,
+  compact = false,
+}: CastCardProps) {
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           {/* Avatar */}
           <Avatar className="h-12 w-12 flex-shrink-0">
-            <AvatarImage src={member.actors.photo_url} alt={member.actors.name} />
+            <AvatarImage
+              src={member.actors.photo_url}
+              alt={member.actors.name}
+            />
             <AvatarFallback>
               {member.actors.name?.charAt(0) || "A"}
             </AvatarFallback>
@@ -285,7 +304,8 @@ function CastCard({ member, onEdit, onDelete, isDeleting, compact = false }: Cas
               <div>
                 <p className="font-semibold truncate">{member.actors.name}</p>
                 <p className="text-sm text-muted-foreground truncate">
-                  como <span className="font-medium">{member.character_name}</span>
+                  como{" "}
+                  <span className="font-medium">{member.character_name}</span>
                 </p>
                 {!compact && member.actors.role && (
                   <Badge variant="outline" className="mt-1 text-xs">
@@ -293,7 +313,7 @@ function CastCard({ member, onEdit, onDelete, isDeleting, compact = false }: Cas
                   </Badge>
                 )}
               </div>
-              
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -305,8 +325,8 @@ function CastCard({ member, onEdit, onDelete, isDeleting, compact = false }: Cas
                     <Edit className="h-4 w-4 mr-2" />
                     Editar
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={onDelete} 
+                  <DropdownMenuItem
+                    onClick={onDelete}
                     className="text-red-600"
                     disabled={isDeleting}
                   >

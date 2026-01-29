@@ -1,7 +1,7 @@
-// components/series/forms/new-season-form.tsx (versão simplificada)
+// components/series/forms/edit-season-form.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,56 +33,84 @@ import {
   Image as ImageIcon,
   Hash,
   Award,
-  Plus,
   ArrowLeft,
   Save,
   X,
   Sparkles,
-  List,
+  AlertTriangle,
+  Trash2,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-interface ExistingSeason {
+interface Season {
+  id: string;
   season_number: number;
+  name?: string;
   is_special: boolean;
+  special_type?: string;
+  episode_count: number;
+  watched_episode_count: number;
+  poster_vertical?: string;
+  poster_horizontal?: string;
+  release_year?: number;
+  average_rating?: number;
+  total_watch_time: number;
 }
 
-interface NewSeasonFormProps {
+interface EditSeasonFormProps {
   userId: string;
   seriesId: string;
   seriesName: string;
-  nextSeasonNumber: number;
-  existingSeasons: ExistingSeason[];
+  season: Season;
 }
 
-export function NewSeasonForm({
+export function EditSeasonForm({
   userId,
   seriesId,
   seriesName,
-  nextSeasonNumber,
-  existingSeasons,
-}: NewSeasonFormProps) {
+  season,
+}: EditSeasonFormProps) {
   const router = useRouter();
   const supabase = createClient();
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [formData, setFormData] = useState({
     // Basic info
-    season_number: nextSeasonNumber.toString(),
-    name: "",
-    is_special: false,
-    special_type: "",
+    season_number: season.season_number.toString(),
+    name: season.name || "",
+    is_special: season.is_special,
+    special_type: season.special_type || "",
     // Media
-    poster_vertical: "",
-    poster_horizontal: "",
+    poster_vertical: season.poster_vertical || "",
+    poster_horizontal: season.poster_horizontal || "",
     // Details
-    episode_count: "",
-    watched_episode_count: "0",
-    release_year: "",
-    average_rating: "",
-    total_watch_time: "0",
+    episode_count: season.episode_count.toString(),
+    watched_episode_count: season.watched_episode_count.toString(),
+    release_year: season.release_year?.toString() || "",
+    average_rating: season.average_rating?.toString() || "",
+    total_watch_time: season.total_watch_time.toString(),
   });
+
+  // Update form when season changes
+  useEffect(() => {
+    setFormData({
+      season_number: season.season_number.toString(),
+      name: season.name || "",
+      is_special: season.is_special,
+      special_type: season.special_type || "",
+      poster_vertical: season.poster_vertical || "",
+      poster_horizontal: season.poster_horizontal || "",
+      episode_count: season.episode_count.toString(),
+      watched_episode_count: season.watched_episode_count.toString(),
+      release_year: season.release_year?.toString() || "",
+      average_rating: season.average_rating?.toString() || "",
+      total_watch_time: season.total_watch_time.toString(),
+    });
+  }, [season]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -116,27 +144,21 @@ export function NewSeasonForm({
       return;
     }
 
-    // Check if season number already exists
-    const seasonExists = existingSeasons.some(
-      (s) =>
-        s.season_number === seasonNumber &&
-        s.is_special === formData.is_special,
-    );
-
-    if (seasonExists) {
-      alert(
-        `Já existe uma ${formData.is_special ? "temporada especial" : "temporada"} com o número ${seasonNumber}.`,
-      );
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      // Create season data
+      // Check if watched episodes is not greater than total episodes
+      const watchedCount = parseInt(formData.watched_episode_count || "0");
+      const totalCount = parseInt(formData.episode_count || "0");
+
+      if (watchedCount > totalCount) {
+        throw new Error(
+          "Número de episódios assistidos não pode ser maior que o total de episódios.",
+        );
+      }
+
+      // Update season data
       const seasonData = {
-        series_id: seriesId,
-        user_id: userId,
         season_number: seasonNumber,
         name: formData.name || null,
         is_special: formData.is_special,
@@ -161,36 +183,91 @@ export function NewSeasonForm({
         total_watch_time: formData.total_watch_time
           ? parseInt(formData.total_watch_time)
           : 0,
+        updated_at: new Date().toISOString(),
       };
 
-      const { data: newSeason, error: seasonError } = await supabase
+      const { error: seasonError } = await supabase
         .from("series_seasons")
-        .insert([seasonData])
-        .select()
-        .single();
+        .update(seasonData)
+        .eq("id", season.id)
+        .eq("user_id", userId);
+
+      if (seasonError) throw seasonError;
+
+      alert("Temporada atualizada com sucesso!");
+      router.push(`/series/${seriesId}/seasons/${season.id}`);
+      router.refresh();
+    } catch (error: any) {
+      console.error("Erro ao atualizar temporada:", error);
+      alert(`Erro ao atualizar temporada: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (
+      !confirm(
+        "Tem certeza que deseja excluir esta temporada? TODOS OS EPISÓDIOS desta temporada também serão excluídos. Esta ação não pode ser desfeita.",
+      )
+    ) {
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      // First, delete all episodes in this season
+      const { error: episodesError } = await supabase
+        .from("series_episodes")
+        .delete()
+        .eq("season_id", season.id);
+
+      if (episodesError) throw episodesError;
+
+      // Then delete the season
+      const { error: seasonError } = await supabase
+        .from("series_seasons")
+        .delete()
+        .eq("id", season.id)
+        .eq("user_id", userId);
 
       if (seasonError) throw seasonError;
 
       // Update series total seasons count
-      const { error: seriesUpdateError } = await supabase
+      const { data: seriesData } = await supabase
         .from("series")
-        .update({
-          total_seasons: existingSeasons.length + 1,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", seriesId);
+        .select("total_seasons")
+        .eq("id", seriesId)
+        .single();
 
-      if (seriesUpdateError) throw seriesUpdateError;
+      if (seriesData) {
+        await supabase
+          .from("series")
+          .update({
+            total_seasons: Math.max(0, seriesData.total_seasons - 1),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", seriesId);
+      }
 
-      alert("Temporada criada com sucesso!");
-      router.push(`/series/${seriesId}`);
+      alert("Temporada excluída com sucesso!");
+      router.push(`/series/${seriesId}/seasons`);
       router.refresh();
     } catch (error: any) {
-      console.error("Erro ao criar temporada:", error);
-      alert(`Erro ao criar temporada: ${error.message}`);
+      console.error("Erro ao excluir temporada:", error);
+      alert(`Erro ao excluir temporada: ${error.message}`);
     } finally {
-      setIsLoading(false);
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
     }
+  };
+
+  const getEpisodeProgress = () => {
+    const total = parseInt(formData.episode_count || "0");
+    const watched = parseInt(formData.watched_episode_count || "0");
+    if (total === 0) return 0;
+    return Math.round((watched / total) * 100);
   };
 
   return (
@@ -201,18 +278,23 @@ export function NewSeasonForm({
           <Button
             variant="outline"
             size="icon"
-            onClick={() => router.back()}
+            onClick={() =>
+              router.push(`/series/${seriesId}/seasons/${season.id}`)
+            }
             className="h-10 w-10"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Nova Temporada
+              Editar Temporada
             </h1>
-            <div className="text-muted-foreground">
-              Adicione uma nova temporada à série "{seriesName}"
-            </div>
+            <p className="text-muted-foreground">
+              {season.is_special
+                ? "Especial"
+                : `Temporada ${season.season_number}`}
+              {season.name && `: ${season.name}`} • {seriesName}
+            </p>
           </div>
         </div>
 
@@ -221,7 +303,7 @@ export function NewSeasonForm({
             type="button"
             variant="outline"
             onClick={() => router.back()}
-            disabled={isLoading}
+            disabled={isLoading || isDeleting}
             className="gap-2"
           >
             <X className="h-4 w-4" />
@@ -230,14 +312,60 @@ export function NewSeasonForm({
           <Button
             type="submit"
             form="season-form"
-            disabled={isLoading}
+            disabled={isLoading || isDeleting}
             className="gap-2"
           >
             <Save className="h-4 w-4" />
-            {isLoading ? "Criando..." : "Criar Temporada"}
+            {isLoading ? "Salvando..." : "Salvar Alterações"}
           </Button>
         </div>
       </div>
+
+      {/* Delete Warning Alert */}
+      {showDeleteConfirm && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Atenção!</AlertTitle>
+          <AlertDescription className="space-y-3">
+            <p>
+              Tem certeza que deseja excluir esta temporada? Esta ação{" "}
+              <strong>não pode ser desfeita</strong> e excluirá:
+            </p>
+            <ul className="list-disc pl-4 space-y-1">
+              <li>Todos os episódios desta temporada</li>
+              <li>Qualquer conteúdo vinculado aos episódios</li>
+              <li>As estatísticas associadas</li>
+            </ul>
+            <div className="flex gap-2 mt-4">
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    Excluindo...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4" />
+                    Sim, Excluir Permanentemente
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <form id="season-form" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -294,12 +422,9 @@ export function NewSeasonForm({
                           value={formData.season_number}
                           onChange={handleInputChange}
                           placeholder="1"
-                          disabled={isLoading}
+                          disabled={isLoading || isDeleting}
                           required
                         />
-                        <p className="text-xs text-muted-foreground">
-                          Próximo número sugerido: {nextSeasonNumber}
-                        </p>
                       </div>
 
                       <div className="space-y-2">
@@ -316,7 +441,7 @@ export function NewSeasonForm({
                           value={formData.name}
                           onChange={handleInputChange}
                           placeholder="Ex: A Nova Era, Renascimento, etc."
-                          disabled={isLoading}
+                          disabled={isLoading || isDeleting}
                         />
                       </div>
                     </div>
@@ -336,7 +461,7 @@ export function NewSeasonForm({
                           onCheckedChange={(checked) =>
                             setFormData({ ...formData, is_special: checked })
                           }
-                          disabled={isLoading}
+                          disabled={isLoading || isDeleting}
                         />
                       </div>
 
@@ -348,7 +473,7 @@ export function NewSeasonForm({
                             onValueChange={(value) =>
                               setFormData({ ...formData, special_type: value })
                             }
-                            disabled={isLoading}
+                            disabled={isLoading || isDeleting}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Selecione o tipo" />
@@ -391,7 +516,7 @@ export function NewSeasonForm({
                             htmlFor="episode_count"
                             className="flex items-center gap-2"
                           >
-                            <List className="h-4 w-4" />
+                            <Tv className="h-4 w-4" />
                             Total de Episódios
                           </Label>
                           <Input
@@ -402,7 +527,7 @@ export function NewSeasonForm({
                             value={formData.episode_count}
                             onChange={handleInputChange}
                             placeholder="10"
-                            disabled={isLoading}
+                            disabled={isLoading || isDeleting}
                           />
                         </div>
 
@@ -419,10 +544,11 @@ export function NewSeasonForm({
                             name="watched_episode_count"
                             type="number"
                             min="0"
+                            max={formData.episode_count || undefined}
                             value={formData.watched_episode_count}
                             onChange={handleInputChange}
                             placeholder="0"
-                            disabled={isLoading}
+                            disabled={isLoading || isDeleting}
                           />
                         </div>
 
@@ -443,7 +569,7 @@ export function NewSeasonForm({
                             value={formData.release_year}
                             onChange={handleInputChange}
                             placeholder="2024"
-                            disabled={isLoading}
+                            disabled={isLoading || isDeleting}
                           />
                         </div>
                       </div>
@@ -468,7 +594,7 @@ export function NewSeasonForm({
                               value={formData.average_rating}
                               onChange={handleInputChange}
                               placeholder="8.5"
-                              disabled={isLoading}
+                              disabled={isLoading || isDeleting}
                               className="pl-10"
                             />
                             <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
@@ -493,9 +619,36 @@ export function NewSeasonForm({
                             value={formData.total_watch_time}
                             onChange={handleInputChange}
                             placeholder="600"
-                            disabled={isLoading}
+                            disabled={isLoading || isDeleting}
                           />
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Progress Display */}
+                    <Separator />
+
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span>Progresso Atual</span>
+                        <span className="font-semibold">
+                          {getEpisodeProgress()}%
+                        </span>
+                      </div>
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary transition-all duration-300"
+                          style={{ width: `${getEpisodeProgress()}%` }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>
+                          {formData.watched_episode_count || 0} episódios
+                          assistidos
+                        </span>
+                        <span>
+                          {formData.episode_count || 0} episódios totais
+                        </span>
                       </div>
                     </div>
                   </CardContent>
@@ -508,7 +661,8 @@ export function NewSeasonForm({
                   <CardHeader>
                     <CardTitle>Imagens da Temporada</CardTitle>
                     <CardDescription>
-                      Adicione imagens específicas para esta temporada
+                      Adicione ou atualize imagens específicas para esta
+                      temporada
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -530,6 +684,9 @@ export function NewSeasonForm({
                                 <p className="text-xs text-muted-foreground">
                                   Poster Vertical
                                 </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Usará o da série
+                                </p>
                               </div>
                             )}
                           </div>
@@ -539,7 +696,7 @@ export function NewSeasonForm({
                             value={formData.poster_vertical}
                             onChange={handleInputChange}
                             placeholder="URL do poster vertical"
-                            disabled={isLoading}
+                            disabled={isLoading || isDeleting}
                           />
                           <p className="text-xs text-muted-foreground">
                             Formato recomendado: 2:3
@@ -560,6 +717,9 @@ export function NewSeasonForm({
                                 <p className="text-xs text-muted-foreground">
                                   Poster Horizontal
                                 </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Usará o da série
+                                </p>
                               </div>
                             )}
                           </div>
@@ -569,7 +729,7 @@ export function NewSeasonForm({
                             value={formData.poster_horizontal}
                             onChange={handleInputChange}
                             placeholder="URL do poster horizontal"
-                            disabled={isLoading}
+                            disabled={isLoading || isDeleting}
                           />
                           <p className="text-xs text-muted-foreground">
                             Formato recomendado: 16:9
@@ -579,14 +739,13 @@ export function NewSeasonForm({
                     </div>
 
                     <div className="text-xs text-muted-foreground space-y-1">
-                      <p className="flex items-center gap-2">
+                      <div className="flex items-center gap-2">
                         <div className="h-2 w-2 rounded-full bg-blue-500" />
-                        Se não adicionar imagens específicas, será usada a
-                        imagem da série
-                      </p>
+                        Se deixar em branco, será usada a imagem da série
+                      </div>
                       <p>
-                        A imagem vertical aparecerá nos cards e lista de
-                        temporadas
+                        Para remover uma imagem atual, apague o conteúdo do
+                        campo
                       </p>
                     </div>
                   </CardContent>
@@ -688,7 +847,7 @@ export function NewSeasonForm({
             </Card>
 
             {/* Ações na sidebar (desktop) */}
-            <div className="hidden lg:block">
+            <div className="hidden lg:block space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Ações</CardTitle>
@@ -697,18 +856,18 @@ export function NewSeasonForm({
                   <div className="space-y-3">
                     <Button
                       type="submit"
-                      disabled={isLoading}
+                      disabled={isLoading || isDeleting}
                       className="w-full h-12 text-base gap-2"
                     >
                       {isLoading ? (
                         <div className="flex items-center gap-2">
                           <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                          Criando...
+                          Salvando...
                         </div>
                       ) : (
                         <>
                           <Save className="h-5 w-5" />
-                          Criar Temporada
+                          Salvar Alterações
                         </>
                       )}
                     </Button>
@@ -716,23 +875,29 @@ export function NewSeasonForm({
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => router.back()}
-                      disabled={isLoading}
+                      onClick={() =>
+                        router.push(`/series/${seriesId}/seasons/${season.id}`)
+                      }
+                      disabled={isLoading || isDeleting}
                       className="w-full gap-2"
                     >
-                      <X className="h-4 w-4" />
-                      Cancelar
+                      <ArrowLeft className="h-4 w-4" />
+                      Voltar para Temporada
                     </Button>
 
                     <Button
                       type="button"
-                      variant="ghost"
-                      onClick={() => router.push(`/series/${seriesId}`)}
-                      disabled={isLoading}
+                      variant="outline"
+                      onClick={() =>
+                        router.push(
+                          `/series/${seriesId}/seasons/${season.id}/episodes/new`,
+                        )
+                      }
+                      disabled={isLoading || isDeleting}
                       className="w-full gap-2"
                     >
-                      <ArrowLeft className="h-4 w-4" />
-                      Voltar para Série
+                      <Tv className="h-4 w-4" />
+                      Adicionar Episódio
                     </Button>
                   </div>
 
@@ -742,10 +907,72 @@ export function NewSeasonForm({
                       Campos marcados com * são obrigatórios
                     </div>
                     <p>
-                      Você poderá adicionar episódios e editar informações após
-                      a criação.
+                      Alterações são salvas automaticamente quando você clica em
+                      "Salvar Alterações".
                     </p>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Delete Card */}
+              <Card className="border-red-200 dark:border-red-900/30">
+                <CardHeader>
+                  <CardTitle className="text-red-600 flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5" />
+                    Zona de Perigo
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Esta ação excluirá permanentemente a temporada e todos os
+                    seus episódios.
+                  </p>
+
+                  {!showDeleteConfirm ? (
+                    <Button
+                      variant="destructive"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      disabled={isLoading || isDeleting}
+                      className="w-full gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Excluir Temporada
+                    </Button>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-red-600">
+                        Confirmar exclusão?
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="destructive"
+                          onClick={handleDelete}
+                          disabled={isDeleting}
+                          className="flex-1 gap-2"
+                        >
+                          {isDeleting ? (
+                            <>
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                              Excluindo...
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="h-4 w-4" />
+                              Sim
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowDeleteConfirm(false)}
+                          disabled={isDeleting}
+                          className="flex-1"
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -757,19 +984,89 @@ export function NewSeasonForm({
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.back()}
-            disabled={isLoading}
+            onClick={() =>
+              router.push(`/series/${seriesId}/seasons/${season.id}`)
+            }
+            disabled={isLoading || isDeleting}
             className="flex-1 gap-2"
           >
-            <X className="h-4 w-4" />
-            Cancelar
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
           </Button>
-          <Button type="submit" disabled={isLoading} className="flex-1 gap-2">
+          <Button
+            type="submit"
+            disabled={isLoading || isDeleting}
+            className="flex-1 gap-2"
+          >
             <Save className="h-4 w-4" />
-            {isLoading ? "Criando..." : "Criar Temporada"}
+            {isLoading ? "Salvando..." : "Salvar"}
           </Button>
         </div>
       </form>
+
+      {/* Delete Section Mobile */}
+      <div className="lg:hidden">
+        <Card className="border-red-200 dark:border-red-900/30">
+          <CardHeader>
+            <CardTitle className="text-red-600 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Zona de Perigo
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Esta ação excluirá permanentemente a temporada e todos os seus
+              episódios.
+            </p>
+
+            {!showDeleteConfirm ? (
+              <Button
+                variant="destructive"
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={isLoading || isDeleting}
+                className="w-full gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Excluir Temporada
+              </Button>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-red-600">
+                  Confirmar exclusão?
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="destructive"
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="flex-1 gap-2"
+                  >
+                    {isDeleting ? (
+                      <>
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Excluindo...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-4 w-4" />
+                        Sim
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={isDeleting}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
