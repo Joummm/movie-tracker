@@ -99,6 +99,9 @@ export function SeriesCard({ series, viewMode, user }: SeriesCardProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
+    <Link href={`/series/${series.id}`}>Ver Série</Link>
+  </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link href={`/series/${series.id}/edit`}>Editar</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
