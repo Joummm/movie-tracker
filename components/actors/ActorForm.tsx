@@ -63,11 +63,15 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
     tmdb_id: actor?.tmdb_id || "",
     imdb_id: actor?.imdb_id || "",
   });
-  const [imagePreview, setImagePreview] = useState<string | null>(actor?.photo_url || null);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    actor?.photo_url || null,
+  );
   const [isAlive, setIsAlive] = useState(!actor?.death_date);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
       // Aqui você implementaria o upload real para um serviço de armazenamento
@@ -147,13 +151,17 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
     };
 
     // Campos opcionais
-    if (formData.photo_url.trim()) actorData.photo_url = formData.photo_url.trim();
+    if (formData.photo_url.trim())
+      actorData.photo_url = formData.photo_url.trim();
     if (formData.birth_date) actorData.birth_date = formData.birth_date;
-    if (!isAlive && formData.death_date) actorData.death_date = formData.death_date;
+    if (!isAlive && formData.death_date)
+      actorData.death_date = formData.death_date;
     if (isAlive) actorData.death_date = null;
-    if (formData.nationality.trim()) actorData.nationality = formData.nationality.trim();
+    if (formData.nationality.trim())
+      actorData.nationality = formData.nationality.trim();
     if (formData.gender) actorData.gender = formData.gender;
-    if (formData.biography.trim()) actorData.biography = formData.biography.trim();
+    if (formData.biography.trim())
+      actorData.biography = formData.biography.trim();
     if (formData.tmdb_id.trim()) actorData.tmdb_id = formData.tmdb_id.trim();
     if (formData.imdb_id.trim()) actorData.imdb_id = formData.imdb_id.trim();
 
@@ -176,10 +184,10 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
       }
 
       // Show success message with better UX
-      const successMessage = isEdit 
-        ? "Ator atualizado com sucesso! Redirecionando..." 
+      const successMessage = isEdit
+        ? "Ator atualizado com sucesso! Redirecionando..."
         : "Ator criado com sucesso! Redirecionando...";
-      
+
       alert(successMessage);
 
       router.push("/actors");
@@ -188,7 +196,7 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
       console.error("Erro ao salvar ator:", error);
 
       let errorMessage = "Erro ao salvar ator";
-      
+
       if (error.code === "23505") {
         errorMessage = "Já existe um ator com este nome ou ID externo.";
       } else if (error.message.includes("network")) {
@@ -196,7 +204,7 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
       } else {
         errorMessage += ": " + error.message;
       }
-      
+
       alert(errorMessage);
       setIsLoading(false);
     }
@@ -215,14 +223,14 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
     let total = 0;
 
     const fields = [
-      { key: 'name', value: formData.name, weight: 2 },
-      { key: 'photo_url', value: formData.photo_url, weight: 1 },
-      { key: 'birth_date', value: formData.birth_date, weight: 1 },
-      { key: 'gender', value: formData.gender, weight: 1 },
-      { key: 'biography', value: formData.biography, weight: 1 },
+      { key: "name", value: formData.name, weight: 2 },
+      { key: "photo_url", value: formData.photo_url, weight: 1 },
+      { key: "birth_date", value: formData.birth_date, weight: 1 },
+      { key: "gender", value: formData.gender, weight: 1 },
+      { key: "biography", value: formData.biography, weight: 1 },
     ];
 
-    fields.forEach(field => {
+    fields.forEach((field) => {
       total += field.weight;
       if (field.value && field.value.trim()) {
         completed += field.weight;
@@ -247,7 +255,7 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
             <ArrowLeft className="h-4 w-4" />
             Voltar
           </Button>
-          
+
           <div className="flex items-center gap-3">
             <div className="relative">
               <Avatar className="h-12 w-12 border-2 border-border">
@@ -270,8 +278,8 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
                 {isEdit ? "Editar Ator" : "Criar Novo Ator"}
               </h1>
               <p className="text-sm text-muted-foreground">
-                {isEdit 
-                  ? "Atualize as informações do ator abaixo" 
+                {isEdit
+                  ? "Atualize as informações do ator abaixo"
                   : "Preencha todas as informações para criar um novo ator"}
               </p>
             </div>
@@ -281,15 +289,19 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
         {/* Progress Bar */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Completude do formulário</span>
-            <span className="text-sm font-bold text-primary">{completionPercentage}%</span>
+            <span className="text-sm font-medium">
+              Completude do formulário
+            </span>
+            <span className="text-sm font-bold text-primary">
+              {completionPercentage}%
+            </span>
           </div>
           <Progress value={completionPercentage} className="h-2" />
           <p className="text-xs text-muted-foreground">
-            {completionPercentage < 50 
-              ? "Complete mais campos para melhorar o perfil do ator" 
-              : completionPercentage < 80 
-                ? "Bom trabalho! Alguns campos ainda podem ser preenchidos" 
+            {completionPercentage < 50
+              ? "Complete mais campos para melhorar o perfil do ator"
+              : completionPercentage < 80
+                ? "Bom trabalho! Alguns campos ainda podem ser preenchidos"
                 : "Perfil quase completo! Excelente trabalho!"}
           </p>
         </div>
@@ -310,15 +322,24 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
             <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1">
-              <TabsTrigger value="basic" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <TabsTrigger
+                value="basic"
+                className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
+              >
                 <User className="h-4 w-4 mr-2" />
                 Básico
               </TabsTrigger>
-              <TabsTrigger value="details" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <TabsTrigger
+                value="details"
+                className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
+              >
                 <Sparkles className="h-4 w-4 mr-2" />
                 Detalhes
               </TabsTrigger>
-              <TabsTrigger value="external" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <TabsTrigger
+                value="external"
+                className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
+              >
                 <Globe className="h-4 w-4 mr-2" />
                 Externo
               </TabsTrigger>
@@ -337,7 +358,10 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
                     <div className="flex flex-col items-center gap-4">
                       <Avatar className="h-40 w-40 border-4 border-border shadow-lg">
                         {imagePreview ? (
-                          <AvatarImage src={imagePreview} className="object-cover" />
+                          <AvatarImage
+                            src={imagePreview}
+                            className="object-cover"
+                          />
                         ) : (
                           <AvatarFallback className="bg-gradient-to-br from-primary/10 to-secondary/10 text-4xl">
                             <User className="h-16 w-16" />
@@ -378,8 +402,12 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
 
                     <div className="flex-1 space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="name" className="flex items-center gap-1">
-                          Nome Completo <span className="text-destructive">*</span>
+                        <Label
+                          htmlFor="name"
+                          className="flex items-center gap-1"
+                        >
+                          Nome Completo{" "}
+                          <span className="text-destructive">*</span>
                           {formData.name && (
                             <Badge variant="outline" className="ml-2 text-xs">
                               {formData.name.length} caracteres
@@ -389,7 +417,9 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
                         <Input
                           id="name"
                           value={formData.name}
-                          onChange={(e) => handleInputChange("name", e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("name", e.target.value)
+                          }
                           placeholder="Ex: Joaquim de Almeida"
                           className={errors.name ? "border-destructive" : ""}
                           disabled={isLoading}
@@ -399,16 +429,21 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
                             <X className="h-3 w-3" />
                             {errors.name}
                           </p>
-                        ) : formData.name && (
-                          <p className="text-sm text-green-600 flex items-center gap-1">
-                            <Check className="h-3 w-3" />
-                            Nome válido
-                          </p>
+                        ) : (
+                          formData.name && (
+                            <p className="text-sm text-green-600 flex items-center gap-1">
+                              <Check className="h-3 w-3" />
+                              Nome válido
+                            </p>
+                          )
                         )}
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="photo_url" className="flex items-center gap-1">
+                        <Label
+                          htmlFor="photo_url"
+                          className="flex items-center gap-1"
+                        >
                           <Info className="h-4 w-4 text-muted-foreground" />
                           URL da Foto (opcional)
                         </Label>
@@ -416,7 +451,9 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
                           <Input
                             id="photo_url"
                             value={formData.photo_url}
-                            onChange={(e) => handleInputChange("photo_url", e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange("photo_url", e.target.value)
+                            }
                             placeholder="https://exemplo.com/foto.jpg"
                             disabled={isLoading}
                           />
@@ -433,7 +470,10 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
 
                 {/* Biography Section */}
                 <div className="space-y-4">
-                  <Label htmlFor="biography" className="flex items-center gap-2">
+                  <Label
+                    htmlFor="biography"
+                    className="flex items-center gap-2"
+                  >
                     <Sparkles className="h-4 w-4" />
                     Biografia
                   </Label>
@@ -441,7 +481,9 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
                     <Textarea
                       id="biography"
                       value={formData.biography}
-                      onChange={(e) => handleInputChange("biography", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("biography", e.target.value)
+                      }
                       placeholder="Descreva a carreira, realizações, prêmios e fatos interessantes sobre o ator..."
                       rows={6}
                       disabled={isLoading}
@@ -455,7 +497,9 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Info className="h-3 w-3" />
-                    <span>Uma biografia detalhada melhora a experiência do usuário</span>
+                    <span>
+                      Uma biografia detalhada melhora a experiência do usuário
+                    </span>
                   </div>
                 </div>
               </TabsContent>
@@ -465,7 +509,10 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="birth_date" className="flex items-center gap-2 mb-2">
+                      <Label
+                        htmlFor="birth_date"
+                        className="flex items-center gap-2 mb-2"
+                      >
                         <Calendar className="h-4 w-4" />
                         Data de Nascimento
                       </Label>
@@ -473,18 +520,27 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
                         id="birth_date"
                         type="date"
                         value={formData.birth_date}
-                        onChange={(e) => handleInputChange("birth_date", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("birth_date", e.target.value)
+                        }
                         disabled={isLoading}
-                        className={errors.birth_date ? "border-destructive" : ""}
+                        className={
+                          errors.birth_date ? "border-destructive" : ""
+                        }
                       />
                       {errors.birth_date && (
-                        <p className="text-sm text-destructive mt-1">{errors.birth_date}</p>
+                        <p className="text-sm text-destructive mt-1">
+                          {errors.birth_date}
+                        </p>
                       )}
                     </div>
 
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="alive-switch" className="flex items-center gap-2">
+                        <Label
+                          htmlFor="alive-switch"
+                          className="flex items-center gap-2"
+                        >
                           <Check className="h-4 w-4 text-green-500" />
                           Ator está vivo?
                         </Label>
@@ -497,7 +553,10 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
                       </div>
                       {!isAlive && (
                         <div className="space-y-2">
-                          <Label htmlFor="death_date" className="flex items-center gap-2">
+                          <Label
+                            htmlFor="death_date"
+                            className="flex items-center gap-2"
+                          >
                             <Calendar className="h-4 w-4 text-rose-500" />
                             Data de Morte
                           </Label>
@@ -505,12 +564,18 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
                             id="death_date"
                             type="date"
                             value={formData.death_date}
-                            onChange={(e) => handleInputChange("death_date", e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange("death_date", e.target.value)
+                            }
                             disabled={isLoading}
-                            className={errors.death_date ? "border-destructive" : ""}
+                            className={
+                              errors.death_date ? "border-destructive" : ""
+                            }
                           />
                           {errors.death_date && (
-                            <p className="text-sm text-destructive">{errors.death_date}</p>
+                            <p className="text-sm text-destructive">
+                              {errors.death_date}
+                            </p>
                           )}
                         </div>
                       )}
@@ -519,14 +584,19 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
 
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="nationality" className="flex items-center gap-2">
+                      <Label
+                        htmlFor="nationality"
+                        className="flex items-center gap-2"
+                      >
                         <Globe className="h-4 w-4" />
                         Nacionalidade
                       </Label>
                       <Input
                         id="nationality"
                         value={formData.nationality}
-                        onChange={(e) => handleInputChange("nationality", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("nationality", e.target.value)
+                        }
                         placeholder="ex: Portuguesa, Brasileira, Americana"
                         disabled={isLoading}
                       />
@@ -536,7 +606,9 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
                       <Label htmlFor="gender">Gênero</Label>
                       <Select
                         value={formData.gender}
-                        onValueChange={(value) => handleInputChange("gender", value)}
+                        onValueChange={(value) =>
+                          handleInputChange("gender", value)
+                        }
                         disabled={isLoading}
                       >
                         <SelectTrigger className="cursor-pointer">
@@ -555,7 +627,10 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
                               Feminino
                             </div>
                           </SelectItem>
-                          <SelectItem value="non_binary" className="cursor-pointer">
+                          <SelectItem
+                            value="non_binary"
+                            className="cursor-pointer"
+                          >
                             <div className="flex items-center gap-2">
                               <div className="h-3 w-3 rounded-full bg-purple-500" />
                               Não-binário
@@ -567,7 +642,10 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
                               Outro
                             </div>
                           </SelectItem>
-                          <SelectItem value="not_specified" className="cursor-pointer">
+                          <SelectItem
+                            value="not_specified"
+                            className="cursor-pointer"
+                          >
                             <div className="flex items-center gap-2">
                               <div className="h-3 w-3 rounded-full bg-muted" />
                               Não especificado
@@ -585,59 +663,82 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
                 <Alert className="bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
                   <Info className="h-4 w-4" />
                   <AlertDescription className="text-sm">
-                    IDs externos ajudam a sincronizar informações com bases de dados públicas. 
-                    São opcionais mas recomendados para melhor integração e dados automáticos.
+                    IDs externos ajudam a sincronizar informações com bases de
+                    dados públicas. São opcionais mas recomendados para melhor
+                    integração e dados automáticos.
                   </AlertDescription>
                 </Alert>
 
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="tmdb_id" className="font-medium">ID TMDb</Label>
-                      <Badge variant="outline" className="text-xs">Opcional</Badge>
+                      <Label htmlFor="tmdb_id" className="font-medium">
+                        ID TMDb
+                      </Label>
+                      <Badge variant="outline" className="text-xs">
+                        Opcional
+                      </Badge>
                     </div>
                     <Input
                       id="tmdb_id"
                       value={formData.tmdb_id}
-                      onChange={(e) => handleInputChange("tmdb_id", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("tmdb_id", e.target.value)
+                      }
                       placeholder="12345"
                       disabled={isLoading}
                       className={errors.tmdb_id ? "border-destructive" : ""}
                     />
                     {errors.tmdb_id ? (
-                      <p className="text-sm text-destructive">{errors.tmdb_id}</p>
-                    ) : formData.tmdb_id && (
-                      <p className="text-sm text-green-600 flex items-center gap-1">
-                        <Check className="h-3 w-3" />
-                        Formato válido
+                      <p className="text-sm text-destructive">
+                        {errors.tmdb_id}
                       </p>
+                    ) : (
+                      formData.tmdb_id && (
+                        <p className="text-sm text-green-600 flex items-center gap-1">
+                          <Check className="h-3 w-3" />
+                          Formato válido
+                        </p>
+                      )
                     )}
                     <div className="text-xs text-muted-foreground space-y-1">
                       <p>• Número de identificação no The Movie Database</p>
-                      <p>• Encontre no site do TMDb ou em apps como Letterboxd</p>
+                      <p>
+                        • Encontre no site do TMDb ou em apps como Letterboxd
+                      </p>
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="imdb_id" className="font-medium">ID IMDb</Label>
-                      <Badge variant="outline" className="text-xs">Opcional</Badge>
+                      <Label htmlFor="imdb_id" className="font-medium">
+                        ID IMDb
+                      </Label>
+                      <Badge variant="outline" className="text-xs">
+                        Opcional
+                      </Badge>
                     </div>
                     <Input
                       id="imdb_id"
                       value={formData.imdb_id}
-                      onChange={(e) => handleInputChange("imdb_id", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("imdb_id", e.target.value)
+                      }
                       placeholder="nm1234567"
                       disabled={isLoading}
                       className={errors.imdb_id ? "border-destructive" : ""}
                     />
                     {errors.imdb_id ? (
-                      <p className="text-sm text-destructive">{errors.imdb_id}</p>
-                    ) : formData.imdb_id && (
-                      <p className="text-sm text-green-600 flex items-center gap-1">
-                        <Check className="h-3 w-3" />
-                        Formato válido
+                      <p className="text-sm text-destructive">
+                        {errors.imdb_id}
                       </p>
+                    ) : (
+                      formData.imdb_id && (
+                        <p className="text-sm text-green-600 flex items-center gap-1">
+                          <Check className="h-3 w-3" />
+                          Formato válido
+                        </p>
+                      )
                     )}
                     <div className="text-xs text-muted-foreground space-y-1">
                       <p>• Formato: nm seguido de números (ex: nm0000158)</p>
@@ -690,7 +791,11 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
                     variant="outline"
                     className="cursor-pointer flex-1 sm:flex-none hover:bg-destructive/10 hover:text-destructive"
                     onClick={() => {
-                      if (confirm("Tem certeza que deseja cancelar? As alterações não salvas serão perdidas.")) {
+                      if (
+                        confirm(
+                          "Tem certeza que deseja cancelar? As alterações não salvas serão perdidas.",
+                        )
+                      ) {
                         router.back();
                       }
                     }}
@@ -720,7 +825,8 @@ export function ActorForm({ actor, userId, isEdit = false }: ActorFormProps) {
               {completionPercentage < 30 && (
                 <Alert variant="destructive" className="mt-4">
                   <AlertDescription className="text-sm">
-                    Complete pelo menos 30% do formulário (nome e mais um campo) para poder salvar.
+                    Complete pelo menos 30% do formulário (nome e mais um campo)
+                    para poder salvar.
                   </AlertDescription>
                 </Alert>
               )}

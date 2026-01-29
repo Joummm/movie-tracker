@@ -2,22 +2,46 @@
 // ENUMS / TYPES
 // ==================
 
-export type ContentType = 
-  | "movie" 
-  | "short" 
-  | "series" 
-  | "podcast" 
+export type ContentType =
+  | "movie"
+  | "short"
+  | "series"
+  | "podcast"
   | "other"
   | "episode"
   | "podcast_episode";
 
 export type DatePrecision = "full" | "month" | "year" | "unknown";
-export type SeriesStatus = "in_progress" | "abandoned" | "completed" | "planned";
+export type SeriesStatus =
+  | "in_progress"
+  | "abandoned"
+  | "completed"
+  | "planned";
 export type PodcastStatus = "in_progress" | "abandoned" | "completed";
 export type CollectionType = "custom" | "franchise" | "anthology" | "universe";
-export type WatchStatus = "planned" | "watching" | "completed" | "abandoned" | "rewatching";
-export type PersonRoleType = "actor" | "director" | "producer" | "writer" | "composer" | "cinematographer" | "host" | "crew";
-export type CrewRole = "director" | "producer" | "writer" | "composer" | "cinematographer" | "editor" | "other";
+export type WatchStatus =
+  | "planned"
+  | "watching"
+  | "completed"
+  | "abandoned"
+  | "rewatching";
+export type PersonRoleType =
+  | "actor"
+  | "director"
+  | "producer"
+  | "writer"
+  | "composer"
+  | "cinematographer"
+  | "host"
+  | "crew";
+export type CrewRole =
+  | "director"
+  | "producer"
+  | "writer"
+  | "composer"
+  | "cinematographer"
+  | "editor"
+  | "other";
 
 // ==================
 // PROFILE / USER

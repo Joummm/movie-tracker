@@ -56,7 +56,8 @@ export default async function SeriesPage() {
   // Get all series for this user with statistics
   const { data: series } = await supabase
     .from("series")
-    .select(`
+    .select(
+      `
       *,
       series_seasons!series_seasons_series_id_fkey (
         id,
@@ -73,7 +74,8 @@ export default async function SeriesPage() {
         rating,
         watch_status
       )
-    `)
+    `,
+    )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -81,25 +83,28 @@ export default async function SeriesPage() {
   const seriesWithStats = series?.map((series: SeriesWithRelations) => {
     const seasons = series.series_seasons || [];
     const totalEpisodes = seasons.reduce(
-      (sum: number, season: SeriesSeasonData) => sum + (season.episode_count || 0),
-      0
+      (sum: number, season: SeriesSeasonData) =>
+        sum + (season.episode_count || 0),
+      0,
     );
     const watchedEpisodes = seasons.reduce(
-      (sum: number, season: SeriesSeasonData) => sum + (season.watched_episode_count || 0),
-      0
+      (sum: number, season: SeriesSeasonData) =>
+        sum + (season.watched_episode_count || 0),
+      0,
     );
     const totalSeasons = seasons.length;
     const watchedSeasons = seasons.filter(
-      (s: SeriesSeasonData) => s.watched_episode_count === s.episode_count
+      (s: SeriesSeasonData) => s.watched_episode_count === s.episode_count,
     ).length;
-    
+
     // Calculate average rating from related content
     const ratings = (series.content || [])
       .filter((c: SeriesContentData) => c.rating != null)
       .map((c: SeriesContentData) => c.rating as number);
-    const averageRating = ratings.length > 0 
-      ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length 
-      : undefined;
+    const averageRating =
+      ratings.length > 0
+        ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length
+        : undefined;
 
     return {
       ...series,
@@ -108,19 +113,30 @@ export default async function SeriesPage() {
         watched_episodes: watchedEpisodes,
         total_seasons: totalSeasons,
         watched_seasons: watchedSeasons,
-        completion_percentage: totalEpisodes > 0 ? Math.round((watchedEpisodes / totalEpisodes) * 100) : 0,
-        average_rating: averageRating
-      }
+        completion_percentage:
+          totalEpisodes > 0
+            ? Math.round((watchedEpisodes / totalEpisodes) * 100)
+            : 0,
+        average_rating: averageRating,
+      },
     };
   });
 
   // Count series by status for filters
   const statusCounts = {
     all: series?.length || 0,
-    in_progress: series?.filter((s: SeriesWithRelations) => s.status === 'in_progress').length || 0,
-    completed: series?.filter((s: SeriesWithRelations) => s.status === 'completed').length || 0,
-    abandoned: series?.filter((s: SeriesWithRelations) => s.status === 'abandoned').length || 0,
-    planned: series?.filter((s: SeriesWithRelations) => s.status === 'planned').length || 0,
+    in_progress:
+      series?.filter((s: SeriesWithRelations) => s.status === "in_progress")
+        .length || 0,
+    completed:
+      series?.filter((s: SeriesWithRelations) => s.status === "completed")
+        .length || 0,
+    abandoned:
+      series?.filter((s: SeriesWithRelations) => s.status === "abandoned")
+        .length || 0,
+    planned:
+      series?.filter((s: SeriesWithRelations) => s.status === "planned")
+        .length || 0,
   };
 
   return (
@@ -162,15 +178,22 @@ export default async function SeriesPage() {
             <div className="bg-card rounded-lg border p-4">
               <p className="text-sm text-muted-foreground">Episódios</p>
               <p className="text-2xl font-bold">
-                {seriesWithStats?.reduce((sum: number, s) => sum + s.stats.watched_episodes, 0) || 0}/
-                {seriesWithStats?.reduce((sum: number, s) => sum + s.stats.total_episodes, 0) || 0}
+                {seriesWithStats?.reduce(
+                  (sum: number, s) => sum + s.stats.watched_episodes,
+                  0,
+                ) || 0}
+                /
+                {seriesWithStats?.reduce(
+                  (sum: number, s) => sum + s.stats.total_episodes,
+                  0,
+                ) || 0}
               </p>
             </div>
           </div>
 
           {/* Series List */}
-          <SeriesList 
-            series={seriesWithStats || []} 
+          <SeriesList
+            series={seriesWithStats || []}
             statusCounts={statusCounts}
             user={user}
           />

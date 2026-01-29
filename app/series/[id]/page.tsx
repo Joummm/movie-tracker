@@ -35,7 +35,8 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
   // Get series with all relationships
   const { data: series, error: seriesError } = await supabase
     .from("series")
-    .select(`
+    .select(
+      `
       *,
       series_seasons!series_seasons_series_id_fkey (
         id,
@@ -70,7 +71,8 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
         watched_date,
         watch_status
       )
-    `)
+    `,
+    )
     .eq("id", seriesId)
     .eq("user_id", user.id)
     .single();
@@ -94,24 +96,26 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
   const seasons = series.series_seasons || [];
   const totalEpisodes = seasons.reduce(
     (sum: number, season: SeasonType) => sum + (season.episode_count || 0),
-    0
+    0,
   );
   const watchedEpisodes = seasons.reduce(
-    (sum: number, season: SeasonType) => sum + (season.watched_episode_count || 0),
-    0
+    (sum: number, season: SeasonType) =>
+      sum + (season.watched_episode_count || 0),
+    0,
   );
   const totalSeasons = seasons.length;
   const watchedSeasons = seasons.filter(
-    (s: SeasonType) => s.watched_episode_count === s.episode_count
+    (s: SeasonType) => s.watched_episode_count === s.episode_count,
   ).length;
-  
+
   // Get average rating from related content
   const ratings = (series.content || [])
     .filter((c: ContentType) => c.rating != null)
     .map((c: ContentType) => c.rating as number);
-  const averageRating = ratings.length > 0 
-    ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length 
-    : undefined;
+  const averageRating =
+    ratings.length > 0
+      ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length
+      : undefined;
 
   const seriesWithStats = {
     ...series,
@@ -120,25 +124,25 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
       watched_episodes: watchedEpisodes,
       total_seasons: totalSeasons,
       watched_seasons: watchedSeasons,
-      completion_percentage: totalEpisodes > 0 ? Math.round((watchedEpisodes / totalEpisodes) * 100) : 0,
+      completion_percentage:
+        totalEpisodes > 0
+          ? Math.round((watchedEpisodes / totalEpisodes) * 100)
+          : 0,
       average_rating: averageRating,
-      total_watch_time: series.total_watch_time || 0
-    }
+      total_watch_time: series.total_watch_time || 0,
+    },
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <DashboardHeader userName={profile?.display_name || "User"} />
-      
+
       <main className="container mx-auto px-4 py-6 md:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SeriesHeader 
-            series={seriesWithStats} 
-            user={user} 
-          />
-          
+          <SeriesHeader series={seriesWithStats} user={user} />
+
           <div className="mt-8">
-            <SeriesTabs 
+            <SeriesTabs
               seriesId={seriesId}
               seriesData={seriesWithStats}
               seasons={seasons}

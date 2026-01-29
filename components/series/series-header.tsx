@@ -5,7 +5,7 @@ import { Series } from "@/lib/types/database";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
+import {
   ChevronLeft,
   Edit,
   Play,
@@ -13,7 +13,7 @@ import {
   Star,
   Calendar,
   Tv2,
-  Clock
+  Clock,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -142,18 +142,20 @@ export function SeriesHeader({ series, user }: SeriesHeaderProps) {
             <div className="mb-6 max-w-lg">
               <div className="flex justify-between text-sm mb-2">
                 <span>
-                  {series.stats.watched_episodes} de {series.stats.total_episodes} episódios
+                  {series.stats.watched_episodes} de{" "}
+                  {series.stats.total_episodes} episódios
                 </span>
                 <span className="font-semibold">
                   {series.stats.completion_percentage}% concluído
                 </span>
               </div>
-              <Progress 
-                value={series.stats.completion_percentage} 
+              <Progress
+                value={series.stats.completion_percentage}
                 className="h-2"
               />
               <div className="text-xs text-muted-foreground mt-1">
-                {series.stats.watched_seasons} de {series.stats.total_seasons} temporadas completas
+                {series.stats.watched_seasons} de {series.stats.total_seasons}{" "}
+                temporadas completas
               </div>
             </div>
 
@@ -165,7 +167,7 @@ export function SeriesHeader({ series, user }: SeriesHeaderProps) {
                   Marcar Episódio
                 </Link>
               </Button>
-              
+
               <Button variant="outline" asChild>
                 <Link href={`/series/${series.id}/edit`}>
                   <Edit className="h-4 w-4 mr-2" />

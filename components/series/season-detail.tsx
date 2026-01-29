@@ -17,7 +17,7 @@ import {
   BarChart3,
   Edit,
   Plus,
-  MoreVertical
+  MoreVertical,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -72,20 +72,25 @@ interface SeasonDetailProps {
   userId: string;
 }
 
-
-export function SeasonDetail({ season, seriesId, episodes, userId }: SeasonDetailProps) {
+export function SeasonDetail({
+  season,
+  seriesId,
+  episodes,
+  userId,
+}: SeasonDetailProps) {
   const [activeTab, setActiveTab] = useState("overview");
-  
-  const progress = season.episode_count > 0 
-    ? Math.round((season.watched_episode_count / season.episode_count) * 100) 
-    : 0;
-  
+
+  const progress =
+    season.episode_count > 0
+      ? Math.round((season.watched_episode_count / season.episode_count) * 100)
+      : 0;
+
   const isComplete = progress === 100;
-  
+
   const getDurationText = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    
+
     if (hours > 0 && mins > 0) {
       return `${hours}h ${mins}min`;
     } else if (hours > 0) {
@@ -97,16 +102,21 @@ export function SeasonDetail({ season, seriesId, episodes, userId }: SeasonDetai
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Não especificada";
-    return new Date(dateString).toLocaleDateString('pt-PT');
+    return new Date(dateString).toLocaleDateString("pt-PT");
   };
 
   // Calculate episode statistics
-  const watchedEpisodes = episodes.filter(ep => ep.is_watched).length;
-  const averageEpisodeRating = episodes.length > 0
-    ? episodes.reduce((sum, ep) => sum + (ep.rating || 0), 0) / episodes.length
-    : 0;
-  
-  const totalEpisodeDuration = episodes.reduce((sum, ep) => sum + (ep.duration || 0), 0);
+  const watchedEpisodes = episodes.filter((ep) => ep.is_watched).length;
+  const averageEpisodeRating =
+    episodes.length > 0
+      ? episodes.reduce((sum, ep) => sum + (ep.rating || 0), 0) /
+        episodes.length
+      : 0;
+
+  const totalEpisodeDuration = episodes.reduce(
+    (sum, ep) => sum + (ep.duration || 0),
+    0,
+  );
 
   return (
     <div className="space-y-6">
@@ -127,7 +137,7 @@ export function SeasonDetail({ season, seriesId, episodes, userId }: SeasonDetai
         ) : (
           <div className="h-48 md:h-64 w-full bg-gradient-to-r from-primary/20 to-secondary/20" />
         )}
-        
+
         <div className="absolute bottom-4 left-4 right-4">
           <div className="flex flex-col md:flex-row md:items-end gap-4">
             {/* Season Poster */}
@@ -148,12 +158,14 @@ export function SeasonDetail({ season, seriesId, episodes, userId }: SeasonDetai
                 )}
               </div>
             </div>
-            
+
             {/* Season Info */}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <Badge variant={season.is_special ? "secondary" : "default"}>
-                  {season.is_special ? "Especial" : `Temporada ${season.season_number}`}
+                  {season.is_special
+                    ? "Especial"
+                    : `Temporada ${season.season_number}`}
                 </Badge>
                 {isComplete && (
                   <Badge variant="default">
@@ -162,17 +174,17 @@ export function SeasonDetail({ season, seriesId, episodes, userId }: SeasonDetai
                   </Badge>
                 )}
                 {season.special_type && (
-                  <Badge variant="outline">
-                    {season.special_type}
-                  </Badge>
+                  <Badge variant="outline">{season.special_type}</Badge>
                 )}
               </div>
-              
+
               <h2 className="text-2xl md:text-3xl font-bold">
-                {season.is_special ? "Especial" : `Temporada ${season.season_number}`}
+                {season.is_special
+                  ? "Especial"
+                  : `Temporada ${season.season_number}`}
                 {season.name && `: ${season.name}`}
               </h2>
-              
+
               <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Tv className="h-4 w-4" />
@@ -197,23 +209,25 @@ export function SeasonDetail({ season, seriesId, episodes, userId }: SeasonDetai
                   </span>
                 )}
               </div>
-              
+
               {/* Actions */}
               <div className="flex flex-wrap gap-2 mt-4">
                 <Button size="sm" asChild>
-                  <Link href={`/series/${seriesId}/seasons/${season.id}/episodes/new`}>
+                  <Link
+                    href={`/series/${seriesId}/seasons/${season.id}/episodes/new`}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Adicionar Episódio
                   </Link>
                 </Button>
-                
+
                 <Button size="sm" variant="outline" asChild>
                   <Link href={`/series/${seriesId}/seasons/${season.id}/edit`}>
                     <Edit className="h-4 w-4 mr-2" />
                     Editar
                   </Link>
                 </Button>
-                
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button size="sm" variant="outline">
@@ -222,12 +236,16 @@ export function SeasonDetail({ season, seriesId, episodes, userId }: SeasonDetai
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href={`/series/${seriesId}/seasons/${season.id}/episodes`}>
+                      <Link
+                        href={`/series/${seriesId}/seasons/${season.id}/episodes`}
+                      >
                         Ver Todos Episódios
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href={`/series/${seriesId}/seasons/${season.id}/mark-watched`}>
+                      <Link
+                        href={`/series/${seriesId}/seasons/${season.id}/mark-watched`}
+                      >
                         Marcar como Assistida
                       </Link>
                     </DropdownMenuItem>
@@ -288,21 +306,28 @@ export function SeasonDetail({ season, seriesId, episodes, userId }: SeasonDetai
                     <div>
                       <div className="flex justify-between text-sm mb-2">
                         <span>
-                          {season.watched_episode_count} de {season.episode_count} episódios assistidos
+                          {season.watched_episode_count} de{" "}
+                          {season.episode_count} episódios assistidos
                         </span>
                         <span className="font-semibold">{progress}%</span>
                       </div>
                       <Progress value={progress} className="h-2" />
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <p className="text-muted-foreground">Episódios Assistidos</p>
-                        <p className="font-semibold">{watchedEpisodes}/{episodes.length}</p>
+                        <p className="text-muted-foreground">
+                          Episódios Assistidos
+                        </p>
+                        <p className="font-semibold">
+                          {watchedEpisodes}/{episodes.length}
+                        </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Duração Total</p>
-                        <p className="font-semibold">{getDurationText(totalEpisodeDuration)}</p>
+                        <p className="font-semibold">
+                          {getDurationText(totalEpisodeDuration)}
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -318,25 +343,36 @@ export function SeasonDetail({ season, seriesId, episodes, userId }: SeasonDetai
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">Avaliação Média</p>
+                      <p className="text-sm text-muted-foreground">
+                        Avaliação Média
+                      </p>
                       <div className="flex items-center gap-2">
                         <Star className="h-5 w-5 fill-yellow-500 text-yellow-500" />
                         <span className="text-2xl font-bold">
-                          {averageEpisodeRating > 0 ? averageEpisodeRating.toFixed(1) : "-"}
+                          {averageEpisodeRating > 0
+                            ? averageEpisodeRating.toFixed(1)
+                            : "-"}
                         </span>
                         <span className="text-muted-foreground">/10</span>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">Duração Média</p>
+                      <p className="text-sm text-muted-foreground">
+                        Duração Média
+                      </p>
                       <p className="text-2xl font-bold">
-                        {episodes.length > 0 ? Math.round(totalEpisodeDuration / episodes.length) : 0} min
+                        {episodes.length > 0
+                          ? Math.round(totalEpisodeDuration / episodes.length)
+                          : 0}{" "}
+                        min
                       </p>
                     </div>
-                    
+
                     <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">Ano de Lançamento</p>
+                      <p className="text-sm text-muted-foreground">
+                        Ano de Lançamento
+                      </p>
                       <p className="text-2xl font-bold">
                         {season.release_year || "-"}
                       </p>
@@ -351,21 +387,27 @@ export function SeasonDetail({ season, seriesId, episodes, userId }: SeasonDetai
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <Button className="w-full" asChild>
-                      <Link href={`/series/${seriesId}/seasons/${season.id}/episodes/new`}>
+                      <Link
+                        href={`/series/${seriesId}/seasons/${season.id}/episodes/new`}
+                      >
                         <Plus className="h-4 w-4 mr-2" />
                         Adicionar Episódio
                       </Link>
                     </Button>
-                    
+
                     <Button variant="outline" className="w-full" asChild>
-                      <Link href={`/series/${seriesId}/seasons/${season.id}/edit`}>
+                      <Link
+                        href={`/series/${seriesId}/seasons/${season.id}/edit`}
+                      >
                         <Edit className="h-4 w-4 mr-2" />
                         Editar Temporada
                       </Link>
                     </Button>
-                    
+
                     <Button variant="outline" className="w-full" asChild>
-                      <Link href={`/series/${seriesId}/seasons/${season.id}/episodes`}>
+                      <Link
+                        href={`/series/${seriesId}/seasons/${season.id}/episodes`}
+                      >
                         <List className="h-4 w-4 mr-2" />
                         Ver Todos Episódios
                       </Link>
@@ -378,7 +420,7 @@ export function SeasonDetail({ season, seriesId, episodes, userId }: SeasonDetai
 
           {/* Episodes Tab */}
           <TabsContent value="episodes" className="m-0">
-            <EpisodesList 
+            <EpisodesList
               episodes={episodes}
               season={season}
               seriesId={seriesId}
@@ -394,44 +436,65 @@ export function SeasonDetail({ season, seriesId, episodes, userId }: SeasonDetai
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Total de Episódios</p>
+                    <p className="text-sm text-muted-foreground">
+                      Total de Episódios
+                    </p>
                     <p className="text-3xl font-bold">{season.episode_count}</p>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">Assistidos</p>
-                    <p className="text-3xl font-bold">{season.watched_episode_count}</p>
+                    <p className="text-3xl font-bold">
+                      {season.watched_episode_count}
+                    </p>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">Progresso</p>
                     <p className="text-3xl font-bold">{progress}%</p>
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Duração Total</p>
-                    <p className="text-3xl font-bold">{getDurationText(season.total_watch_time)}</p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Avaliação Média</p>
+                    <p className="text-sm text-muted-foreground">
+                      Duração Total
+                    </p>
                     <p className="text-3xl font-bold">
-                      {season.average_rating ? season.average_rating.toFixed(1) : "-"}
+                      {getDurationText(season.total_watch_time)}
                     </p>
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Duração Média</p>
+                    <p className="text-sm text-muted-foreground">
+                      Avaliação Média
+                    </p>
                     <p className="text-3xl font-bold">
-                      {season.episode_count > 0 ? Math.round(season.total_watch_time / season.episode_count) : 0} min
+                      {season.average_rating
+                        ? season.average_rating.toFixed(1)
+                        : "-"}
                     </p>
                   </div>
-                  
+
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      Duração Média
+                    </p>
+                    <p className="text-3xl font-bold">
+                      {season.episode_count > 0
+                        ? Math.round(
+                            season.total_watch_time / season.episode_count,
+                          )
+                        : 0}{" "}
+                      min
+                    </p>
+                  </div>
+
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">Ano</p>
-                    <p className="text-3xl font-bold">{season.release_year || "-"}</p>
+                    <p className="text-3xl font-bold">
+                      {season.release_year || "-"}
+                    </p>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">Tipo</p>
                     <p className="text-3xl font-bold">

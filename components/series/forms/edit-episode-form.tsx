@@ -8,7 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -23,7 +29,7 @@ import {
   ThumbsUp,
   RefreshCw,
   Tv,
-  Hash
+  Hash,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -45,7 +51,12 @@ interface EditEpisodeFormProps {
   userId: string;
 }
 
-export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpisodeFormProps) {
+export function EditEpisodeForm({
+  episode,
+  seriesId,
+  seasonId,
+  userId,
+}: EditEpisodeFormProps) {
   const router = useRouter();
   const supabase = createClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -68,10 +79,10 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
   });
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value, type } = e.target;
-    
+
     if (type === "number") {
       setFormData((prev) => ({
         ...prev,
@@ -129,7 +140,7 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
             episode: formData.episode_number,
             duration: formData.duration || null,
             watched_date: formData.release_date || null,
-            watch_status: formData.is_watched ? 'completed' : 'planned',
+            watch_status: formData.is_watched ? "completed" : "planned",
             rating: formData.rating > 0 ? formData.rating : null,
             review: formData.review || null,
             would_recommend: formData.would_recommend || null,
@@ -146,9 +157,10 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
       }
 
       alert("Episódio atualizado com sucesso!");
-      router.push(`/series/${seriesId}/seasons/${seasonId}/episodes/${episode.id}`);
+      router.push(
+        `/series/${seriesId}/seasons/${seasonId}/episodes/${episode.id}`,
+      );
       router.refresh();
-      
     } catch (error: any) {
       console.error("Erro ao atualizar episódio:", error);
       alert(`Erro ao atualizar episódio: ${error.message}`);
@@ -159,7 +171,7 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
 
   const handleDelete = async () => {
     setIsLoading(true);
-    
+
     try {
       // Tente excluir da tabela series_episodes
       const { error: tableError } = await supabase
@@ -182,7 +194,6 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
       alert("Episódio excluído com sucesso!");
       router.push(`/series/${seriesId}/seasons/${seasonId}`);
       router.refresh();
-      
     } catch (error: any) {
       console.error("Erro ao excluir episódio:", error);
       alert(`Erro ao excluir episódio: ${error.message}`);
@@ -198,13 +209,20 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Form */}
           <div className="lg:col-span-2 space-y-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="space-y-6"
+            >
               <TabsList className="grid grid-cols-3 w-full">
                 <TabsTrigger value="basic" className="flex items-center gap-2">
                   <Tv className="h-4 w-4" />
                   Básico
                 </TabsTrigger>
-                <TabsTrigger value="details" className="flex items-center gap-2">
+                <TabsTrigger
+                  value="details"
+                  className="flex items-center gap-2"
+                >
                   <FileText className="h-4 w-4" />
                   Detalhes
                 </TabsTrigger>
@@ -226,7 +244,10 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="episode_number" className="flex items-center gap-2">
+                        <Label
+                          htmlFor="episode_number"
+                          className="flex items-center gap-2"
+                        >
                           <Hash className="h-4 w-4" />
                           Número do Episódio
                         </Label>
@@ -242,7 +263,10 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="name" className="flex items-center gap-2">
+                        <Label
+                          htmlFor="name"
+                          className="flex items-center gap-2"
+                        >
                           <Tv className="h-4 w-4" />
                           Nome do Episódio
                         </Label>
@@ -257,7 +281,10 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="duration" className="flex items-center gap-2">
+                        <Label
+                          htmlFor="duration"
+                          className="flex items-center gap-2"
+                        >
                           <Clock className="h-4 w-4" />
                           Duração (minutos)
                         </Label>
@@ -274,7 +301,10 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="release_date" className="flex items-center gap-2">
+                        <Label
+                          htmlFor="release_date"
+                          className="flex items-center gap-2"
+                        >
                           <Calendar className="h-4 w-4" />
                           Data de Lançamento
                         </Label>
@@ -291,14 +321,19 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
 
                     <div className="space-y-3 pt-2">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="is_watched" className="cursor-pointer flex items-center gap-2">
+                        <Label
+                          htmlFor="is_watched"
+                          className="cursor-pointer flex items-center gap-2"
+                        >
                           <Eye className="h-4 w-4" />
                           Assistido
                         </Label>
                         <Switch
                           id="is_watched"
                           checked={formData.is_watched}
-                          onCheckedChange={(checked) => handleSwitchChange("is_watched", checked)}
+                          onCheckedChange={(checked) =>
+                            handleSwitchChange("is_watched", checked)
+                          }
                           disabled={isLoading}
                         />
                       </div>
@@ -334,27 +369,37 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
 
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="would_recommend" className="cursor-pointer flex items-center gap-2">
+                        <Label
+                          htmlFor="would_recommend"
+                          className="cursor-pointer flex items-center gap-2"
+                        >
                           <ThumbsUp className="h-4 w-4" />
                           Recomendaria
                         </Label>
                         <Switch
                           id="would_recommend"
                           checked={formData.would_recommend}
-                          onCheckedChange={(checked) => handleSwitchChange("would_recommend", checked)}
+                          onCheckedChange={(checked) =>
+                            handleSwitchChange("would_recommend", checked)
+                          }
                           disabled={isLoading}
                         />
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="would_rewatch" className="cursor-pointer flex items-center gap-2">
+                        <Label
+                          htmlFor="would_rewatch"
+                          className="cursor-pointer flex items-center gap-2"
+                        >
                           <RefreshCw className="h-4 w-4" />
                           Assistiria Novamente
                         </Label>
                         <Switch
                           id="would_rewatch"
                           checked={formData.would_rewatch}
-                          onCheckedChange={(checked) => handleSwitchChange("would_rewatch", checked)}
+                          onCheckedChange={(checked) =>
+                            handleSwitchChange("would_rewatch", checked)
+                          }
                           disabled={isLoading}
                         />
                       </div>
@@ -375,7 +420,9 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="last_rewatch_date">Última Revisão</Label>
+                        <Label htmlFor="last_rewatch_date">
+                          Última Revisão
+                        </Label>
                         <Input
                           id="last_rewatch_date"
                           name="last_rewatch_date"
@@ -401,7 +448,10 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
-                      <Label htmlFor="rating" className="flex items-center gap-2">
+                      <Label
+                        htmlFor="rating"
+                        className="flex items-center gap-2"
+                      >
                         <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
                         Avaliação (0-10)
                       </Label>
@@ -474,39 +524,47 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
             <Card className="sticky top-6">
               <CardHeader>
                 <CardTitle>Preview</CardTitle>
-                <CardDescription>
-                  Como seu episódio aparecerá
-                </CardDescription>
+                <CardDescription>Como seu episódio aparecerá</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-4 text-white">
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <p className="text-sm text-gray-300">Episódio #{formData.episode_number}</p>
+                      <p className="text-sm text-gray-300">
+                        Episódio #{formData.episode_number}
+                      </p>
                       <h3 className="font-semibold text-lg">
                         {formData.name || `Episódio ${formData.episode_number}`}
                       </h3>
                     </div>
-                    <div className={`px-2 py-1 rounded-full text-xs ${
-                      formData.is_watched ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
-                    }`}>
-                      {formData.is_watched ? 'Assistido' : 'Não Assistido'}
+                    <div
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        formData.is_watched
+                          ? "bg-green-500/20 text-green-400"
+                          : "bg-yellow-500/20 text-yellow-400"
+                      }`}
+                    >
+                      {formData.is_watched ? "Assistido" : "Não Assistido"}
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2 text-sm text-gray-300">
                     <div className="flex items-center gap-2">
                       <Clock className="h-3 w-3" />
                       <span>{formData.duration} minutos</span>
                     </div>
-                    
+
                     {formData.release_date && (
                       <div className="flex items-center gap-2">
                         <Calendar className="h-3 w-3" />
-                        <span>{new Date(formData.release_date).toLocaleDateString('pt-PT')}</span>
+                        <span>
+                          {new Date(formData.release_date).toLocaleDateString(
+                            "pt-PT",
+                          )}
+                        </span>
                       </div>
                     )}
-                    
+
                     {formData.rating > 0 && (
                       <div className="flex items-center gap-2">
                         <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
@@ -568,10 +626,14 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-sm text-red-600">
-                    Esta ação não pode ser desfeita. O episódio será permanentemente removido.
+                    Esta ação não pode ser desfeita. O episódio será
+                    permanentemente removido.
                   </p>
-                  
-                  <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+
+                  <AlertDialog
+                    open={isDeleteDialogOpen}
+                    onOpenChange={setIsDeleteDialogOpen}
+                  >
                     <AlertDialogTrigger asChild>
                       <Button
                         variant="destructive"
@@ -585,7 +647,9 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
                       <AlertDialogHeader>
                         <AlertDialogTitle>Excluir Episódio</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Tem certeza que deseja excluir o episódio "{episode.name || `Episódio ${episode.episode_number}`}"?
+                          Tem certeza que deseja excluir o episódio "
+                          {episode.name || `Episódio ${episode.episode_number}`}
+                          "?
                           <br />
                           <span className="font-semibold text-red-600">
                             Esta ação não pode ser desfeita.
@@ -601,7 +665,9 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
                           disabled={isLoading}
                           className="bg-red-600 hover:bg-red-700"
                         >
-                          {isLoading ? "Excluindo..." : "Excluir Permanentemente"}
+                          {isLoading
+                            ? "Excluindo..."
+                            : "Excluir Permanentemente"}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -624,10 +690,14 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-red-600">
-              Esta ação não pode ser desfeita. O episódio será permanentemente removido.
+              Esta ação não pode ser desfeita. O episódio será permanentemente
+              removido.
             </p>
-            
-            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+
+            <AlertDialog
+              open={isDeleteDialogOpen}
+              onOpenChange={setIsDeleteDialogOpen}
+            >
               <AlertDialogTrigger asChild>
                 <Button
                   variant="destructive"
@@ -641,7 +711,8 @@ export function EditEpisodeForm({ episode, seriesId, seasonId, userId }: EditEpi
                 <AlertDialogHeader>
                   <AlertDialogTitle>Excluir Episódio</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Tem certeza que deseja excluir o episódio "{episode.name || `Episódio ${episode.episode_number}`}"?
+                    Tem certeza que deseja excluir o episódio "
+                    {episode.name || `Episódio ${episode.episode_number}`}"?
                     <br />
                     <span className="font-semibold text-red-600">
                       Esta ação não pode ser desfeita.

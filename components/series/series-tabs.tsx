@@ -2,15 +2,7 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Info, 
-  Tv, 
-  Users, 
-  BarChart3, 
-  Calendar,
-  Star,
-  List
-} from "lucide-react";
+import { Info, Tv, Users, BarChart3, Calendar, Star, List } from "lucide-react";
 import { useState } from "react";
 import { SeriesOverview } from "./series-overview";
 import { SeriesSeasons } from "./series-seasons";
@@ -26,12 +18,12 @@ interface SeriesTabsProps {
   stats: any;
 }
 
-export function SeriesTabs({ 
-  seriesId, 
-  seriesData, 
-  seasons, 
-  cast, 
-  stats 
+export function SeriesTabs({
+  seriesId,
+  seriesData,
+  seasons,
+  cast,
+  stats,
 }: SeriesTabsProps) {
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -75,8 +67,8 @@ export function SeriesTabs({
 
         {/* Seasons Tab */}
         <TabsContent value="seasons" className="m-0">
-          <SeriesSeasons 
-            seriesId={seriesId} 
+          <SeriesSeasons
+            seriesId={seriesId}
             seasons={seasons}
             userId={seriesData.user_id}
           />
@@ -93,7 +85,8 @@ export function SeriesTabs({
             <List className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>Lista de episódios em desenvolvimento</p>
             <p className="text-sm mt-2">
-              Aqui serão listados todos os episódios da série organizados por temporada
+              Aqui serão listados todos os episódios da série organizados por
+              temporada
             </p>
           </div>
         </TabsContent>

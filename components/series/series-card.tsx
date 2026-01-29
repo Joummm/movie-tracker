@@ -6,13 +6,13 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  MoreVertical, 
-  Play, 
-  CheckCircle2, 
+import {
+  MoreVertical,
+  Play,
+  CheckCircle2,
   Calendar,
   Tv2,
-  Star
+  Star,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -73,10 +73,10 @@ export function SeriesCard({ series, viewMode, user }: SeriesCardProps) {
               <Tv2 className="h-12 w-12 text-muted-foreground" />
             </div>
           )}
-          
+
           {/* Status Badge */}
           <div className="absolute top-2 right-2">
-            <Badge 
+            <Badge
               className={`${statusColors[series.status]} text-white border-none`}
             >
               {statusLabels[series.status]}
@@ -99,13 +99,15 @@ export function SeriesCard({ series, viewMode, user }: SeriesCardProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-    <Link href={`/series/${series.id}`}>Ver Série</Link>
-  </DropdownMenuItem>
+                  <Link href={`/series/${series.id}`}>Ver Série</Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href={`/series/${series.id}/edit`}>Editar</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href={`/series/${series.id}/seasons`}>Ver Temporadas</Link>
+                  <Link href={`/series/${series.id}/seasons`}>
+                    Ver Temporadas
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href={`/series/${series.id}/cast`}>Elenco</Link>
@@ -128,12 +130,21 @@ export function SeriesCard({ series, viewMode, user }: SeriesCardProps) {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Progresso</span>
-                <span>{series.stats.watched_episodes}/{series.stats.total_episodes} episódios</span>
+                <span>
+                  {series.stats.watched_episodes}/{series.stats.total_episodes}{" "}
+                  episódios
+                </span>
               </div>
-              <Progress value={series.stats.completion_percentage} className="h-2" />
-              
+              <Progress
+                value={series.stats.completion_percentage}
+                className="h-2"
+              />
+
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{series.stats.watched_seasons}/{series.stats.total_seasons} temporadas</span>
+                <span>
+                  {series.stats.watched_seasons}/{series.stats.total_seasons}{" "}
+                  temporadas
+                </span>
                 <span>{series.stats.completion_percentage}%</span>
               </div>
             </div>
@@ -155,9 +166,7 @@ export function SeriesCard({ series, viewMode, user }: SeriesCardProps) {
                 )}
               </div>
               {series.total_watch_time > 0 && (
-                <span>
-                  {Math.round(series.total_watch_time / 60)}h
-                </span>
+                <span>{Math.round(series.total_watch_time / 60)}h</span>
               )}
             </div>
           </div>
@@ -204,7 +213,7 @@ export function SeriesCard({ series, viewMode, user }: SeriesCardProps) {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-semibold text-lg">{series.name}</h3>
-                    <Badge 
+                    <Badge
                       className={`${statusColors[series.status]} text-white border-none`}
                     >
                       {statusLabels[series.status]}
@@ -228,7 +237,9 @@ export function SeriesCard({ series, viewMode, user }: SeriesCardProps) {
                       <Link href={`/series/${series.id}/edit`}>Editar</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href={`/series/${series.id}/seasons`}>Temporadas</Link>
+                      <Link href={`/series/${series.id}/seasons`}>
+                        Temporadas
+                      </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -239,7 +250,8 @@ export function SeriesCard({ series, viewMode, user }: SeriesCardProps) {
                 <div>
                   <p className="text-sm text-muted-foreground">Progresso</p>
                   <p className="font-semibold">
-                    {series.stats.watched_episodes}/{series.stats.total_episodes}
+                    {series.stats.watched_episodes}/
+                    {series.stats.total_episodes}
                   </p>
                 </div>
                 <div>
@@ -258,10 +270,9 @@ export function SeriesCard({ series, viewMode, user }: SeriesCardProps) {
                 <div>
                   <p className="text-sm text-muted-foreground">Tempo Total</p>
                   <p className="font-semibold">
-                    {series.total_watch_time > 0 
+                    {series.total_watch_time > 0
                       ? `${Math.round(series.total_watch_time / 60)}h`
-                      : "-"
-                    }
+                      : "-"}
                   </p>
                 </div>
               </div>
@@ -272,7 +283,10 @@ export function SeriesCard({ series, viewMode, user }: SeriesCardProps) {
                   <span>Completado</span>
                   <span>{series.stats.completion_percentage}%</span>
                 </div>
-                <Progress value={series.stats.completion_percentage} className="h-2" />
+                <Progress
+                  value={series.stats.completion_percentage}
+                  className="h-2"
+                />
               </div>
             </div>
 
@@ -288,9 +302,7 @@ export function SeriesCard({ series, viewMode, user }: SeriesCardProps) {
               </div>
               <div className="flex items-center gap-2">
                 <Button size="sm" asChild>
-                  <Link href={`/series/${series.id}`}>
-                    Ver Detalhes
-                  </Link>
+                  <Link href={`/series/${series.id}`}>Ver Detalhes</Link>
                 </Button>
                 <Button size="sm" variant="outline" asChild>
                   <Link href={`/series/${series.id}/watch`}>

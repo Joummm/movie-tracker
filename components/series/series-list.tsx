@@ -45,7 +45,9 @@ export function SeriesList({ series, statusCounts, user }: SeriesListProps) {
   const [filteredSeries, setFilteredSeries] = useState(series);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<SeriesStatus | "all">("all");
-  const [sortBy, setSortBy] = useState<"name" | "recent" | "progress" | "rating">("recent");
+  const [sortBy, setSortBy] = useState<
+    "name" | "recent" | "progress" | "rating"
+  >("recent");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Filter and sort series
@@ -54,15 +56,16 @@ export function SeriesList({ series, statusCounts, user }: SeriesListProps) {
 
     // Apply search filter
     if (searchQuery) {
-      result = result.filter(s =>
-        s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      result = result.filter(
+        (s) =>
+          s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          s.description?.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 
     // Apply status filter
     if (statusFilter !== "all") {
-      result = result.filter(s => s.status === statusFilter);
+      result = result.filter((s) => s.status === statusFilter);
     }
 
     // Apply sorting
@@ -78,7 +81,9 @@ export function SeriesList({ series, statusCounts, user }: SeriesListProps) {
           return ratingB - ratingA;
         case "recent":
         default:
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          return (
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
       }
     });
 
@@ -87,7 +92,11 @@ export function SeriesList({ series, statusCounts, user }: SeriesListProps) {
 
   const statusOptions = [
     { value: "all", label: "Todas", count: statusCounts.all },
-    { value: "in_progress", label: "Em Progresso", count: statusCounts.in_progress },
+    {
+      value: "in_progress",
+      label: "Em Progresso",
+      count: statusCounts.in_progress,
+    },
     { value: "completed", label: "Completadas", count: statusCounts.completed },
     { value: "abandoned", label: "Abandonadas", count: statusCounts.abandoned },
     { value: "planned", label: "Planeadas", count: statusCounts.planned },
@@ -158,7 +167,10 @@ export function SeriesList({ series, statusCounts, user }: SeriesListProps) {
           </div>
 
           {/* Status Filter */}
-          <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+          <Select
+            value={statusFilter}
+            onValueChange={(value: any) => setStatusFilter(value)}
+          >
             <SelectTrigger className="w-[180px]">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filtrar por status" />
@@ -178,7 +190,10 @@ export function SeriesList({ series, statusCounts, user }: SeriesListProps) {
           </Select>
 
           {/* Sort By */}
-          <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+          <Select
+            value={sortBy}
+            onValueChange={(value: any) => setSortBy(value)}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Ordenar por" />
             </SelectTrigger>

@@ -15,23 +15,29 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from "@/lib/supabase/client";
-import { 
-  Film, 
-  Calendar, 
-  Tv, 
-  Star, 
-  Clock, 
-  Image as ImageIcon, 
+import {
+  Film,
+  Calendar,
+  Tv,
+  Star,
+  Clock,
+  Image as ImageIcon,
   Check,
   ArrowLeft,
   Plus,
   Settings,
   List,
   Save,
-  X
+  X,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
@@ -64,10 +70,10 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
   });
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value, type } = e.target;
-    
+
     if (type === "number") {
       setFormData((prev) => ({
         ...prev,
@@ -83,7 +89,7 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       alert("Por favor, insira um nome para a série.");
       return;
@@ -96,7 +102,9 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
         user_id: userId,
         name: formData.name,
         cover_image: formData.cover_image || null,
-        release_year: formData.release_year ? parseInt(formData.release_year) : null,
+        release_year: formData.release_year
+          ? parseInt(formData.release_year)
+          : null,
         status: formData.status,
         total_seasons: formData.total_seasons || 0,
         total_episodes: formData.total_episodes || 0,
@@ -121,7 +129,6 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
 
       alert("Série criada com sucesso!");
       router.push(`/series/${newSeries.id}`);
-      
     } catch (error: any) {
       console.error("Erro ao criar série:", error);
       alert(`Erro ao criar série: ${error.message}`);
@@ -150,7 +157,7 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
             </p>
           </div>
         </div>
-        
+
         {/* Botão de criar no topo também */}
         <div className="flex items-center gap-2">
           <Button
@@ -179,13 +186,20 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Basic Info */}
           <div className="lg:col-span-2 space-y-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="space-y-6"
+            >
               <TabsList className="grid grid-cols-3 w-full">
                 <TabsTrigger value="basic" className="flex items-center gap-2">
                   <Film className="h-4 w-4" />
                   Básico
                 </TabsTrigger>
-                <TabsTrigger value="details" className="flex items-center gap-2">
+                <TabsTrigger
+                  value="details"
+                  className="flex items-center gap-2"
+                >
                   <Settings className="h-4 w-4" />
                   Detalhes
                 </TabsTrigger>
@@ -223,7 +237,10 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="release_year" className="flex items-center gap-2">
+                        <Label
+                          htmlFor="release_year"
+                          className="flex items-center gap-2"
+                        >
                           <Calendar className="h-4 w-4" />
                           Ano de Lançamento
                         </Label>
@@ -241,30 +258,42 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="status" className="flex items-center gap-2">
+                        <Label
+                          htmlFor="status"
+                          className="flex items-center gap-2"
+                        >
                           <Tv className="h-4 w-4" />
                           Status
                         </Label>
                         <Select
                           value={formData.status}
-                          onValueChange={(value: "in_progress" | "abandoned" | "completed") => 
-                            setFormData({...formData, status: value})
-                          }
+                          onValueChange={(
+                            value: "in_progress" | "abandoned" | "completed",
+                          ) => setFormData({ ...formData, status: value })}
                           disabled={isLoading}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione o status" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="in_progress" className="flex items-center gap-2">
+                            <SelectItem
+                              value="in_progress"
+                              className="flex items-center gap-2"
+                            >
                               <div className="h-2 w-2 rounded-full bg-yellow-500" />
                               Em Progresso
                             </SelectItem>
-                            <SelectItem value="completed" className="flex items-center gap-2">
+                            <SelectItem
+                              value="completed"
+                              className="flex items-center gap-2"
+                            >
                               <div className="h-2 w-2 rounded-full bg-green-500" />
                               Completada
                             </SelectItem>
-                            <SelectItem value="abandoned" className="flex items-center gap-2">
+                            <SelectItem
+                              value="abandoned"
+                              className="flex items-center gap-2"
+                            >
                               <div className="h-2 w-2 rounded-full bg-red-500" />
                               Abandonada
                             </SelectItem>
@@ -289,7 +318,10 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="total_seasons" className="flex items-center gap-2">
+                          <Label
+                            htmlFor="total_seasons"
+                            className="flex items-center gap-2"
+                          >
                             <List className="h-4 w-4" />
                             Total de Temporadas
                           </Label>
@@ -306,7 +338,10 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="total_episodes" className="flex items-center gap-2">
+                          <Label
+                            htmlFor="total_episodes"
+                            className="flex items-center gap-2"
+                          >
                             <List className="h-4 w-4" />
                             Total de Episódios
                           </Label>
@@ -323,7 +358,10 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="average_rating" className="flex items-center gap-2">
+                          <Label
+                            htmlFor="average_rating"
+                            className="flex items-center gap-2"
+                          >
                             <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
                             Avaliação Média
                           </Label>
@@ -350,7 +388,10 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
 
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="total_watch_time" className="flex items-center gap-2">
+                          <Label
+                            htmlFor="total_watch_time"
+                            className="flex items-center gap-2"
+                          >
                             <Clock className="h-4 w-4" />
                             Tempo Total (minutos)
                           </Label>
@@ -394,42 +435,60 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
 
                         <div className="space-y-3 pt-2">
                           <div className="flex items-center justify-between">
-                            <Label htmlFor="has_special_seasons" className="cursor-pointer">
+                            <Label
+                              htmlFor="has_special_seasons"
+                              className="cursor-pointer"
+                            >
                               Temporadas Especiais
                             </Label>
                             <Switch
                               id="has_special_seasons"
                               checked={formData.has_special_seasons}
-                              onCheckedChange={(checked) => 
-                                setFormData({...formData, has_special_seasons: checked})
+                              onCheckedChange={(checked) =>
+                                setFormData({
+                                  ...formData,
+                                  has_special_seasons: checked,
+                                })
                               }
                               disabled={isLoading}
                             />
                           </div>
 
                           <div className="flex items-center justify-between">
-                            <Label htmlFor="would_recommend" className="cursor-pointer">
+                            <Label
+                              htmlFor="would_recommend"
+                              className="cursor-pointer"
+                            >
                               Recomendaria
                             </Label>
                             <Switch
                               id="would_recommend"
                               checked={formData.would_recommend}
-                              onCheckedChange={(checked) => 
-                                setFormData({...formData, would_recommend: checked})
+                              onCheckedChange={(checked) =>
+                                setFormData({
+                                  ...formData,
+                                  would_recommend: checked,
+                                })
                               }
                               disabled={isLoading}
                             />
                           </div>
 
                           <div className="flex items-center justify-between">
-                            <Label htmlFor="would_rewatch" className="cursor-pointer">
+                            <Label
+                              htmlFor="would_rewatch"
+                              className="cursor-pointer"
+                            >
                               Assistiria Novamente
                             </Label>
                             <Switch
                               id="would_rewatch"
                               checked={formData.would_rewatch}
-                              onCheckedChange={(checked) => 
-                                setFormData({...formData, would_rewatch: checked})
+                              onCheckedChange={(checked) =>
+                                setFormData({
+                                  ...formData,
+                                  would_rewatch: checked,
+                                })
                               }
                               disabled={isLoading}
                             />
@@ -465,7 +524,9 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
                             ) : (
                               <div className="text-center p-4">
                                 <ImageIcon className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                                <p className="text-sm text-muted-foreground">Capa</p>
+                                <p className="text-sm text-muted-foreground">
+                                  Capa
+                                </p>
                               </div>
                             )}
                           </div>
@@ -491,7 +552,7 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
 
                     <div className="space-y-4">
                       <Label className="text-base">Posters (Opcionais)</Label>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-3">
                           <div className="aspect-[2/3] rounded-lg border-2 border-dashed border-muted-foreground/25 flex items-center justify-center bg-muted/30 overflow-hidden">
@@ -504,7 +565,9 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
                             ) : (
                               <div className="text-center p-4">
                                 <ImageIcon className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-                                <p className="text-xs text-muted-foreground">Poster Vertical</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Poster Vertical
+                                </p>
                               </div>
                             )}
                           </div>
@@ -529,7 +592,9 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
                             ) : (
                               <div className="text-center p-4">
                                 <ImageIcon className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-                                <p className="text-xs text-muted-foreground">Poster Horizontal</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Poster Horizontal
+                                </p>
                               </div>
                             )}
                           </div>
@@ -578,9 +643,7 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
             <Card className="sticky top-6">
               <CardHeader>
                 <CardTitle>Preview</CardTitle>
-                <CardDescription>
-                  Como sua série aparecerá
-                </CardDescription>
+                <CardDescription>Como sua série aparecerá</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="aspect-[2/3] rounded-lg overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 relative">
@@ -608,13 +671,20 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Status</span>
-                    <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                      formData.status === 'completed' ? 'bg-green-500/20 text-green-600' :
-                      formData.status === 'in_progress' ? 'bg-yellow-500/20 text-yellow-600' :
-                      'bg-red-500/20 text-red-600'
-                    }`}>
-                      {formData.status === 'completed' ? 'Completada' :
-                       formData.status === 'in_progress' ? 'Em Progresso' : 'Abandonada'}
+                    <span
+                      className={`text-sm font-medium px-2 py-1 rounded-full ${
+                        formData.status === "completed"
+                          ? "bg-green-500/20 text-green-600"
+                          : formData.status === "in_progress"
+                            ? "bg-yellow-500/20 text-yellow-600"
+                            : "bg-red-500/20 text-red-600"
+                      }`}
+                    >
+                      {formData.status === "completed"
+                        ? "Completada"
+                        : formData.status === "in_progress"
+                          ? "Em Progresso"
+                          : "Abandonada"}
                     </span>
                   </div>
 
@@ -685,7 +755,8 @@ export function NewSeriesForm({ userId }: NewSeriesFormProps) {
                       Campos marcados com * são obrigatórios
                     </p>
                     <p>
-                      Você poderá adicionar temporadas, episódios e elenco após a criação.
+                      Você poderá adicionar temporadas, episódios e elenco após
+                      a criação.
                     </p>
                   </div>
                 </CardContent>

@@ -2,13 +2,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Star, 
-  Clock, 
-  Calendar, 
-  CheckCircle, 
+import {
+  Star,
+  Clock,
+  Calendar,
+  CheckCircle,
   XCircle,
-  TrendingUp
+  TrendingUp,
 } from "lucide-react";
 import { Series } from "@/lib/types/database";
 
@@ -112,7 +112,7 @@ export function SeriesOverview({ series }: SeriesOverviewProps) {
                 )}
               </Badge>
             )}
-            
+
             {series.would_rewatch !== null && (
               <Badge variant={series.would_rewatch ? "default" : "secondary"}>
                 {series.would_rewatch ? (
@@ -128,11 +128,9 @@ export function SeriesOverview({ series }: SeriesOverviewProps) {
                 )}
               </Badge>
             )}
-            
+
             {series.has_special_seasons && (
-              <Badge variant="outline">
-                Tem Temporadas Especiais
-              </Badge>
+              <Badge variant="outline">Tem Temporadas Especiais</Badge>
             )}
           </div>
         </div>

@@ -79,7 +79,7 @@ export default async function EpisodeDetailPage({ params }: EpisodePageProps) {
         episode_number: episodeFromContent.episode || 0,
         name: episodeFromContent.name,
         duration: episodeFromContent.duration,
-        is_watched: episodeFromContent.watch_status === 'completed',
+        is_watched: episodeFromContent.watch_status === "completed",
         rating: episodeFromContent.rating,
         review: episodeFromContent.review,
         release_date: episodeFromContent.watched_date,
@@ -90,7 +90,7 @@ export default async function EpisodeDetailPage({ params }: EpisodePageProps) {
         rewatch_count: episodeFromContent.rewatch_count,
         last_rewatch_date: episodeFromContent.last_rewatch_date,
         notes: episodeFromContent.notes,
-        content_id: episodeFromContent.id
+        content_id: episodeFromContent.id,
       };
     }
   }
@@ -123,7 +123,7 @@ export default async function EpisodeDetailPage({ params }: EpisodePageProps) {
   let previousEpisode: any = null;
 
   if (allEpisodes && allEpisodes.length > 0) {
-    const currentIndex = allEpisodes.findIndex(ep => ep.id === episodeId);
+    const currentIndex = allEpisodes.findIndex((ep) => ep.id === episodeId);
     if (currentIndex > 0) {
       previousEpisode = allEpisodes[currentIndex - 1];
     }
@@ -134,8 +134,8 @@ export default async function EpisodeDetailPage({ params }: EpisodePageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <DashboardHeader userName={user.email?.split('@')[0] || "User"} />
-      
+      <DashboardHeader userName={user.email?.split("@")[0] || "User"} />
+
       <main className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           {/* Navigation */}
@@ -156,18 +156,20 @@ export default async function EpisodeDetailPage({ params }: EpisodePageProps) {
                   {episode.name || `Episódio ${episode.episode_number}`}
                 </h1>
                 <div className="flex items-center gap-2 text-muted-foreground mt-1">
-                  <Link 
+                  <Link
                     href={`/series/${seriesId}`}
                     className="hover:text-foreground transition-colors"
                   >
                     {series.name}
                   </Link>
                   <span>•</span>
-                  <Link 
+                  <Link
                     href={`/series/${seriesId}/seasons/${seasonId}`}
                     className="hover:text-foreground transition-colors"
                   >
-                    {season.is_special ? 'Especial' : `Temporada ${season.season_number}`}
+                    {season.is_special
+                      ? "Especial"
+                      : `Temporada ${season.season_number}`}
                     {season.name && `: ${season.name}`}
                   </Link>
                   <span>•</span>
@@ -175,10 +177,12 @@ export default async function EpisodeDetailPage({ params }: EpisodePageProps) {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Button variant="outline" asChild>
-                <Link href={`/series/${seriesId}/seasons/${seasonId}/episodes/${episodeId}/edit`}>
+                <Link
+                  href={`/series/${seriesId}/seasons/${seasonId}/episodes/${episodeId}/edit`}
+                >
                   Editar
                 </Link>
               </Button>
@@ -186,7 +190,7 @@ export default async function EpisodeDetailPage({ params }: EpisodePageProps) {
           </div>
 
           {/* Episode Detail */}
-          <EpisodeDetail 
+          <EpisodeDetail
             episode={episode}
             seriesId={seriesId}
             seasonId={seasonId}

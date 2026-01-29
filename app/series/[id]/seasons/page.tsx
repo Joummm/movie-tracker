@@ -66,18 +66,25 @@ export default async function SeasonsPage({ params }: SeasonsPageProps) {
 
   // Calculate statistics
   const totalSeasons = seasons?.length || 0;
-  const totalEpisodes = seasons?.reduce((sum: number, season: any) => 
-    sum + (season.episode_count || 0), 0) || 0;
-  const watchedEpisodes = seasons?.reduce((sum: number, season: any) => 
-    sum + (season.watched_episode_count || 0), 0) || 0;
-  const completedSeasons = seasons?.filter((season: any) => 
-    season.watched_episode_count === season.episode_count
-  ).length || 0;
+  const totalEpisodes =
+    seasons?.reduce(
+      (sum: number, season: any) => sum + (season.episode_count || 0),
+      0,
+    ) || 0;
+  const watchedEpisodes =
+    seasons?.reduce(
+      (sum: number, season: any) => sum + (season.watched_episode_count || 0),
+      0,
+    ) || 0;
+  const completedSeasons =
+    seasons?.filter(
+      (season: any) => season.watched_episode_count === season.episode_count,
+    ).length || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <DashboardHeader userName={profile?.display_name || "User"} />
-      
+
       <main className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           {/* Header */}
@@ -103,7 +110,7 @@ export default async function SeasonsPage({ params }: SeasonsPageProps) {
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Button asChild>
                   <Link href={`/series/${seriesId}/seasons/new`}>
@@ -117,7 +124,9 @@ export default async function SeasonsPage({ params }: SeasonsPageProps) {
             {/* Statistics */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-card rounded-lg border p-4">
-                <p className="text-sm text-muted-foreground">Total de Temporadas</p>
+                <p className="text-sm text-muted-foreground">
+                  Total de Temporadas
+                </p>
                 <p className="text-2xl font-bold">{totalSeasons}</p>
               </div>
               <div className="bg-card rounded-lg border p-4">
@@ -125,7 +134,9 @@ export default async function SeasonsPage({ params }: SeasonsPageProps) {
                 <p className="text-2xl font-bold">{completedSeasons}</p>
               </div>
               <div className="bg-card rounded-lg border p-4">
-                <p className="text-sm text-muted-foreground">Total de Episódios</p>
+                <p className="text-sm text-muted-foreground">
+                  Total de Episódios
+                </p>
                 <p className="text-2xl font-bold">{totalEpisodes}</p>
               </div>
               <div className="bg-card rounded-lg border p-4">
@@ -137,7 +148,7 @@ export default async function SeasonsPage({ params }: SeasonsPageProps) {
             </div>
 
             {/* Seasons List */}
-            <SeasonsList 
+            <SeasonsList
               seasons={seasons || []}
               seriesId={seriesId}
               seriesName={series.name || "Série"}

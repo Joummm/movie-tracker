@@ -95,11 +95,11 @@ export default async function SeasonDetailPage({ params }: SeasonPageProps) {
         episode_number: content.episode || 0,
         name: content.name,
         duration: content.duration,
-        is_watched: content.watch_status === 'completed',
+        is_watched: content.watch_status === "completed",
         rating: content.rating,
         review: content.review,
         release_date: content.watched_date,
-        created_at: content.created_at
+        created_at: content.created_at,
       }));
     } else {
       episodesError = episodesError2;
@@ -122,40 +122,35 @@ export default async function SeasonDetailPage({ params }: SeasonPageProps) {
 
   const seasonWithSeries = {
     ...season,
-    series: seriesInfo || { id: seriesId, name: series.name }
+    series: seriesInfo || { id: seriesId, name: series.name },
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <DashboardHeader userName={profile?.display_name || "User"} />
-      
+
       <main className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
-            <Button
-              variant="outline"
-              size="icon"
-              asChild
-              className="h-10 w-10"
-            >
+            <Button variant="outline" size="icon" asChild className="h-10 w-10">
               <Link href={`/series/${seriesId}/seasons`}>
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">
-                {season.is_special ? "Especial" : `Temporada ${season.season_number}`}
+                {season.is_special
+                  ? "Especial"
+                  : `Temporada ${season.season_number}`}
                 {season.name && `: ${season.name}`}
               </h1>
-              <p className="text-muted-foreground mt-1">
-                {series.name}
-              </p>
+              <p className="text-muted-foreground mt-1">{series.name}</p>
             </div>
           </div>
 
           {/* Season Detail */}
-          <SeasonDetail 
+          <SeasonDetail
             season={seasonWithSeries}
             seriesId={seriesId}
             episodes={episodes}

@@ -5,14 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Plus, 
-  Tv, 
-  Calendar, 
-  Star,
-  Eye,
-  MoreVertical
-} from "lucide-react";
+import { Plus, Tv, Calendar, Star, Eye, MoreVertical } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,8 +33,14 @@ interface SeriesSeasonsProps {
   userId: string;
 }
 
-export function SeriesSeasons({ seriesId, seasons, userId }: SeriesSeasonsProps) {
-  const sortedSeasons = [...seasons].sort((a, b) => a.season_number - b.season_number);
+export function SeriesSeasons({
+  seriesId,
+  seasons,
+  userId,
+}: SeriesSeasonsProps) {
+  const sortedSeasons = [...seasons].sort(
+    (a, b) => a.season_number - b.season_number,
+  );
 
   const calculateProgress = (watched: number, total: number) => {
     if (total === 0) return 0;
@@ -75,7 +74,7 @@ export function SeriesSeasons({ seriesId, seasons, userId }: SeriesSeasonsProps)
             {sortedSeasons.map((season) => {
               const progress = calculateProgress(
                 season.watched_episode_count,
-                season.episode_count
+                season.episode_count,
               );
               const isComplete = progress === 100;
 
@@ -107,7 +106,9 @@ export function SeriesSeasons({ seriesId, seasons, userId }: SeriesSeasonsProps)
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold">
-                            {season.is_special ? 'Especial' : `Temporada ${season.season_number}`}
+                            {season.is_special
+                              ? "Especial"
+                              : `Temporada ${season.season_number}`}
                             {season.name && `: ${season.name}`}
                           </h3>
                           {isComplete && (
@@ -117,7 +118,7 @@ export function SeriesSeasons({ seriesId, seasons, userId }: SeriesSeasonsProps)
                             </Badge>
                           )}
                         </div>
-                        
+
                         <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Tv className="h-3 w-3" />
@@ -140,23 +141,33 @@ export function SeriesSeasons({ seriesId, seasons, userId }: SeriesSeasonsProps)
 
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                          >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
-                            <Link href={`/series/${seriesId}/seasons/${season.id}`}>
+                            <Link
+                              href={`/series/${seriesId}/seasons/${season.id}`}
+                            >
                               Ver Detalhes
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link href={`/series/${seriesId}/seasons/${season.id}/edit`}>
+                            <Link
+                              href={`/series/${seriesId}/seasons/${season.id}/edit`}
+                            >
                               Editar
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link href={`/series/${seriesId}/seasons/${season.id}/episodes/new`}>
+                            <Link
+                              href={`/series/${seriesId}/seasons/${season.id}/episodes/new`}
+                            >
                               Adicionar Episódio
                             </Link>
                           </DropdownMenuItem>
@@ -168,7 +179,8 @@ export function SeriesSeasons({ seriesId, seasons, userId }: SeriesSeasonsProps)
                     <div className="mt-3">
                       <div className="flex justify-between text-sm mb-1">
                         <span>
-                          {season.watched_episode_count} de {season.episode_count} assistidos
+                          {season.watched_episode_count} de{" "}
+                          {season.episode_count} assistidos
                         </span>
                         <span className="font-semibold">{progress}%</span>
                       </div>

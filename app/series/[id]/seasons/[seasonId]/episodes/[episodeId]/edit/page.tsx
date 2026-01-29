@@ -15,7 +15,9 @@ interface EditEpisodePageProps {
   }>;
 }
 
-export default async function EditEpisodePage({ params }: EditEpisodePageProps) {
+export default async function EditEpisodePage({
+  params,
+}: EditEpisodePageProps) {
   const { id, seasonId, episodeId } = await params;
   const supabase = await createClient();
   const seriesId = id;
@@ -77,7 +79,7 @@ export default async function EditEpisodePage({ params }: EditEpisodePageProps) 
         episode_number: episodeFromContent.episode || 0,
         name: episodeFromContent.name,
         duration: episodeFromContent.duration,
-        is_watched: episodeFromContent.watch_status === 'completed',
+        is_watched: episodeFromContent.watch_status === "completed",
         rating: episodeFromContent.rating,
         review: episodeFromContent.review,
         release_date: episodeFromContent.watched_date,
@@ -96,39 +98,42 @@ export default async function EditEpisodePage({ params }: EditEpisodePageProps) 
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <DashboardHeader userName={user.email?.split('@')[0] || "User"} />
-      
+      <DashboardHeader userName={user.email?.split("@")[0] || "User"} />
+
       <main className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           {/* Navigation */}
           <div className="flex items-center gap-4 mb-8">
-            <Button
-              variant="outline"
-              size="icon"
-              asChild
-              className="h-10 w-10"
-            >
-              <Link href={`/series/${seriesId}/seasons/${seasonId}/episodes/${episodeId}`}>
+            <Button variant="outline" size="icon" asChild className="h-10 w-10">
+              <Link
+                href={`/series/${seriesId}/seasons/${seasonId}/episodes/${episodeId}`}
+              >
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Editar Episódio</h1>
+              <h1 className="text-3xl font-bold tracking-tight">
+                Editar Episódio
+              </h1>
               <div className="flex items-center gap-2 text-muted-foreground mt-1">
                 <span>{series.name}</span>
                 <span>•</span>
                 <span>
-                  {season.is_special ? 'Especial' : `Temporada ${season.season_number}`}
+                  {season.is_special
+                    ? "Especial"
+                    : `Temporada ${season.season_number}`}
                   {season.name && `: ${season.name}`}
                 </span>
                 <span>•</span>
-                <span>{episode.name || `Episódio ${episode.episode_number}`}</span>
+                <span>
+                  {episode.name || `Episódio ${episode.episode_number}`}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Edit Form */}
-          <EditEpisodeForm 
+          <EditEpisodeForm
             episode={episode}
             seriesId={seriesId}
             seasonId={seasonId}

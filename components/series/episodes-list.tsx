@@ -15,7 +15,7 @@ import {
   Star,
   Clock,
   Calendar,
-  MoreVertical
+  MoreVertical,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -51,14 +51,20 @@ interface EpisodesListProps {
   seriesId: string;
 }
 
-export function EpisodesList({ episodes, season, seriesId }: EpisodesListProps) {
+export function EpisodesList({
+  episodes,
+  season,
+  seriesId,
+}: EpisodesListProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterWatched, setFilterWatched] = useState<"all" | "watched" | "unwatched">("all");
+  const [filterWatched, setFilterWatched] = useState<
+    "all" | "watched" | "unwatched"
+  >("all");
   const [sortBy, setSortBy] = useState<"number" | "rating" | "date">("number");
 
   // Filter and sort episodes
   const filteredEpisodes = episodes
-    .filter(episode => {
+    .filter((episode) => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -67,11 +73,11 @@ export function EpisodesList({ episodes, season, seriesId }: EpisodesListProps) 
           episode.episode_number.toString().includes(query)
         );
       }
-      
+
       // Watched filter
       if (filterWatched === "watched" && !episode.is_watched) return false;
       if (filterWatched === "unwatched" && episode.is_watched) return false;
-      
+
       return true;
     })
     .sort((a, b) => {
@@ -94,7 +100,7 @@ export function EpisodesList({ episodes, season, seriesId }: EpisodesListProps) 
     if (!minutes) return "-";
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    
+
     if (hours > 0 && mins > 0) {
       return `${hours}h ${mins}min`;
     } else if (hours > 0) {
@@ -106,7 +112,7 @@ export function EpisodesList({ episodes, season, seriesId }: EpisodesListProps) 
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString('pt-PT');
+    return new Date(dateString).toLocaleDateString("pt-PT");
   };
 
   if (episodes.length === 0) {
@@ -120,7 +126,9 @@ export function EpisodesList({ episodes, season, seriesId }: EpisodesListProps) 
               Esta temporada ainda não tem episódios adicionados.
             </p>
             <Button asChild>
-              <Link href={`/series/${seriesId}/seasons/${season.id}/episodes/new`}>
+              <Link
+                href={`/series/${seriesId}/seasons/${season.id}/episodes/new`}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Adicionar Primeiro Episódio
               </Link>
@@ -140,7 +148,7 @@ export function EpisodesList({ episodes, season, seriesId }: EpisodesListProps) 
             {filteredEpisodes.length} de {episodes.length} episódios
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {/* Search */}
           <div className="relative">
@@ -152,9 +160,11 @@ export function EpisodesList({ episodes, season, seriesId }: EpisodesListProps) 
               className="pl-9 w-[200px]"
             />
           </div>
-          
+
           <Button asChild>
-            <Link href={`/series/${seriesId}/seasons/${season.id}/episodes/new`}>
+            <Link
+              href={`/series/${seriesId}/seasons/${season.id}/episodes/new`}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Novo Episódio
             </Link>
@@ -187,7 +197,7 @@ export function EpisodesList({ episodes, season, seriesId }: EpisodesListProps) 
           <EyeOff className="h-4 w-4 mr-2" />
           Não Assistidos
         </Button>
-        
+
         <div className="ml-auto">
           <select
             value={sortBy}
@@ -208,13 +218,27 @@ export function EpisodesList({ episodes, season, seriesId }: EpisodesListProps) 
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-4 font-medium text-muted-foreground">#</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Título</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Duração</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Data</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Avaliação</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Ações</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    #
+                  </th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    Título
+                  </th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    Status
+                  </th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    Duração
+                  </th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    Data
+                  </th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    Avaliação
+                  </th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    Ações
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -236,7 +260,9 @@ export function EpisodesList({ episodes, season, seriesId }: EpisodesListProps) 
                       </div>
                     </td>
                     <td className="p-4">
-                      <Badge variant={episode.is_watched ? "default" : "secondary"}>
+                      <Badge
+                        variant={episode.is_watched ? "default" : "secondary"}
+                      >
                         {episode.is_watched ? (
                           <>
                             <Eye className="h-3 w-3 mr-1" />
@@ -281,17 +307,23 @@ export function EpisodesList({ episodes, season, seriesId }: EpisodesListProps) 
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
-                            <Link href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}`}>
+                            <Link
+                              href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}`}
+                            >
                               Ver Detalhes
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}/edit`}>
+                            <Link
+                              href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}/edit`}
+                            >
                               Editar
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}/watch`}>
+                            <Link
+                              href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}/watch`}
+                            >
                               Marcar como Assistido
                             </Link>
                           </DropdownMenuItem>
@@ -315,8 +347,13 @@ export function EpisodesList({ episodes, season, seriesId }: EpisodesListProps) 
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">#{episode.episode_number}</span>
-                      <Badge variant={episode.is_watched ? "default" : "secondary"} className="text-xs">
+                      <span className="font-medium">
+                        #{episode.episode_number}
+                      </span>
+                      <Badge
+                        variant={episode.is_watched ? "default" : "secondary"}
+                        className="text-xs"
+                      >
                         {episode.is_watched ? "Assistido" : "Não Assistido"}
                       </Badge>
                     </div>
@@ -324,7 +361,7 @@ export function EpisodesList({ episodes, season, seriesId }: EpisodesListProps) 
                       {episode.name || `Episódio ${episode.episode_number}`}
                     </h4>
                   </div>
-                  
+
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm">
@@ -333,30 +370,34 @@ export function EpisodesList({ episodes, season, seriesId }: EpisodesListProps) 
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem asChild>
-                        <Link href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}`}>
+                        <Link
+                          href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}`}
+                        >
                           Ver Detalhes
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}/edit`}>
+                        <Link
+                          href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}/edit`}
+                        >
                           Editar
                         </Link>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4 text-muted-foreground" />
                     <span>{getDurationText(episode.duration)}</span>
                   </div>
-                  
+
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>{formatDate(episode.release_date)}</span>
                   </div>
-                  
+
                   {episode.rating && (
                     <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
@@ -364,21 +405,35 @@ export function EpisodesList({ episodes, season, seriesId }: EpisodesListProps) 
                     </div>
                   )}
                 </div>
-                
+
                 {episode.review && (
                   <p className="text-sm text-muted-foreground line-clamp-2">
                     {episode.review}
                   </p>
                 )}
-                
+
                 <div className="flex gap-2 pt-2">
-                  <Button size="sm" variant="outline" className="flex-1" asChild>
-                    <Link href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}`}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    asChild
+                  >
+                    <Link
+                      href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}`}
+                    >
                       Ver Detalhes
                     </Link>
                   </Button>
-                  <Button size="sm" variant="outline" className="flex-1" asChild>
-                    <Link href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}/watch`}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    asChild
+                  >
+                    <Link
+                      href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}/watch`}
+                    >
                       {episode.is_watched ? "Reassistir" : "Assistir"}
                     </Link>
                   </Button>

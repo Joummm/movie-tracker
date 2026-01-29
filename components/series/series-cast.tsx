@@ -28,8 +28,8 @@ interface SeriesCastProps {
 }
 
 export function SeriesCast({ cast }: SeriesCastProps) {
-  const mainCast = cast.filter(member => member.is_main_cast);
-  const guestCast = cast.filter(member => !member.is_main_cast);
+  const mainCast = cast.filter((member) => member.is_main_cast);
+  const guestCast = cast.filter((member) => !member.is_main_cast);
 
   return (
     <Card>
@@ -69,8 +69,8 @@ export function SeriesCast({ cast }: SeriesCastProps) {
                       className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors"
                     >
                       <Avatar className="h-12 w-12">
-                        <AvatarImage 
-                          src={member.actors?.photo_url} 
+                        <AvatarImage
+                          src={member.actors?.photo_url}
                           alt={member.actors?.name}
                         />
                         <AvatarFallback>
@@ -93,21 +93,20 @@ export function SeriesCast({ cast }: SeriesCastProps) {
                         </p>
                         <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
                           {member.episode_count && (
-                            <span>
-                              {member.episode_count} episódios
-                            </span>
+                            <span>{member.episode_count} episódios</span>
                           )}
                           {member.season_range && (
-                            <span>
-                              {member.season_range}
-                            </span>
+                            <span>{member.season_range}</span>
                           )}
                         </div>
                       </div>
-                      <Button variant="ghost" size="sm" asChild className="ml-auto">
-                        <Link href={`/people/${member.actor_id}`}>
-                          Ver
-                        </Link>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        asChild
+                        className="ml-auto"
+                      >
+                        <Link href={`/people/${member.actor_id}`}>Ver</Link>
                       </Button>
                     </div>
                   ))}
@@ -129,8 +128,8 @@ export function SeriesCast({ cast }: SeriesCastProps) {
                       className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors"
                     >
                       <Avatar className="h-10 w-10">
-                        <AvatarImage 
-                          src={member.actors?.photo_url} 
+                        <AvatarImage
+                          src={member.actors?.photo_url}
                           alt={member.actors?.name}
                         />
                         <AvatarFallback>

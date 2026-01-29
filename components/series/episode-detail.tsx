@@ -21,7 +21,7 @@ import {
   Play,
   CheckCircle,
   Edit,
-  MoreVertical
+  MoreVertical,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -72,17 +72,17 @@ interface EpisodeDetailProps {
   userId: string;
 }
 
-export function EpisodeDetail({ 
-  episode, 
-  seriesId, 
-  seasonId, 
-  seasonNumber, 
+export function EpisodeDetail({
+  episode,
+  seriesId,
+  seasonId,
+  seasonNumber,
   seasonName,
   isSpecialSeason,
   seriesName,
   nextEpisode,
   previousEpisode,
-  userId 
+  userId,
 }: EpisodeDetailProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [isWatched, setIsWatched] = useState(episode.is_watched);
@@ -93,11 +93,11 @@ export function EpisodeDetail({
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Não especificada";
-    return new Date(dateString).toLocaleDateString('pt-PT', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("pt-PT", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -105,7 +105,7 @@ export function EpisodeDetail({
     if (!minutes) return "Desconhecida";
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    
+
     if (hours > 0 && mins > 0) {
       return `${hours}h ${mins}min`;
     } else if (hours > 0) {
@@ -172,25 +172,33 @@ export function EpisodeDetail({
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Número</p>
-                  <p className="text-xl font-semibold">#{episode.episode_number}</p>
+                  <p className="text-xl font-semibold">
+                    #{episode.episode_number}
+                  </p>
                 </div>
-                
+
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Duração</p>
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-xl font-semibold">{getDurationText(episode.duration)}</p>
+                    <p className="text-xl font-semibold">
+                      {getDurationText(episode.duration)}
+                    </p>
                   </div>
                 </div>
-                
+
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Data de Lançamento</p>
+                  <p className="text-sm text-muted-foreground">
+                    Data de Lançamento
+                  </p>
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-xl font-semibold">{formatDate(episode.release_date)}</p>
+                    <p className="text-xl font-semibold">
+                      {formatDate(episode.release_date)}
+                    </p>
                   </div>
                 </div>
-                
+
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Avaliação</p>
                   <div className="flex items-center gap-1">
@@ -204,7 +212,7 @@ export function EpisodeDetail({
 
               {/* Actions */}
               <div className="flex flex-wrap gap-3">
-                <Button 
+                <Button
                   onClick={handleMarkWatched}
                   disabled={isLoading}
                   variant={isWatched ? "outline" : "default"}
@@ -222,12 +230,12 @@ export function EpisodeDetail({
                     </>
                   )}
                 </Button>
-                
+
                 <Button variant="outline" className="gap-2">
                   <Play className="h-4 w-4" />
                   Adicionar Visualização
                 </Button>
-                
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline">
@@ -236,7 +244,9 @@ export function EpisodeDetail({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href={`/series/${seriesId}/seasons/${seasonId}/episodes/${episode.id}/edit`}>
+                      <Link
+                        href={`/series/${seriesId}/seasons/${seasonId}/episodes/${episode.id}/edit`}
+                      >
                         <Edit className="h-4 w-4 mr-2" />
                         Editar Episódio
                       </Link>
@@ -264,24 +274,27 @@ export function EpisodeDetail({
             </CardHeader>
             <CardContent className="space-y-4">
               {previousEpisode ? (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full justify-start"
                   asChild
                 >
-                  <Link href={`/series/${seriesId}/seasons/${seasonId}/episodes/${previousEpisode.id}`}>
+                  <Link
+                    href={`/series/${seriesId}/seasons/${seasonId}/episodes/${previousEpisode.id}`}
+                  >
                     <ChevronLeft className="h-4 w-4 mr-2" />
                     <div className="text-left">
                       <p className="text-sm text-muted-foreground">Anterior</p>
                       <p className="font-medium">
-                        {previousEpisode.name || `Episódio ${previousEpisode.episode_number}`}
+                        {previousEpisode.name ||
+                          `Episódio ${previousEpisode.episode_number}`}
                       </p>
                     </div>
                   </Link>
                 </Button>
               ) : (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full justify-start opacity-50"
                   disabled
                 >
@@ -294,24 +307,27 @@ export function EpisodeDetail({
               )}
 
               {nextEpisode ? (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full justify-start"
                   asChild
                 >
-                  <Link href={`/series/${seriesId}/seasons/${seasonId}/episodes/${nextEpisode.id}`}>
+                  <Link
+                    href={`/series/${seriesId}/seasons/${seasonId}/episodes/${nextEpisode.id}`}
+                  >
                     <div className="text-left flex-1">
                       <p className="text-sm text-muted-foreground">Próximo</p>
                       <p className="font-medium">
-                        {nextEpisode.name || `Episódio ${nextEpisode.episode_number}`}
+                        {nextEpisode.name ||
+                          `Episódio ${nextEpisode.episode_number}`}
                       </p>
                     </div>
                     <ChevronRight className="h-4 w-4 ml-2" />
                   </Link>
                 </Button>
               ) : (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full justify-start opacity-50"
                   disabled
                 >
@@ -323,11 +339,7 @@ export function EpisodeDetail({
                 </Button>
               )}
 
-              <Button 
-                variant="ghost" 
-                className="w-full"
-                asChild
-              >
+              <Button variant="ghost" className="w-full" asChild>
                 <Link href={`/series/${seriesId}/seasons/${seasonId}/episodes`}>
                   Ver Todos os Episódios
                 </Link>
@@ -345,7 +357,9 @@ export function EpisodeDetail({
                 <p className="text-sm text-muted-foreground">Reassistido</p>
                 <div className="flex items-center gap-2">
                   <RefreshCw className="h-4 w-4" />
-                  <p className="text-xl font-semibold">{episode.rewatch_count || 0} vezes</p>
+                  <p className="text-xl font-semibold">
+                    {episode.rewatch_count || 0} vezes
+                  </p>
                 </div>
                 {episode.last_rewatch_date && (
                   <p className="text-xs text-muted-foreground">
@@ -359,8 +373,11 @@ export function EpisodeDetail({
                 <div className="flex items-center gap-2">
                   <ThumbsUp className="h-4 w-4" />
                   <p className="text-xl font-semibold">
-                    {episode.would_recommend === true ? "Sim" : 
-                     episode.would_recommend === false ? "Não" : "Não definido"}
+                    {episode.would_recommend === true
+                      ? "Sim"
+                      : episode.would_recommend === false
+                        ? "Não"
+                        : "Não definido"}
                   </p>
                 </div>
               </div>
@@ -370,8 +387,11 @@ export function EpisodeDetail({
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4" />
                   <p className="text-xl font-semibold">
-                    {episode.would_rewatch === true ? "Sim" : 
-                     episode.would_rewatch === false ? "Não" : "Não definido"}
+                    {episode.would_rewatch === true
+                      ? "Sim"
+                      : episode.would_rewatch === false
+                        ? "Não"
+                        : "Não definido"}
                   </p>
                 </div>
               </div>
@@ -408,38 +428,62 @@ export function EpisodeDetail({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
-                      <h3 className="font-semibold mb-2">Informações Técnicas</h3>
+                      <h3 className="font-semibold mb-2">
+                        Informações Técnicas
+                      </h3>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Série</span>
                           <span className="font-medium">{seriesName}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Temporada</span>
+                          <span className="text-muted-foreground">
+                            Temporada
+                          </span>
                           <span className="font-medium">
-                            {isSpecialSeason ? 'Especial' : `Temporada ${seasonNumber}`}
+                            {isSpecialSeason
+                              ? "Especial"
+                              : `Temporada ${seasonNumber}`}
                             {seasonName && `: ${seasonName}`}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Episódio</span>
-                          <span className="font-medium">#{episode.episode_number}</span>
+                          <span className="text-muted-foreground">
+                            Episódio
+                          </span>
+                          <span className="font-medium">
+                            #{episode.episode_number}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Duração</span>
-                          <span className="font-medium">{getDurationText(episode.duration)}</span>
+                          <span className="font-medium">
+                            {getDurationText(episode.duration)}
+                          </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Data de Lançamento</span>
-                          <span className="font-medium">{formatDate(episode.release_date)}</span>
+                          <span className="text-muted-foreground">
+                            Data de Lançamento
+                          </span>
+                          <span className="font-medium">
+                            {formatDate(episode.release_date)}
+                          </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Criado em</span>
-                          <span className="font-medium">{formatDate(episode.created_at)}</span>
+                          <span className="text-muted-foreground">
+                            Criado em
+                          </span>
+                          <span className="font-medium">
+                            {formatDate(episode.created_at)}
+                          </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Última atualização</span>
-                          <span className="font-medium">{formatDate(episode.updated_at)}</span>
+                          <span className="text-muted-foreground">
+                            Última atualização
+                          </span>
+                          <span className="font-medium">
+                            {formatDate(episode.updated_at)}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -450,27 +494,43 @@ export function EpisodeDetail({
                       <h3 className="font-semibold mb-2">Status</h3>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Assistido</span>
+                          <span className="text-sm text-muted-foreground">
+                            Assistido
+                          </span>
                           <Badge variant={isWatched ? "default" : "secondary"}>
                             {isWatched ? "Sim" : "Não"}
                           </Badge>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Reassistido</span>
-                          <span className="font-medium">{episode.rewatch_count || 0} vezes</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Recomendaria</span>
+                          <span className="text-sm text-muted-foreground">
+                            Reassistido
+                          </span>
                           <span className="font-medium">
-                            {episode.would_recommend === true ? "Sim" : 
-                             episode.would_recommend === false ? "Não" : "Não definido"}
+                            {episode.rewatch_count || 0} vezes
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Reassistiria</span>
+                          <span className="text-sm text-muted-foreground">
+                            Recomendaria
+                          </span>
                           <span className="font-medium">
-                            {episode.would_rewatch === true ? "Sim" : 
-                             episode.would_rewatch === false ? "Não" : "Não definido"}
+                            {episode.would_recommend === true
+                              ? "Sim"
+                              : episode.would_recommend === false
+                                ? "Não"
+                                : "Não definido"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">
+                            Reassistiria
+                          </span>
+                          <span className="font-medium">
+                            {episode.would_rewatch === true
+                              ? "Sim"
+                              : episode.would_rewatch === false
+                                ? "Não"
+                                : "Não definido"}
                           </span>
                         </div>
                       </div>
@@ -499,7 +559,7 @@ export function EpisodeDetail({
               <CardContent className="space-y-6">
                 <div>
                   <h3 className="font-semibold mb-3">Sua Avaliação</h3>
-                  <RatingInput 
+                  <RatingInput
                     value={rating}
                     onChange={setRating}
                     max={10}

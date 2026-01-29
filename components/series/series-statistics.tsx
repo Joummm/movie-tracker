@@ -1,13 +1,13 @@
 // components/series/series-statistics.tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Calendar, 
-  Clock, 
-  Star, 
+import {
+  BarChart3,
+  TrendingUp,
+  Calendar,
+  Clock,
+  Star,
   Target,
-  Percent
+  Percent,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
@@ -29,9 +29,10 @@ export function SeriesStatistics({ stats }: SeriesStatisticsProps) {
   const remainingEpisodes = stats.total_episodes - stats.watched_episodes;
   const remainingSeasons = stats.total_seasons - stats.watched_seasons;
   const averageHours = Math.round(stats.total_watch_time / 60);
-  const averagePerEpisode = stats.watched_episodes > 0 
-    ? Math.round(stats.total_watch_time / stats.watched_episodes) 
-    : 0;
+  const averagePerEpisode =
+    stats.watched_episodes > 0
+      ? Math.round(stats.total_watch_time / stats.watched_episodes)
+      : 0;
 
   return (
     <Card>
@@ -46,7 +47,9 @@ export function SeriesStatistics({ stats }: SeriesStatisticsProps) {
         <div>
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">Progresso Total</span>
-            <span className="text-sm font-semibold">{stats.completion_percentage}%</span>
+            <span className="text-sm font-semibold">
+              {stats.completion_percentage}%
+            </span>
           </div>
           <Progress value={stats.completion_percentage} className="h-2" />
         </div>
@@ -96,7 +99,9 @@ export function SeriesStatistics({ stats }: SeriesStatisticsProps) {
                 <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
                 Avaliação Média
               </div>
-              <div className="text-2xl font-bold">{stats.average_rating.toFixed(1)}</div>
+              <div className="text-2xl font-bold">
+                {stats.average_rating.toFixed(1)}
+              </div>
               <div className="text-xs text-muted-foreground">de 10</div>
             </div>
           )}
@@ -107,12 +112,18 @@ export function SeriesStatistics({ stats }: SeriesStatisticsProps) {
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">Temporadas Concluídas</span>
             <span className="text-sm font-semibold">
-              {Math.round((stats.watched_seasons / stats.total_seasons) * 100) || 0}%
+              {Math.round(
+                (stats.watched_seasons / stats.total_seasons) * 100,
+              ) || 0}
+              %
             </span>
           </div>
-          <Progress 
-            value={Math.round((stats.watched_seasons / stats.total_seasons) * 100) || 0} 
-            className="h-2" 
+          <Progress
+            value={
+              Math.round((stats.watched_seasons / stats.total_seasons) * 100) ||
+              0
+            }
+            className="h-2"
           />
         </div>
       </CardContent>

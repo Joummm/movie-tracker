@@ -24,7 +24,7 @@ import {
   Star,
   Eye,
   MoreVertical,
-  Plus
+  Plus,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -64,15 +64,23 @@ interface SeasonsListProps {
   seriesName: string;
 }
 
-export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps) {
+export function SeasonsList({
+  seasons,
+  seriesId,
+  seriesName,
+}: SeasonsListProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState<"all" | "regular" | "special">("all");
-  const [sortBy, setSortBy] = useState<"number" | "progress" | "rating" | "episodes">("number");
+  const [filterType, setFilterType] = useState<"all" | "regular" | "special">(
+    "all",
+  );
+  const [sortBy, setSortBy] = useState<
+    "number" | "progress" | "rating" | "episodes"
+  >("number");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Filter and sort seasons
   const filteredSeasons = seasons
-    .filter(season => {
+    .filter((season) => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -81,18 +89,24 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
           season.season_number.toString().includes(query)
         );
       }
-      
+
       // Type filter
       if (filterType === "regular" && season.is_special) return false;
       if (filterType === "special" && !season.is_special) return false;
-      
+
       return true;
     })
     .sort((a, b) => {
       switch (sortBy) {
         case "progress":
-          const progressA = a.episode_count > 0 ? (a.watched_episode_count / a.episode_count) * 100 : 0;
-          const progressB = b.episode_count > 0 ? (b.watched_episode_count / b.episode_count) * 100 : 0;
+          const progressA =
+            a.episode_count > 0
+              ? (a.watched_episode_count / a.episode_count) * 100
+              : 0;
+          const progressB =
+            b.episode_count > 0
+              ? (b.watched_episode_count / b.episode_count) * 100
+              : 0;
           return progressB - progressA;
         case "rating":
           const ratingA = a.average_rating || 0;
@@ -114,7 +128,7 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
   const getDurationText = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    
+
     if (hours > 0 && mins > 0) {
       return `${hours}h ${mins}min`;
     } else if (hours > 0) {
@@ -184,7 +198,10 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
           </div>
 
           {/* Filter */}
-          <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
+          <Select
+            value={filterType}
+            onValueChange={(value: any) => setFilterType(value)}
+          >
             <SelectTrigger className="w-[150px]">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filtrar" />
@@ -197,7 +214,10 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
           </Select>
 
           {/* Sort */}
-          <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+          <Select
+            value={sortBy}
+            onValueChange={(value: any) => setSortBy(value)}
+          >
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Ordenar" />
             </SelectTrigger>
@@ -222,12 +242,15 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
           {filteredSeasons.map((season) => {
             const progress = calculateProgress(
               season.watched_episode_count,
-              season.episode_count
+              season.episode_count,
             );
             const isComplete = progress === 100;
 
             return (
-              <Card key={season.id} className="group hover:shadow-lg transition-shadow">
+              <Card
+                key={season.id}
+                className="group hover:shadow-lg transition-shadow"
+              >
                 {/* Season Image */}
                 <div className="relative aspect-[2/3] overflow-hidden rounded-t-lg bg-muted">
                   {season.poster_vertical ? (
@@ -243,14 +266,19 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
                       <Tv className="h-12 w-12 text-muted-foreground" />
                     </div>
                   )}
-                  
+
                   {/* Badges */}
                   <div className="absolute top-2 left-2">
-                    <Badge variant={season.is_special ? "secondary" : "default"} className="text-xs">
-                      {season.is_special ? "Especial" : `T${season.season_number}`}
+                    <Badge
+                      variant={season.is_special ? "secondary" : "default"}
+                      className="text-xs"
+                    >
+                      {season.is_special
+                        ? "Especial"
+                        : `T${season.season_number}`}
                     </Badge>
                   </div>
-                  
+
                   <div className="absolute top-2 right-2">
                     {isComplete && (
                       <Badge variant="default" className="text-xs">
@@ -275,17 +303,23 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/series/${seriesId}/seasons/${season.id}/edit`}>
+                          <Link
+                            href={`/series/${seriesId}/seasons/${season.id}/edit`}
+                          >
                             Editar
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/series/${seriesId}/seasons/${season.id}/episodes/new`}>
+                          <Link
+                            href={`/series/${seriesId}/seasons/${season.id}/episodes/new`}
+                          >
                             Adicionar Episódio
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/series/${seriesId}/seasons/${season.id}/episodes`}>
+                          <Link
+                            href={`/series/${seriesId}/seasons/${season.id}/episodes`}
+                          >
                             Ver Episódios
                           </Link>
                         </DropdownMenuItem>
@@ -299,10 +333,12 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
                     {/* Title */}
                     <div>
                       <h3 className="font-semibold line-clamp-1">
-                        {season.is_special ? "Especial" : `Temporada ${season.season_number}`}
+                        {season.is_special
+                          ? "Especial"
+                          : `Temporada ${season.season_number}`}
                         {season.name && `: ${season.name}`}
                       </h3>
-                      
+
                       {/* Info */}
                       <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
@@ -322,7 +358,9 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Progresso</span>
-                        <span>{season.watched_episode_count}/{season.episode_count}</span>
+                        <span>
+                          {season.watched_episode_count}/{season.episode_count}
+                        </span>
                       </div>
                       <Progress value={progress} className="h-2" />
                       <div className="text-xs text-muted-foreground text-right">
@@ -340,7 +378,9 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
                           </div>
                         )}
                         {season.total_watch_time > 0 && (
-                          <span>{getDurationText(season.total_watch_time)}</span>
+                          <span>
+                            {getDurationText(season.total_watch_time)}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -355,12 +395,15 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
           {filteredSeasons.map((season) => {
             const progress = calculateProgress(
               season.watched_episode_count,
-              season.episode_count
+              season.episode_count,
             );
             const isComplete = progress === 100;
 
             return (
-              <Card key={season.id} className="hover:shadow-md transition-shadow">
+              <Card
+                key={season.id}
+                className="hover:shadow-md transition-shadow"
+              >
                 <div className="flex">
                   {/* Season Image */}
                   <div className="relative w-24 h-32 md:w-32 md:h-40 flex-shrink-0">
@@ -387,11 +430,19 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
                           <div>
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="font-semibold text-lg">
-                                {season.is_special ? "Especial" : `Temporada ${season.season_number}`}
+                                {season.is_special
+                                  ? "Especial"
+                                  : `Temporada ${season.season_number}`}
                                 {season.name && `: ${season.name}`}
                               </h3>
-                              <Badge variant={season.is_special ? "secondary" : "outline"}>
-                                {season.is_special ? "Especial" : `T${season.season_number}`}
+                              <Badge
+                                variant={
+                                  season.is_special ? "secondary" : "outline"
+                                }
+                              >
+                                {season.is_special
+                                  ? "Especial"
+                                  : `T${season.season_number}`}
                               </Badge>
                               {isComplete && (
                                 <Badge variant="default" className="h-5">
@@ -400,7 +451,7 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
                                 </Badge>
                               )}
                             </div>
-                            
+
                             <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                               <span className="flex items-center gap-1">
                                 <Tv className="h-3 w-3" />
@@ -419,7 +470,9 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
                                 </span>
                               )}
                               {season.total_watch_time > 0 && (
-                                <span>{getDurationText(season.total_watch_time)}</span>
+                                <span>
+                                  {getDurationText(season.total_watch_time)}
+                                </span>
                               )}
                             </div>
                           </div>
@@ -432,17 +485,23 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem asChild>
-                                <Link href={`/series/${seriesId}/seasons/${season.id}`}>
+                                <Link
+                                  href={`/series/${seriesId}/seasons/${season.id}`}
+                                >
                                   Ver Detalhes
                                 </Link>
                               </DropdownMenuItem>
                               <DropdownMenuItem asChild>
-                                <Link href={`/series/${seriesId}/seasons/${season.id}/edit`}>
+                                <Link
+                                  href={`/series/${seriesId}/seasons/${season.id}/edit`}
+                                >
                                   Editar
                                 </Link>
                               </DropdownMenuItem>
                               <DropdownMenuItem asChild>
-                                <Link href={`/series/${seriesId}/seasons/${season.id}/episodes/new`}>
+                                <Link
+                                  href={`/series/${seriesId}/seasons/${season.id}/episodes/new`}
+                                >
                                   Adicionar Episódio
                                 </Link>
                               </DropdownMenuItem>
@@ -454,7 +513,8 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
                         <div className="mb-3">
                           <div className="flex justify-between text-sm mb-1">
                             <span>
-                              {season.watched_episode_count} de {season.episode_count} assistidos
+                              {season.watched_episode_count} de{" "}
+                              {season.episode_count} assistidos
                             </span>
                             <span className="font-semibold">{progress}%</span>
                           </div>
@@ -465,20 +525,30 @@ export function SeasonsList({ seasons, seriesId, seriesName }: SeasonsListProps)
                       {/* Actions */}
                       <div className="flex items-center justify-between pt-3 border-t">
                         <div className="text-sm text-muted-foreground">
-                          {season.series_episodes && season.series_episodes.length > 0 && (
-                            <span>
-                              {season.series_episodes.filter(e => e.is_watched).length} episódios marcados
-                            </span>
-                          )}
+                          {season.series_episodes &&
+                            season.series_episodes.length > 0 && (
+                              <span>
+                                {
+                                  season.series_episodes.filter(
+                                    (e) => e.is_watched,
+                                  ).length
+                                }{" "}
+                                episódios marcados
+                              </span>
+                            )}
                         </div>
                         <div className="flex items-center gap-2">
                           <Button size="sm" asChild>
-                            <Link href={`/series/${seriesId}/seasons/${season.id}`}>
+                            <Link
+                              href={`/series/${seriesId}/seasons/${season.id}`}
+                            >
                               Ver Detalhes
                             </Link>
                           </Button>
                           <Button size="sm" variant="outline" asChild>
-                            <Link href={`/series/${seriesId}/seasons/${season.id}/episodes`}>
+                            <Link
+                              href={`/series/${seriesId}/seasons/${season.id}/episodes`}
+                            >
                               Episódios
                             </Link>
                           </Button>

@@ -41,7 +41,12 @@ import Image from "next/image";
 import type { Actor, ContentWithSeries, Series } from "@/lib/types/database";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ActorDetailProps {
   actor: Actor;
@@ -82,29 +87,33 @@ export function ActorDetail({
   };
 
   // Calcular estatísticas
-  const totalParticipations = contentParticipations.length + seriesParticipations.length;
+  const totalParticipations =
+    contentParticipations.length + seriesParticipations.length;
   const uniqueRoles = new Set();
   contentParticipations.forEach((p) =>
-    p.actor_roles?.forEach((r: any) => uniqueRoles.add(r.role))
+    p.actor_roles?.forEach((r: any) => uniqueRoles.add(r.role)),
   );
   seriesParticipations.forEach((p) =>
-    p.actor_roles?.forEach((r: any) => uniqueRoles.add(r.role))
+    p.actor_roles?.forEach((r: any) => uniqueRoles.add(r.role)),
   );
 
   // Calcular anos de carreira
   const calculateCareerYears = () => {
     if (!actor.birth_date) return null;
-    
+
     const birthDate = new Date(actor.birth_date);
     const endDate = actor.death_date ? new Date(actor.death_date) : new Date();
-    
+
     let years = endDate.getFullYear() - birthDate.getFullYear();
     const monthDiff = endDate.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && endDate.getDate() < birthDate.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && endDate.getDate() < birthDate.getDate())
+    ) {
       years--;
     }
-    
+
     return years > 0 ? years : null;
   };
 
@@ -141,11 +150,11 @@ export function ActorDetail({
           url: window.location.href,
         });
       } catch (error) {
-        console.log('Erro ao compartilhar:', error);
+        console.log("Erro ao compartilhar:", error);
       }
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert('Link copiado para a área de transferência!');
+      alert("Link copiado para a área de transferência!");
     }
   };
 
@@ -170,13 +179,21 @@ export function ActorDetail({
                   variant="outline"
                   size="icon"
                   onClick={() => setIsFavorite(!isFavorite)}
-                  className={isFavorite ? "bg-rose-500/10 border-rose-500/20 text-rose-600" : ""}
+                  className={
+                    isFavorite
+                      ? "bg-rose-500/10 border-rose-500/20 text-rose-600"
+                      : ""
+                  }
                 >
                   <Heart className={isFavorite ? "fill-rose-500" : ""} />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}</p>
+                <p>
+                  {isFavorite
+                    ? "Remover dos favoritos"
+                    : "Adicionar aos favoritos"}
+                </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -184,11 +201,7 @@ export function ActorDetail({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleShare}
-                >
+                <Button variant="outline" size="icon" onClick={handleShare}>
                   <Share2 className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -230,7 +243,7 @@ export function ActorDetail({
               {/* Overlay gradiente */}
               <div className="absolute inset-0 bg-linear-to-t from-background via-background/50 to-transparent" />
             </div>
-            
+
             <CardContent className="pt-6">
               <div className="flex flex-col items-center text-center -mt-16 relative z-10">
                 <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-background bg-background shadow-xl mb-4">
@@ -248,7 +261,9 @@ export function ActorDetail({
                   )}
                 </div>
 
-                <h1 className="text-3xl font-bold tracking-tight mb-2">{actor.name}</h1>
+                <h1 className="text-3xl font-bold tracking-tight mb-2">
+                  {actor.name}
+                </h1>
 
                 <div className="flex flex-wrap gap-2 justify-center mb-4">
                   {actor.gender && (
@@ -264,7 +279,10 @@ export function ActorDetail({
                     </Badge>
                   )}
                   {age !== null && (
-                    <Badge variant={actor.death_date ? "destructive" : "default"} className="gap-1">
+                    <Badge
+                      variant={actor.death_date ? "destructive" : "default"}
+                      className="gap-1"
+                    >
                       <Calendar className="h-3 w-3" />
                       {age} anos {actor.death_date && "(†)"}
                     </Badge>
@@ -277,11 +295,19 @@ export function ActorDetail({
                       <Calendar className="h-4 w-4 shrink-0" />
                       <div className="text-center">
                         <div className="font-medium">Nascimento</div>
-                        <div>{new Date(actor.birth_date).toLocaleDateString("pt-PT")}</div>
+                        <div>
+                          {new Date(actor.birth_date).toLocaleDateString(
+                            "pt-PT",
+                          )}
+                        </div>
                         {actor.death_date && (
                           <>
                             <div className="font-medium mt-1">Falecimento</div>
-                            <div>{new Date(actor.death_date).toLocaleDateString("pt-PT")}</div>
+                            <div>
+                              {new Date(actor.death_date).toLocaleDateString(
+                                "pt-PT",
+                              )}
+                            </div>
                           </>
                         )}
                       </div>
@@ -329,13 +355,17 @@ export function ActorDetail({
                 {actor.tmdb_id && (
                   <div className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
                     <span className="text-sm font-medium">TMDb ID</span>
-                    <code className="text-xs bg-background px-2 py-1 rounded">{actor.tmdb_id}</code>
+                    <code className="text-xs bg-background px-2 py-1 rounded">
+                      {actor.tmdb_id}
+                    </code>
                   </div>
                 )}
                 {actor.imdb_id && (
                   <div className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
                     <span className="text-sm font-medium">IMDb ID</span>
-                    <code className="text-xs bg-background px-2 py-1 rounded">{actor.imdb_id}</code>
+                    <code className="text-xs bg-background px-2 py-1 rounded">
+                      {actor.imdb_id}
+                    </code>
                   </div>
                 )}
               </CardContent>
@@ -351,8 +381,12 @@ export function ActorDetail({
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Total de Participações</p>
-                    <p className="text-3xl font-bold mt-2">{totalParticipations}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Total de Participações
+                    </p>
+                    <p className="text-3xl font-bold mt-2">
+                      {totalParticipations}
+                    </p>
                   </div>
                   <div className="p-3 rounded-full bg-primary/10">
                     <BarChart3 className="h-6 w-6 text-primary" />
@@ -366,7 +400,9 @@ export function ActorDetail({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Filmes</p>
-                    <p className="text-3xl font-bold mt-2">{contentParticipations.length}</p>
+                    <p className="text-3xl font-bold mt-2">
+                      {contentParticipations.length}
+                    </p>
                   </div>
                   <div className="p-3 rounded-full bg-secondary/10">
                     <Film className="h-6 w-6 text-secondary" />
@@ -380,7 +416,9 @@ export function ActorDetail({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Séries</p>
-                    <p className="text-3xl font-bold mt-2">{seriesParticipations.length}</p>
+                    <p className="text-3xl font-bold mt-2">
+                      {seriesParticipations.length}
+                    </p>
                   </div>
                   <div className="p-3 rounded-full bg-amber-500/10">
                     <Tv className="h-6 w-6 text-amber-500" />
@@ -390,24 +428,28 @@ export function ActorDetail({
             </Card>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-6"
+          >
             <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1">
-              <TabsTrigger 
-                value="content" 
+              <TabsTrigger
+                value="content"
                 className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
                 <Film className="h-4 w-4 mr-2" />
                 Filmes ({contentParticipations.length})
               </TabsTrigger>
-              <TabsTrigger 
-                value="series" 
+              <TabsTrigger
+                value="series"
                 className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
                 <Tv className="h-4 w-4 mr-2" />
                 Séries ({seriesParticipations.length})
               </TabsTrigger>
-              <TabsTrigger 
-                value="stats" 
+              <TabsTrigger
+                value="stats"
                 className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
                 <Award className="h-4 w-4 mr-2" />
@@ -424,17 +466,21 @@ export function ActorDetail({
                       Nenhuma participação em filmes
                     </h3>
                     <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                      Este ator ainda não tem filmes associados. Adicione participações para ver detalhes aqui.
+                      Este ator ainda não tem filmes associados. Adicione
+                      participações para ver detalhes aqui.
                     </p>
                   </CardContent>
                 </Card>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {contentParticipations.map((participation) => (
-                    <Card 
-                      key={participation.id} 
+                    <Card
+                      key={participation.id}
                       className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/50 group"
-                      onClick={() => participation.content && router.push(`/content/${participation.content.id}`)}
+                      onClick={() =>
+                        participation.content &&
+                        router.push(`/content/${participation.content.id}`)
+                      }
                     >
                       <CardContent className="p-0">
                         <div className="p-5">
@@ -450,8 +496,8 @@ export function ActorDetail({
                             )}
                             <div className="flex flex-wrap gap-1 mb-3">
                               {participation.actor_roles?.map((role: any) => (
-                                <Badge 
-                                  key={role.id} 
+                                <Badge
+                                  key={role.id}
                                   variant="secondary"
                                   className="text-xs"
                                 >
@@ -461,14 +507,15 @@ export function ActorDetail({
                             </div>
                             {participation.role_name && (
                               <p className="text-sm text-muted-foreground">
-                                <span className="font-medium">Personagem:</span> {participation.role_name}
+                                <span className="font-medium">Personagem:</span>{" "}
+                                {participation.role_name}
                               </p>
                             )}
                           </div>
                         </div>
-                        
+
                         <Separator />
-                        
+
                         <div className="p-4 bg-muted/30">
                           {participation.content && (
                             <Button
@@ -496,17 +543,21 @@ export function ActorDetail({
                       Nenhuma participação em séries
                     </h3>
                     <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                      Este ator ainda não tem séries associadas. Adicione participações para ver detalhes aqui.
+                      Este ator ainda não tem séries associadas. Adicione
+                      participações para ver detalhes aqui.
                     </p>
                   </CardContent>
                 </Card>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {seriesParticipations.map((participation) => (
-                    <Card 
-                      key={participation.id} 
+                    <Card
+                      key={participation.id}
                       className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/50 group"
-                      onClick={() => participation.series && router.push(`/series/${participation.series.id}`)}
+                      onClick={() =>
+                        participation.series &&
+                        router.push(`/series/${participation.series.id}`)
+                      }
                     >
                       <CardContent className="p-0">
                         <div className="p-5">
@@ -522,8 +573,8 @@ export function ActorDetail({
                             )}
                             <div className="flex flex-wrap gap-1 mb-3">
                               {participation.actor_roles?.map((role: any) => (
-                                <Badge 
-                                  key={role.id} 
+                                <Badge
+                                  key={role.id}
                                   variant="secondary"
                                   className="text-xs"
                                 >
@@ -533,14 +584,15 @@ export function ActorDetail({
                             </div>
                             {participation.role_name && (
                               <p className="text-sm text-muted-foreground">
-                                <span className="font-medium">Personagem:</span> {participation.role_name}
+                                <span className="font-medium">Personagem:</span>{" "}
+                                {participation.role_name}
                               </p>
                             )}
                           </div>
                         </div>
-                        
+
                         <Separator />
-                        
+
                         <div className="p-4 bg-muted/30">
                           {participation.series && (
                             <Button
@@ -563,7 +615,9 @@ export function ActorDetail({
               <Card className="border-border/50">
                 <CardHeader>
                   <CardTitle>Estatísticas Detalhadas</CardTitle>
-                  <CardDescription>Análise completa das participações do ator</CardDescription>
+                  <CardDescription>
+                    Análise completa das participações do ator
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="grid gap-6 sm:grid-cols-2">
@@ -575,19 +629,28 @@ export function ActorDetail({
                       <div className="space-y-3">
                         <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                           <span>Total de Participações</span>
-                          <Badge variant="default" className="text-lg px-3 py-1">
+                          <Badge
+                            variant="default"
+                            className="text-lg px-3 py-1"
+                          >
                             {totalParticipations}
                           </Badge>
                         </div>
                         <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                           <span>Filmes</span>
-                          <Badge variant="secondary" className="text-lg px-3 py-1">
+                          <Badge
+                            variant="secondary"
+                            className="text-lg px-3 py-1"
+                          >
                             {contentParticipations.length}
                           </Badge>
                         </div>
                         <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                           <span>Séries</span>
-                          <Badge variant="outline" className="text-lg px-3 py-1">
+                          <Badge
+                            variant="outline"
+                            className="text-lg px-3 py-1"
+                          >
                             {seriesParticipations.length}
                           </Badge>
                         </div>
@@ -601,8 +664,8 @@ export function ActorDetail({
                       </h3>
                       <div className="flex flex-wrap gap-2">
                         {Array.from(uniqueRoles).map((role: any) => (
-                          <Badge 
-                            key={role} 
+                          <Badge
+                            key={role}
                             variant="secondary"
                             className="text-sm py-2 px-3"
                           >
@@ -620,26 +683,31 @@ export function ActorDetail({
 
                   {careerYears && (
                     <div className="space-y-4">
-                      <h3 className="font-semibold text-lg">Linha do Tempo da Carreira</h3>
+                      <h3 className="font-semibold text-lg">
+                        Linha do Tempo da Carreira
+                      </h3>
                       <div className="p-4 bg-linear-to-r from-primary/5 to-secondary/5 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium">Início da Carreira</span>
+                          <span className="text-sm font-medium">
+                            Início da Carreira
+                          </span>
                           <span className="text-sm text-muted-foreground">
-                            {actor.birth_date && new Date(actor.birth_date).getFullYear()}
+                            {actor.birth_date &&
+                              new Date(actor.birth_date).getFullYear()}
                           </span>
                         </div>
                         <div className="relative h-2 bg-muted rounded-full overflow-hidden">
-                          <div 
+                          <div
                             className="absolute h-full bg-linear-to-r from-primary to-secondary rounded-full"
-                            style={{ width: '100%' }}
+                            style={{ width: "100%" }}
                           />
                         </div>
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-sm font-medium">
-                            {actor.death_date ? 'Fim da Carreira' : 'Presente'}
+                            {actor.death_date ? "Fim da Carreira" : "Presente"}
                           </span>
                           <span className="text-sm text-muted-foreground">
-                            {actor.death_date 
+                            {actor.death_date
                               ? new Date(actor.death_date).getFullYear()
                               : new Date().getFullYear()}
                           </span>

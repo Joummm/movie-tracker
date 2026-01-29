@@ -11,7 +11,12 @@ interface RatingInputProps {
   step?: number;
 }
 
-export function RatingInput({ value, onChange, max = 10, step = 0.5 }: RatingInputProps) {
+export function RatingInput({
+  value,
+  onChange,
+  max = 10,
+  step = 0.5,
+}: RatingInputProps) {
   const handleStarClick = (starValue: number) => {
     onChange(starValue);
   };
@@ -28,7 +33,7 @@ export function RatingInput({ value, onChange, max = 10, step = 0.5 }: RatingInp
           const starValue = index + 1;
           const isFilled = value >= starValue;
           const isHalfFilled = value >= starValue - 0.5 && value < starValue;
-          
+
           return (
             <button
               key={index}
@@ -40,10 +45,10 @@ export function RatingInput({ value, onChange, max = 10, step = 0.5 }: RatingInp
               <Star
                 className={`h-10 w-10 transition-all ${
                   isFilled
-                    ? 'fill-yellow-500 text-yellow-500'
+                    ? "fill-yellow-500 text-yellow-500"
                     : isHalfFilled
-                    ? 'fill-yellow-300 text-yellow-300'
-                    : 'text-gray-300'
+                      ? "fill-yellow-300 text-yellow-300"
+                      : "text-gray-300"
                 } hover:scale-110`}
               />
             </button>
