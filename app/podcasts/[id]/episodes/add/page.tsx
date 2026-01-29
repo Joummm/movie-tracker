@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { AddPodcastEpisode } from "@/components/podcasts/add-podcast-episode";
 
 export default async function AddPodcastEpisodePage({

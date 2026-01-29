@@ -1,7 +1,7 @@
 // app/series/[id]/seasons/[seasonId]/episodes/[episodeId]/edit/page.tsx
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { EditEpisodeForm } from "@/components/series/forms/edit-episode-form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";

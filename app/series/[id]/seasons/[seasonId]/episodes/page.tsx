@@ -1,7 +1,7 @@
 // app/series/[id]/seasons/[seasonId]/episodes/page.tsx
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { EpisodesList } from "@/components/series/episodes-list";
 
 interface EpisodesPageProps {

@@ -1,7 +1,7 @@
 // app/series/[id]/watch/page.tsx - VERSÃO CORRIGIDA
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { QuickWatchForm } from "@/components/series/forms/quick-watch-form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";

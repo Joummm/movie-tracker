@@ -1,7 +1,7 @@
 // app/series/[id]/page.tsx
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { SeriesHeader } from "@/components/series/series-header";
 import { SeriesTabs } from "@/components/series/series-tabs";
 

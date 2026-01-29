@@ -1,7 +1,7 @@
 // app/series/new/page.tsx
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { NewSeriesForm } from "@/components/series/forms/new-series-form";
 
 export default async function NewSeriesPage() {

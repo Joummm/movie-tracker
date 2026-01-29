@@ -1,7 +1,7 @@
 // app/series/[id]/seasons/page.tsx
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { SeasonsList } from "@/components/series/seasons-list";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowLeft } from "lucide-react";

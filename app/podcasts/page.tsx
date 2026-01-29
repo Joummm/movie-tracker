@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { PodcastsList } from "@/components/podcasts/podcasts-list";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";

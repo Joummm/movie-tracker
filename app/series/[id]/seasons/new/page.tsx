@@ -1,7 +1,7 @@
 // app/series/[id]/seasons/new/page.tsx (corrigido)
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { NewSeasonForm } from "@/components/series/forms/new-season-form";
 
 interface NewSeasonPageProps {
