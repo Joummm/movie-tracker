@@ -176,7 +176,7 @@ export function SeriesCard({ series, viewMode, user }: SeriesCardProps) {
           <Button variant="outline" size="sm" className="flex-1" asChild>
             <Link href={`/series/${series.id}/watch`}>
               <CheckCircle2 className="h-4 w-4 mr-2" />
-              Marcar Episódio
+              Marcar Episódios
             </Link>
           </Button>
         </CardFooter>

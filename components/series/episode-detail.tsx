@@ -22,6 +22,7 @@ import {
   CheckCircle,
   Edit,
   MoreVertical,
+  Plus,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -222,6 +223,24 @@ export function EpisodeDetail({
                     <>
                       <EyeOff className="h-4 w-4" />
                       Marcar como Não Assistido
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="h-4 w-4" />
+                      Marcar como Assistido
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={handleMarkWatched}
+                  disabled={isLoading}
+                  variant={isWatched ? "outline" : "default"}
+                  className="gap-2"
+                >
+                  {isWatched ? (
+                    <>
+                      <Plus className="h-4 w-4" />
+                      Adicionar Visualização
                     </>
                   ) : (
                     <>

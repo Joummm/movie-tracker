@@ -324,7 +324,10 @@ export function EpisodesList({
                             <Link
                               href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}/watch`}
                             >
-                              Marcar como Assistido
+                              <Eye className="h-4 w-4 mr-2" />
+                              {episode.is_watched
+                                ? "Adicionar Visualização"
+                                : "Marcar como Assistido"}
                             </Link>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
