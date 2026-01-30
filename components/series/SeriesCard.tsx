@@ -146,7 +146,7 @@ export function SeriesCard({
       if (error) throw error;
 
       // Atualiza o estado local
-      setCurrentStatus(newStatus);
+      setCurrentStatus(newStatus as "in_progress" | "abandoned" | "completed" | "planned");
 
       // Mostra notificação de sucesso
       toast.success(

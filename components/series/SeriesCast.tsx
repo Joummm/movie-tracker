@@ -25,20 +25,24 @@ interface CastMember {
 
 interface SeriesCastProps {
   cast: CastMember[];
+  seriesId: string; // Adicionar esta prop
 }
 
-export function SeriesCast({ cast }: SeriesCastProps) {
+export function SeriesCast({ cast, seriesId }: SeriesCastProps) {
   const mainCast = cast.filter((member) => member.is_main_cast);
   const guestCast = cast.filter((member) => !member.is_main_cast);
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Elenco</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Users className="h-5 w-5" />
+          Elenco
+        </CardTitle>
         <Button size="sm" asChild>
-          <Link href={`/series/${cast[0]?.id}/cast/new`}>
+          <Link href={`/series/${seriesId}/cast/new`}>
             <Plus className="h-4 w-4 mr-2" />
-            Adicionar Ator
+            Adicionar Elenco
           </Link>
         </Button>
       </CardHeader>
@@ -46,10 +50,10 @@ export function SeriesCast({ cast }: SeriesCastProps) {
         {cast.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Nenhum ator adicionado ainda</p>
+            <p>Nenhum elenco adicionado ainda</p>
             <Button variant="outline" className="mt-4" asChild>
-              <Link href={`/series/${cast[0]?.id}/cast/new`}>
-                Adicionar Primeiro Ator
+              <Link href={`/series/${seriesId}/cast/new`}>
+                Adicionar Primeiro Elenco
               </Link>
             </Button>
           </div>

@@ -6,7 +6,7 @@ import { Info, Tv, Users, BarChart3, Calendar, Star, List } from "lucide-react";
 import { useState } from "react";
 import { SeriesOverview } from "./series-overview";
 import { SeriesSeasons } from "./series-seasons";
-import { SeriesCast } from "./series-cast";
+import { SeriesCast } from "./SeriesCast";
 import { SeriesDetails } from "./series-details";
 import { SeriesStatistics } from "./series-statistics";
 

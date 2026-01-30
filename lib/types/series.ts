@@ -1,3 +1,6 @@
+// lib/types/series.ts
+export type SeriesStatus = 'in_progress' | 'abandoned' | 'completed' | 'planned';
+
 export interface SeriesEpisode {
   id: string;
   episode_number: number;
@@ -20,13 +23,24 @@ export interface SeriesSeason {
   episodes?: SeriesEpisode[];
 }
 
+export interface SeriesStats {
+  total_episodes: number;
+  watched_episodes: number;
+  total_seasons: number;
+  watched_seasons: number;
+  completion_percentage: number;
+  average_rating?: number;
+  total_watch_time: number; // em minutos
+  total_watch_hours: number; // calculado
+}
+
 export interface SeriesWithStats {
   id: string;
   user_id: string;
   name?: string;
   cover_image?: string;
   release_year?: number;
-  status: string;
+  status: SeriesStatus; // Usar o tipo específico
   total_seasons: number;
   total_episodes: number;
   description?: string;
@@ -43,18 +57,8 @@ export interface SeriesWithStats {
   end_date?: string;
 
   seasons?: SeriesSeason[];
-
-  stats: {
-    total_episodes: number;
-    watched_episodes: number;
-    total_seasons: number;
-    watched_seasons: number;
-    completion_percentage: number;
-    average_rating?: number;
-    total_watch_hours: number;
-  };
+  stats: SeriesStats;
 }
-
 export interface StatusCounts {
   all: number;
   in_progress: number;
