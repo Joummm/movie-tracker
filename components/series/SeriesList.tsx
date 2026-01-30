@@ -2,8 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Series, SeriesStatus } from "@/lib/types/database";
-import { SeriesCard } from "./series-card";
+import { SeriesCard } from "./SeriesCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,38 +16,29 @@ import { Search, Filter, Grid3X3, List, Plus, Film } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { User } from "@supabase/supabase-js";
-
-interface SeriesWithStats extends Series {
-  stats: {
-    total_episodes: number;
-    watched_episodes: number;
-    total_seasons: number;
-    watched_seasons: number;
-    completion_percentage: number;
-    average_rating?: number;
-  };
-}
+import { SeriesWithStats, StatusCounts } from "@/lib/types/series";
+import { useRouter } from "next/navigation";
 
 interface SeriesListProps {
   series: SeriesWithStats[];
-  statusCounts: {
-    all: number;
-    in_progress: number;
-    completed: number;
-    abandoned: number;
-    planned: number;
-  };
+  statusCounts: StatusCounts;
   user: User;
 }
 
 export function SeriesList({ series, statusCounts, user }: SeriesListProps) {
-  const [filteredSeries, setFilteredSeries] = useState(series);
+  const router = useRouter();
+  const [filteredSeries, setFilteredSeries] =
+    useState<SeriesWithStats[]>(series);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<SeriesStatus | "all">("all");
-  const [sortBy, setSortBy] = useState<
-    "name" | "recent" | "progress" | "rating"
-  >("recent");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("recent");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  // Função para atualizar a lista quando o status mudar
+  const handleStatusChange = () => {
+    // Força um refresh da página para atualizar os dados
+    router.refresh();
+  };
 
   // Filter and sort series
   useEffect(() => {
@@ -74,10 +64,13 @@ export function SeriesList({ series, statusCounts, user }: SeriesListProps) {
         case "name":
           return (a.name || "").localeCompare(b.name || "");
         case "progress":
-          return b.stats.completion_percentage - a.stats.completion_percentage;
+          return (
+            (b.stats?.completion_percentage || 0) -
+            (a.stats?.completion_percentage || 0)
+          );
         case "rating":
-          const ratingA = a.stats.average_rating || 0;
-          const ratingB = b.stats.average_rating || 0;
+          const ratingA = a.stats?.average_rating || 0;
+          const ratingB = b.stats?.average_rating || 0;
           return ratingB - ratingA;
         case "recent":
         default:
@@ -99,7 +92,7 @@ export function SeriesList({ series, statusCounts, user }: SeriesListProps) {
     },
     { value: "completed", label: "Completadas", count: statusCounts.completed },
     { value: "abandoned", label: "Abandonadas", count: statusCounts.abandoned },
-    { value: "planned", label: "Planeadas", count: statusCounts.planned },
+    // { value: "planned", label: "Planeadas", count: statusCounts.planned },
   ];
 
   const sortOptions = [
@@ -167,11 +160,8 @@ export function SeriesList({ series, statusCounts, user }: SeriesListProps) {
           </div>
 
           {/* Status Filter */}
-          <Select
-            value={statusFilter}
-            onValueChange={(value: any) => setStatusFilter(value)}
-          >
-            <SelectTrigger className="w-[180px]">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-45">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filtrar por status" />
             </SelectTrigger>
@@ -190,11 +180,8 @@ export function SeriesList({ series, statusCounts, user }: SeriesListProps) {
           </Select>
 
           {/* Sort By */}
-          <Select
-            value={sortBy}
-            onValueChange={(value: any) => setSortBy(value)}
-          >
-            <SelectTrigger className="w-[180px]">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-45">
               <SelectValue placeholder="Ordenar por" />
             </SelectTrigger>
             <SelectContent>
@@ -216,7 +203,7 @@ export function SeriesList({ series, statusCounts, user }: SeriesListProps) {
               key={option.value}
               variant={statusFilter === option.value ? "default" : "outline"}
               size="sm"
-              onClick={() => setStatusFilter(option.value as any)}
+              onClick={() => setStatusFilter(option.value)}
               className="whitespace-nowrap"
             >
               {option.label}
@@ -242,6 +229,7 @@ export function SeriesList({ series, statusCounts, user }: SeriesListProps) {
               series={series}
               viewMode={viewMode}
               user={user}
+              onStatusChange={handleStatusChange}
             />
           ))}
         </div>
@@ -253,6 +241,7 @@ export function SeriesList({ series, statusCounts, user }: SeriesListProps) {
               series={series}
               viewMode={viewMode}
               user={user}
+              onStatusChange={handleStatusChange}
             />
           ))}
         </div>
