@@ -1,5 +1,9 @@
 // lib/types/series.ts
-export type SeriesStatus = 'in_progress' | 'abandoned' | 'completed' | 'planned';
+export type SeriesStatus =
+  | "in_progress"
+  | "abandoned"
+  | "completed"
+  | "planned";
 
 export interface SeriesEpisode {
   id: string;

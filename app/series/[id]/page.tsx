@@ -17,7 +17,10 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
   const seriesId = id;
 
   // Autenticação
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
   if (error || !user) redirect("/auth/login");
 
   // Buscar série básica
@@ -33,7 +36,8 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
   // Buscar elenco
   const { data: cast } = await supabase
     .from("series_cast")
-    .select(`
+    .select(
+      `
       *,
       actors!series_cast_actor_id_fkey (
         id,
@@ -41,7 +45,8 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
         photo_url,
         role
       )
-    `)
+    `,
+    )
     .eq("series_id", seriesId)
     .order("is_main_cast", { ascending: false })
     .order("credit_order", { ascending: true });
@@ -56,7 +61,11 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
     name: series.name,
     cover_image: series.cover_image,
     release_year: series.release_year,
-    status: series.status as 'in_progress' | 'abandoned' | 'completed' | 'planned',
+    status: series.status as
+      | "in_progress"
+      | "abandoned"
+      | "completed"
+      | "planned",
     total_seasons: series.total_seasons,
     total_episodes: series.total_episodes,
     description: series.description,
@@ -79,22 +88,21 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
       completion_percentage: stats.completion_percentage,
       average_rating: stats.average_rating,
       total_watch_time: series.total_watch_time || stats.total_watch_time,
-      total_watch_hours: Math.round((series.total_watch_time || stats.total_watch_time) / 60)
+      total_watch_hours: Math.round(
+        (series.total_watch_time || stats.total_watch_time) / 60,
+      ),
     },
     seasons: stats.seasons,
-    cast: cast || []
+    cast: cast || [],
   };
 
   return (
     <div className="min-h-screen bg-linear-to-b from-background via-background to-background/95">
-      <DashboardHeader userName={user.email?.split('@')[0] || "User"} />
-      
+      <DashboardHeader userName={user.email?.split("@")[0] || "User"} />
+
       <main className="container mx-auto px-4 py-6 md:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SeriesDetailView 
-            series={seriesData}
-            user={user}
-          />
+          <SeriesDetailView series={seriesData} user={user} />
         </div>
       </main>
     </div>

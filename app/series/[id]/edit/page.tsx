@@ -2,18 +2,15 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { EditSeriesForm } from "@/components/series/forms/edit-series-form";
+import { EditSeriesForm } from "@/components/series/forms/EditSeriesForm";
 
-interface EditSeriesPageProps {
-  params: Promise<{
-    id: string;
-  }>;
-}
-
-export default async function EditSeriesPage({ params }: EditSeriesPageProps) {
-  const { id } = await params;
+export default async function EditSeriesPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const supabase = await createClient();
-  const seriesId = id;
+  const { id } = await params;
 
   const {
     data: { user },
@@ -24,32 +21,29 @@ export default async function EditSeriesPage({ params }: EditSeriesPageProps) {
     redirect("/auth/login");
   }
 
-  // Get user profile
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single();
 
-  // Get series data
-  const { data: series, error: seriesError } = await supabase
+  const { data: series } = await supabase
     .from("series")
     .select("*")
-    .eq("id", seriesId)
+    .eq("id", id)
     .eq("user_id", user.id)
     .single();
 
-  if (seriesError || !series) {
-    console.error("Error fetching series:", seriesError);
+  if (!series) {
     redirect("/series");
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/20">
       <DashboardHeader userName={profile?.display_name || "User"} />
       <main className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <EditSeriesForm series={series} userId={user.id} />
+          <EditSeriesForm series={series} />
         </div>
       </main>
     </div>

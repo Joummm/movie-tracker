@@ -16,15 +16,15 @@ export interface SeriesStatsResult {
 export async function calculateSeriesStats(
   supabase: any,
   seriesId: string,
-  userId: string
+  userId: string,
 ): Promise<SeriesStatsResult> {
   // Buscar todas as temporadas da série
   const { data: seasons } = await supabase
-    .from('series_seasons')
-    .select('*')
-    .eq('series_id', seriesId)
-    .eq('user_id', userId)
-    .order('season_number', { ascending: true });
+    .from("series_seasons")
+    .select("*")
+    .eq("series_id", seriesId)
+    .eq("user_id", userId)
+    .order("season_number", { ascending: true });
 
   let totalEpisodes = 0;
   let watchedEpisodes = 0;
@@ -39,13 +39,14 @@ export async function calculateSeriesStats(
     for (const season of seasons) {
       // Buscar episódios desta temporada
       const { data: episodes } = await supabase
-        .from('series_episodes')
-        .select('*')
-        .eq('season_id', season.id)
-        .order('episode_number', { ascending: true });
+        .from("series_episodes")
+        .select("*")
+        .eq("season_id", season.id)
+        .order("episode_number", { ascending: true });
 
       const episodeCount = episodes?.length || 0;
-      const watchedEpisodeCount = episodes?.filter((ep: SeriesEpisode) => ep.is_watched).length || 0;
+      const watchedEpisodeCount =
+        episodes?.filter((ep: SeriesEpisode) => ep.is_watched).length || 0;
       let seasonWatchTime = 0;
       const seasonRatings: number[] = [];
 
@@ -78,24 +79,26 @@ export async function calculateSeriesStats(
           total_episodes: episodeCount,
           watched_episodes: watchedEpisodeCount,
           total_watch_time: seasonWatchTime,
-          average_rating: seasonRatings.length > 0 
-            ? seasonRatings.reduce((a, b) => a + b, 0) / seasonRatings.length
-            : undefined,
-          completion_percentage: episodeCount > 0
-            ? Math.round((watchedEpisodeCount / episodeCount) * 100)
-            : 0
-        }
+          average_rating:
+            seasonRatings.length > 0
+              ? seasonRatings.reduce((a, b) => a + b, 0) / seasonRatings.length
+              : undefined,
+          completion_percentage:
+            episodeCount > 0
+              ? Math.round((watchedEpisodeCount / episodeCount) * 100)
+              : 0,
+        },
       });
     }
   }
 
-  const averageRating = allRatings.length > 0
-    ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length
-    : undefined;
+  const averageRating =
+    allRatings.length > 0
+      ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length
+      : undefined;
 
-  const completionPercentage = totalEpisodes > 0
-    ? Math.round((watchedEpisodes / totalEpisodes) * 100)
-    : 0;
+  const completionPercentage =
+    totalEpisodes > 0 ? Math.round((watchedEpisodes / totalEpisodes) * 100) : 0;
 
   return {
     total_episodes: totalEpisodes,
@@ -106,6 +109,6 @@ export async function calculateSeriesStats(
     average_rating: averageRating,
     total_watch_time: totalWatchTime,
     total_watch_hours: Math.round(totalWatchTime / 60),
-    seasons: seasonsWithDetails
+    seasons: seasonsWithDetails,
   };
 }
