@@ -2,7 +2,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { NewSeasonForm } from "@/components/series/forms/new-season-form";
+import { NewSeasonForm } from "@/components/series/forms/NewSeasonForm";
 
 interface NewSeasonPageProps {
   params: Promise<{
@@ -59,7 +59,7 @@ export default async function NewSeasonPage({ params }: NewSeasonPageProps) {
       : 1;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/20">
       <DashboardHeader userName={profile?.display_name || "User"} />
       <main className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
