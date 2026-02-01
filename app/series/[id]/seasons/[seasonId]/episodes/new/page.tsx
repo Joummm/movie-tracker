@@ -1,21 +1,18 @@
-// app/series/[id]/seasons/[seasonId]/episodes/[episodeId]/edit/page.tsx
+// app/series/[id]/seasons/[seasonId]/episodes/new/page.tsx
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { EditEpisodeForm } from "@/components/series/forms/EditEpisodeForm";
+import { NewEpisodeForm } from "@/components/series/forms/NewEpisodeForm";
 
-interface EditEpisodePageProps {
+interface NewEpisodePageProps {
   params: Promise<{
     id: string;
     seasonId: string;
-    episodeId: string;
   }>;
 }
 
-export default async function EditEpisodePage({
-  params,
-}: EditEpisodePageProps) {
-  const { id, seasonId, episodeId } = await params;
+export default async function NewEpisodePage({ params }: NewEpisodePageProps) {
+  const { id, seasonId } = await params;
   const supabase = await createClient();
   const seriesId = id;
 
@@ -60,31 +57,33 @@ export default async function EditEpisodePage({
     redirect(`/series/${seriesId}/seasons`);
   }
 
-  // Get episode information
-  const { data: episode } = await supabase
+  // Get existing episodes to determine next episode number
+  const { data: existingEpisodes } = await supabase
     .from("series_episodes")
-    .select("*")
-    .eq("id", episodeId)
+    .select("episode_number")
     .eq("season_id", seasonId)
-    .single();
+    .eq("series_id", seriesId)
+    .eq("user_id", user.id)
+    .order("episode_number", { ascending: true });
 
-  if (!episode) {
-    redirect(`/series/${seriesId}/seasons/${seasonId}`);
-  }
+  // Calculate next episode number
+  const nextEpisodeNumber = existingEpisodes?.length
+    ? Math.max(...existingEpisodes.map((ep) => ep.episode_number)) + 1
+    : 1;
 
   return (
     <div className="min-h-screen bg-linear-to-b from-background to-muted/20">
       <DashboardHeader userName={profile?.display_name || "User"} />
       <main className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
-          <EditEpisodeForm
-            episode={episode}
+          <NewEpisodeForm
+            userId={user.id}
             seriesId={seriesId}
             seasonId={seasonId}
-            userId={user.id}
             seriesName={series.name || "Série"}
             seasonNumber={season.season_number}
             isSpecialSeason={season.is_special}
+            nextEpisodeNumber={nextEpisodeNumber}
           />
         </div>
       </main>

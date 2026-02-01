@@ -1,4 +1,4 @@
-// app/series/[id]/seasons/[seasonId]/page.tsx (corrigido - sem console.error vazio)
+// app/series/[id]/seasons/[seasonId]/page.tsx
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -64,43 +64,39 @@ export default async function SeasonDetailPage({ params }: SeasonPageProps) {
     .from("series_episodes")
     .select("*")
     .eq("season_id", seasonId)
-    .eq("user_id", user.id)
     .order("episode_number", { ascending: true });
 
   let episodesData: any[] = [];
 
   if (episodesError) {
-    // Fallback to content table
-    try {
-      const { data: contentEpisodes } = await supabase
-        .from("content")
-        .select("*")
-        .eq("series_id", seriesId)
-        .eq("season", season.season_number)
-        .eq("user_id", user.id)
-        .order("episode", { ascending: true });
+    console.error("Erro ao buscar episódios:", episodesError);
+    // Fallback para tabela content
+    const { data: contentEpisodes } = await supabase
+      .from("content")
+      .select("*")
+      .eq("series_id", seriesId)
+      .eq("season", season.season_number)
+      .eq("user_id", user.id)
+      .order("episode", { ascending: true });
 
-      if (contentEpisodes) {
-        episodesData = contentEpisodes.map((content: any) => ({
-          id: content.id,
-          episode_number: content.episode || 0,
-          name: content.name,
-          duration: content.duration,
-          is_watched: content.watch_status === "completed",
-          rating: content.rating,
-          review: content.review,
-          release_date: content.watched_date,
-          created_at: content.created_at,
-          would_recommend: content.would_recommend,
-          would_rewatch: content.would_rewatch,
-          rewatch_count: content.rewatch_count,
-        }));
-      }
-    } catch (fallbackError) {
-      // Usar array vazio se ambos falharem
-      episodesData = [];
+    if (contentEpisodes) {
+      episodesData = contentEpisodes.map((content: any) => ({
+        id: content.id,
+        episode_number: content.episode || 0,
+        name: content.name,
+        duration: content.duration,
+        is_watched: content.watch_status === "completed",
+        rating: content.rating,
+        review: content.review,
+        release_date: content.watched_date,
+        created_at: content.created_at,
+        would_recommend: content.would_recommend,
+        would_rewatch: content.would_rewatch,
+        rewatch_count: content.rewatch_count,
+      }));
     }
   } else if (episodes) {
+    // Filtrar episódios manualmente se necessário
     episodesData = episodes.map((ep: any) => ({
       id: ep.id,
       episode_number: ep.episode_number,

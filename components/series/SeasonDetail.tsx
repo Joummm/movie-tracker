@@ -1,8 +1,9 @@
-// components/series/season-detail.tsx (atualizado)
+// components/series/season-detail.tsx
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +11,6 @@ import {
   Calendar,
   Clock,
   Star,
-  Tv,
   Eye,
   Film,
   List,
@@ -24,12 +24,12 @@ import {
   RefreshCw,
   EyeOff,
   Trash2,
+  ExternalLink,
 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -45,7 +45,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -103,6 +102,7 @@ export function SeasonDetail({
   userId,
 }: SeasonDetailProps) {
   const [activeTab, setActiveTab] = useState("episodes");
+  const router = useRouter();
   const [filteredEpisodes, setFilteredEpisodes] = useState<Episode[]>(episodes);
   const [watchFilter, setWatchFilter] = useState<string>("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -149,6 +149,17 @@ export function SeasonDetail({
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Não especificada";
     return new Date(dateString).toLocaleDateString("pt-PT");
+  };
+
+  // Função para navegar para detalhes do episódio
+  const handleEpisodeClick = (episode: Episode, e?: React.MouseEvent) => {
+    // Permitir cliques nos botões sem navegar
+    if (e && (e.target as HTMLElement).closest('button, a, [role="button"]')) {
+      return;
+    }
+    router.push(
+      `/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}`,
+    );
   };
 
   // Calculate episode statistics
@@ -204,7 +215,7 @@ export function SeasonDetail({
 
       // Atualizar a página
       setTimeout(() => {
-        window.location.reload();
+        router.refresh();
       }, 1000);
     } catch (error) {
       console.error("Erro ao atualizar estatísticas:", error);
@@ -217,7 +228,11 @@ export function SeasonDetail({
     }
   };
 
-  const toggleEpisodeWatchStatus = async (episode: Episode) => {
+  const toggleEpisodeWatchStatus = async (
+    episode: Episode,
+    e: React.MouseEvent,
+  ) => {
+    e.stopPropagation();
     try {
       const { error } = await supabase
         .from("series_episodes")
@@ -226,10 +241,43 @@ export function SeasonDetail({
           watched_date: !episode.is_watched ? new Date().toISOString() : null,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", episode.id)
-        .eq("user_id", userId);
+        .eq("id", episode.id);
 
       if (error) throw error;
+
+      const { data: episodes } = await supabase
+        .from("series_episodes")
+        .select("id, is_watched, rating, duration")
+        .eq("season_id", season.id);
+
+      if (episodes) {
+        const totalEpisodes = episodes.length;
+        const watchedEpisodes = episodes.filter((ep) => ep.is_watched).length;
+        const totalWatchTime = episodes.reduce(
+          (sum, ep) => sum + (ep.duration || 0),
+          0,
+        );
+        const ratedEpisodes = episodes.filter(
+          (ep) => ep.rating && ep.rating > 0,
+        );
+        const averageRating =
+          ratedEpisodes.length > 0
+            ? ratedEpisodes.reduce((sum, ep) => sum + ep.rating!, 0) /
+              ratedEpisodes.length
+            : 0;
+
+        await supabase
+          .from("series_seasons")
+          .update({
+            episode_count: totalEpisodes,
+            watched_episode_count: watchedEpisodes,
+            average_rating: averageRating > 0 ? averageRating : null,
+            total_watch_time: totalWatchTime,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", season.id)
+          .eq("user_id", userId);
+      }
 
       toast.success(
         episode.is_watched
@@ -242,7 +290,7 @@ export function SeasonDetail({
       );
 
       setTimeout(() => {
-        window.location.reload();
+        router.refresh();
       }, 1000);
     } catch (error) {
       console.error("Erro ao atualizar episódio:", error);
@@ -253,7 +301,8 @@ export function SeasonDetail({
     }
   };
 
-  const openEditEpisode = (episode: Episode) => {
+  const openEditEpisode = (episode: Episode, e: React.MouseEvent) => {
+    e.stopPropagation();
     setSelectedEpisode(episode);
     setIsEditDialogOpen(true);
   };
@@ -484,7 +533,8 @@ export function SeasonDetail({
                   {filteredEpisodes.map((episode) => (
                     <div
                       key={episode.id}
-                      className="flex items-center gap-4 p-4 hover:bg-muted/30 transition-colors"
+                      className="flex items-center gap-4 p-4 hover:bg-muted/30 transition-colors cursor-pointer group"
+                      onClick={(e) => handleEpisodeClick(episode, e)}
                     >
                       {/* Número do episódio */}
                       <div className="shrink-0">
@@ -510,6 +560,7 @@ export function SeasonDetail({
                               Assistido
                             </Badge>
                           )}
+                          <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
@@ -544,11 +595,14 @@ export function SeasonDetail({
                       </div>
 
                       {/* Ações */}
-                      <div className="flex items-center gap-2">
+                      <div
+                        className="flex items-center gap-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Button
                           size="sm"
                           variant={episode.is_watched ? "outline" : "default"}
-                          onClick={() => toggleEpisodeWatchStatus(episode)}
+                          onClick={(e) => toggleEpisodeWatchStatus(episode, e)}
                         >
                           {episode.is_watched ? (
                             <>
@@ -570,14 +624,30 @@ export function SeasonDetail({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => openEditEpisode(episode)}
-                            >
-                              <Edit className="h-4 w-4 mr-2" />
-                              Editar
+                            <DropdownMenuItem asChild>
+                              <Link
+                                href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}`}
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver Detalhes
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link
+                                href={`/series/${seriesId}/seasons/${season.id}/episodes/${episode.id}/edit`}
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </Link>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600">
+                            <DropdownMenuItem
+                              className="text-red-600"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Lógica de exclusão aqui
+                              }}
+                            >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Excluir
                             </DropdownMenuItem>

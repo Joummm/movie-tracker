@@ -301,6 +301,7 @@ CREATE TABLE public.series (
   has_special_seasons boolean DEFAULT false,
   start_date date,
   end_date date,
+  description text,
   CONSTRAINT series_pkey PRIMARY KEY (id),
   CONSTRAINT series_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
