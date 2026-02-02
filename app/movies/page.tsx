@@ -1,12 +1,12 @@
-// app/podcasts/page.tsx
+// app/movies/page.tsx
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { Button } from "@/components/ui/button";
-import { Mic, Plus } from "lucide-react";
+import { Film, Plus } from "lucide-react";
 import Link from "next/link";
 
-export default async function PodcastsPage() {
+export default async function MoviesPage() {
   const supabase = await createClient();
 
   const {
@@ -35,33 +35,33 @@ export default async function PodcastsPage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-lg bg-purple-500/10">
-                  <Mic className="h-6 w-6 text-purple-500" />
+                <div className="p-2 rounded-lg bg-emerald-500/10">
+                  <Film className="h-6 w-6 text-emerald-500" />
                 </div>
                 <h1 className="text-3xl font-bold tracking-tight">
-                  Meus Podcasts
+                  Meus Filmes
                 </h1>
               </div>
               <p className="text-muted-foreground mt-1 max-w-2xl">
-                Acompanhe todos os seus podcasts favoritos
+                Acompanhe todos os seus filmes assistidos
               </p>
             </div>
             <div className="flex items-center gap-2">
               <Button
                 asChild
-                className="gap-2 bg-linear-to-r from-purple-500 to-violet-600 hover:from-purple-500/90 hover:to-violet-600/90"
+                className="gap-2 bg-linear-to-r from-emerald-500 to-green-600 hover:from-emerald-500/90 hover:to-green-600/90"
               >
-                <Link href="/podcasts/new">
+                <Link href="/movies/new">
                   <Plus className="h-4 w-4" />
-                  Novo Podcast
+                  Novo Filme
                 </Link>
               </Button>
             </div>
           </div>
 
-          {/* Conteúdo dos podcasts será implementado aqui */}
+          {/* Conteúdo dos filmes será implementado aqui */}
           <div className="text-center py-12 text-muted-foreground">
-            <p>Lista de podcasts será implementada em breve</p>
+            <p>Lista de filmes será implementada em breve</p>
           </div>
         </div>
       </main>

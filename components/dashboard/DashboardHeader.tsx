@@ -27,6 +27,8 @@ import {
   Sparkles,
   Layers,
   Clock,
+  Clapperboard, // Para curtas-metragens
+  Zap, // Para outros
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -153,6 +155,23 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
                   className="cursor-pointer hover:bg-primary/10 transition-colors"
                 >
                   <Link
+                    href="/movies"
+                    className="w-full flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Film className="h-4 w-4 text-emerald-500" />
+                      <span>Filmes</span>
+                    </div>
+                    <span className="text-xs text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">
+                      Longas
+                    </span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  asChild
+                  className="cursor-pointer hover:bg-primary/10 transition-colors"
+                >
+                  <Link
                     href="/series"
                     className="w-full flex items-center justify-between"
                   >
@@ -170,15 +189,15 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
                   className="cursor-pointer hover:bg-primary/10 transition-colors"
                 >
                   <Link
-                    href="/content/movies"
+                    href="/shorts"
                     className="w-full flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2">
-                      <Film className="h-4 w-4 text-emerald-500" />
-                      <span>Filmes</span>
+                      <Clapperboard className="h-4 w-4 text-orange-500" />
+                      <span>Curtas-Metragens</span>
                     </div>
-                    <span className="text-xs text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">
-                      Longas
+                    <span className="text-xs text-orange-500 bg-orange-500/10 px-2 py-1 rounded">
+                      Curtas
                     </span>
                   </Link>
                 </DropdownMenuItem>
@@ -187,24 +206,7 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
                   className="cursor-pointer hover:bg-primary/10 transition-colors"
                 >
                   <Link
-                    href="/content/shorts"
-                    className="w-full flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-amber-500" />
-                      <span>Curtas</span>
-                    </div>
-                    <span className="text-xs text-amber-500 bg-amber-500/10 px-2 py-1 rounded">
-                      Rápidas
-                    </span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  asChild
-                  className="cursor-pointer hover:bg-primary/10 transition-colors"
-                >
-                  <Link
-                    href="/content/podcasts"
+                    href="/podcasts"
                     className="w-full flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2">
@@ -221,14 +223,14 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
                   className="cursor-pointer hover:bg-primary/10 transition-colors"
                 >
                   <Link
-                    href="/content/other"
+                    href="/outros"
                     className="w-full flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-pink-500" />
+                      <Zap className="h-4 w-4 text-amber-500" />
                       <span>Outros</span>
                     </div>
-                    <span className="text-xs text-pink-500 bg-pink-500/10 px-2 py-1 rounded">
+                    <span className="text-xs text-amber-500 bg-amber-500/10 px-2 py-1 rounded">
                       Especiais
                     </span>
                   </Link>
@@ -408,6 +410,24 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
                   asChild
                   variant="outline"
                   size="sm"
+                  className="justify-start gap-2 h-auto py-3 rounded-lg hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Link
+                    href="/movies"
+                    className="flex flex-col items-start gap-1"
+                  >
+                    <Film className="h-4 w-4 text-emerald-500" />
+                    <span>Filmes</span>
+                    <span className="text-xs text-muted-foreground">
+                      Longas
+                    </span>
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
                   className="justify-start gap-2 h-auto py-3 rounded-lg hover:bg-blue-500/10 hover:border-blue-500/30 transition-all"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -426,35 +446,17 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
                   asChild
                   variant="outline"
                   size="sm"
-                  className="justify-start gap-2 h-auto py-3 rounded-lg hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all"
+                  className="justify-start gap-2 h-auto py-3 rounded-lg hover:bg-orange-500/10 hover:border-orange-500/30 transition-all"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Link
-                    href="/content/movies"
+                    href="/shorts"
                     className="flex flex-col items-start gap-1"
                   >
-                    <Film className="h-4 w-4 text-emerald-500" />
-                    <span>Filmes</span>
+                    <Clapperboard className="h-4 w-4 text-orange-500" />
+                    <span>Curtas-Metragens</span>
                     <span className="text-xs text-muted-foreground">
-                      Longas
-                    </span>
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="justify-start gap-2 h-auto py-3 rounded-lg hover:bg-amber-500/10 hover:border-amber-500/30 transition-all"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Link
-                    href="/content/shorts"
-                    className="flex flex-col items-start gap-1"
-                  >
-                    <Clock className="h-4 w-4 text-amber-500" />
-                    <span>Curtas</span>
-                    <span className="text-xs text-muted-foreground">
-                      Rápidas
+                      Curtas
                     </span>
                   </Link>
                 </Button>
@@ -466,7 +468,7 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Link
-                    href="/content/podcasts"
+                    href="/podcasts"
                     className="flex flex-col items-start gap-1"
                   >
                     <Mic className="h-4 w-4 text-purple-500" />
@@ -478,14 +480,14 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
                   asChild
                   variant="outline"
                   size="sm"
-                  className="justify-start gap-2 h-auto py-3 rounded-lg hover:bg-pink-500/10 hover:border-pink-500/30 transition-all"
+                  className="justify-start gap-2 h-auto py-3 rounded-lg hover:bg-amber-500/10 hover:border-amber-500/30 transition-all"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Link
-                    href="/content/other"
+                    href="/outros"
                     className="flex flex-col items-start gap-1"
                   >
-                    <Sparkles className="h-4 w-4 text-pink-500" />
+                    <Zap className="h-4 w-4 text-amber-500" />
                     <span>Outros</span>
                     <span className="text-xs text-muted-foreground">
                       Especiais

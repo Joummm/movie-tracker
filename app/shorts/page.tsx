@@ -1,12 +1,12 @@
-// app/podcasts/page.tsx
+// app/shorts/page.tsx
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { Button } from "@/components/ui/button";
-import { Mic, Plus } from "lucide-react";
+import { Clapperboard, Plus } from "lucide-react";
 import Link from "next/link";
 
-export default async function PodcastsPage() {
+export default async function ShortsPage() {
   const supabase = await createClient();
 
   const {
@@ -35,33 +35,43 @@ export default async function PodcastsPage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-lg bg-purple-500/10">
-                  <Mic className="h-6 w-6 text-purple-500" />
+                <div className="p-2 rounded-lg bg-orange-500/10">
+                  <Clapperboard className="h-6 w-6 text-orange-500" />
                 </div>
                 <h1 className="text-3xl font-bold tracking-tight">
-                  Meus Podcasts
+                  Curtas-Metragens
                 </h1>
               </div>
               <p className="text-muted-foreground mt-1 max-w-2xl">
-                Acompanhe todos os seus podcasts favoritos
+                Acompanhe todas as suas curtas-metragens assistidas
               </p>
             </div>
             <div className="flex items-center gap-2">
               <Button
                 asChild
-                className="gap-2 bg-linear-to-r from-purple-500 to-violet-600 hover:from-purple-500/90 hover:to-violet-600/90"
+                className="gap-2 bg-linear-to-r from-orange-500 to-amber-600 hover:from-orange-500/90 hover:to-amber-600/90 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95"
               >
-                <Link href="/podcasts/new">
+                <Link href="/shorts/new">
                   <Plus className="h-4 w-4" />
-                  Novo Podcast
+                  Nova Curta-Metragem
                 </Link>
               </Button>
             </div>
           </div>
 
-          {/* Conteúdo dos podcasts será implementado aqui */}
+          {/* Conteúdo dos curtas-metragens será implementado aqui */}
           <div className="text-center py-12 text-muted-foreground">
-            <p>Lista de podcasts será implementada em breve</p>
+            <div className="max-w-md mx-auto">
+              <div className="p-4 rounded-lg bg-orange-500/5 border border-orange-500/10 mb-4">
+                <Clapperboard className="h-12 w-12 text-orange-500 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold mb-2">Curtas-Metragens</h3>
+                <p className="text-sm text-muted-foreground">
+                  Filmes com duração inferior a 40 minutos, incluindo animações,
+                  documentários curtos e experiências cinematográficas breves.
+                </p>
+              </div>
+              <p>Lista de curtas-metragens será implementada em breve</p>
+            </div>
           </div>
         </div>
       </main>

@@ -258,12 +258,12 @@ export default async function SeriesPage() {
 
       <main className="container mx-auto p-4 md:p-6 lg:p-8">
         <div className="flex flex-col gap-8">
-          {/* Header Section */}
+          {/* Header Section - ATUALIZADO */}
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Tv className="h-6 w-6 text-primary" />
+                <div className="p-2 rounded-lg bg-blue-500/10">
+                  <Tv className="h-6 w-6 text-blue-500" />
                 </div>
                 <h1 className="text-3xl font-bold tracking-tight">
                   Minhas Séries
@@ -276,7 +276,7 @@ export default async function SeriesPage() {
             <div className="flex items-center gap-2">
               <Button
                 asChild
-                className="gap-2 bg-linear-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
+                className="gap-2 bg-linear-to-r from-blue-500 to-cyan-600 hover:from-blue-500/90 hover:to-cyan-600/90 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95"
               >
                 <Link href="/series/new">
                   <Plus className="h-4 w-4" />
@@ -418,7 +418,7 @@ export default async function SeriesPage() {
             {/* Status Distribution */}
             <div className="bg-card rounded-xl border p-5">
               <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-primary" />
+                <div className="h-2 w-2 rounded-full bg-blue-500" />
                 Distribuição por Status
               </h3>
               <div className="space-y-4">
@@ -433,7 +433,6 @@ export default async function SeriesPage() {
                     count: statusCounts.completed,
                     color: "bg-emerald-500",
                   },
-                  // { status: "Planeadas", count: statusCounts.planned, color: "bg-purple-500" },
                   {
                     status: "Abandonadas",
                     count: statusCounts.abandoned,
