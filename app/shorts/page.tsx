@@ -3,13 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { Button } from "@/components/ui/button";
-import {
-  Clapperboard,
-  Plus,
-  Calendar,
-  Clock,
-  Star,
-} from "lucide-react";
+import { Clapperboard, Plus, Calendar, Clock, Star } from "lucide-react";
 import Link from "next/link";
 import { ShortFilters } from "@/lib/types/shorts";
 import { Badge } from "@/components/ui/badge";
@@ -199,7 +193,7 @@ export default async function ShortsPage({
     .select("*")
     .eq("id", user.id)
     .single();
-  
+
   const resolvedSearchParams = await searchParams;
 
   // Parse search params
@@ -324,9 +318,7 @@ export default async function ShortsPage({
               subtitle="Média por Curta"
               value={`${averageDuration}m`}
               color="text-purple-500"
-              progress={Math.round(
-                Math.min((averageDuration / 40) * 100, 100),
-              )}
+              progress={Math.round(Math.min((averageDuration / 40) * 100, 100))}
             />
           </div>
 
