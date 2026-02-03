@@ -244,7 +244,7 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
               size="sm"
               className="gap-2 hover:bg-primary/10 hover:text-primary transition-all duration-300 rounded-lg px-4 py-2 h-9"
             >
-              <Link href="/actors">
+              <Link href="/people">
                 <Users2 className="h-4 w-4" />
                 Pessoas
               </Link>
@@ -503,7 +503,7 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
               className="justify-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/10 transition-all"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <Link href="/actors">
+              <Link href="/people">
                 <Users2 className="h-5 w-5" />
                 Pessoas
               </Link>
