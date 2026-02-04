@@ -1,7 +1,7 @@
 // components/series/forms/NewEpisodeForm.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,10 +30,18 @@ import {
   AlertCircle,
   CheckCircle,
   EyeOff,
+  CalendarDays,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface NewEpisodeFormProps {
   userId: string;
@@ -58,9 +66,43 @@ export function NewEpisodeForm({
   const supabase = createClient();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
+  const [calculatedNextNumber, setCalculatedNextNumber] =
+    useState(nextEpisodeNumber);
+
+  // Buscar o verdadeiro último número de episódio
+  useEffect(() => {
+    const fetchLastEpisodeNumber = async () => {
+      try {
+        const { data: episodes, error } = await supabase
+          .from("series_episodes")
+          .select("episode_number")
+          .eq("season_id", seasonId)
+          .eq("series_id", seriesId)
+          .order("episode_number", { ascending: false })
+          .limit(1);
+
+        if (error) {
+          console.error("Erro ao buscar último episódio:", error);
+          return;
+        }
+
+        if (episodes && episodes.length > 0) {
+          const lastNumber = episodes[0].episode_number;
+          setCalculatedNextNumber(lastNumber + 1);
+        } else {
+          // Primeiro episódio da temporada
+          setCalculatedNextNumber(1);
+        }
+      } catch (error) {
+        console.error("Erro ao calcular próximo número:", error);
+      }
+    };
+
+    fetchLastEpisodeNumber();
+  }, [seasonId, seriesId, supabase]);
 
   const [formData, setFormData] = useState({
-    episode_number: nextEpisodeNumber.toString(),
+    episode_number: calculatedNextNumber.toString(),
     name: "",
     duration: 45,
     release_date: "",
@@ -71,7 +113,20 @@ export function NewEpisodeForm({
     would_rewatch: false,
     rewatch_count: 0,
     last_rewatch_date: "",
+    // Campos para data de visualização
+    watched_date_precision: "full", // 'year', 'month', 'full'
+    watched_year: "",
+    watched_month: "",
+    watched_date: "",
   });
+
+  // Atualizar o número do episódio quando calculatedNextNumber mudar
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      episode_number: calculatedNextNumber.toString(),
+    }));
+  }, [calculatedNextNumber]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -95,6 +150,13 @@ export function NewEpisodeForm({
     setFormData((prev) => ({
       ...prev,
       [name]: checked,
+    }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
     }));
   };
 
@@ -153,7 +215,9 @@ export function NewEpisodeForm({
           `Já existe um episódio com o número ${episodeNumber} nesta temporada. Por favor, use um número diferente.`,
         );
       }
-      const episodeData = {
+
+      // Preparar dados do episódio
+      const episodeData: any = {
         series_id: seriesId,
         season_id: seasonId,
         episode_number: episodeNumber,
@@ -168,6 +232,29 @@ export function NewEpisodeForm({
         rewatch_count: formData.rewatch_count || 0,
         last_rewatch_date: formData.last_rewatch_date || null,
       };
+
+      // Se foi assistido, adicionar data de visualização
+      if (formData.is_watched) {
+        if (
+          formData.watched_date_precision === "full" &&
+          formData.watched_date
+        ) {
+          episodeData.watched_date = formData.watched_date;
+        } else if (
+          formData.watched_date_precision === "month" &&
+          formData.watched_month &&
+          formData.watched_year
+        ) {
+          // Para precisão mês/ano, usar watched_date como YYYY-MM-01
+          episodeData.watched_date = `${formData.watched_year}-${formData.watched_month.padStart(2, "0")}-01`;
+        } else if (
+          formData.watched_date_precision === "year" &&
+          formData.watched_year
+        ) {
+          // Para precisão ano, usar watched_date como YYYY-01-01
+          episodeData.watched_date = `${formData.watched_year}-01-01`;
+        }
+      }
 
       console.log("Criando episódio:", episodeData);
 
@@ -247,7 +334,7 @@ export function NewEpisodeForm({
       console.log("Episódio criado com sucesso:", newEpisode || "via content");
 
       try {
-        // Obter todos os episódios da temporada (sem filtro user_id)
+        // Obter todos os episódios da temporada
         const { data: episodes } = await supabase
           .from("series_episodes")
           .select("id, is_watched, rating, duration")
@@ -310,8 +397,27 @@ export function NewEpisodeForm({
     }
   };
 
+  // Gera anos para o select (dos últimos 50 anos até o próximo ano)
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 52 }, (_, i) => currentYear - 50 + i);
+
+  const months = [
+    { value: "1", label: "Janeiro" },
+    { value: "2", label: "Fevereiro" },
+    { value: "3", label: "Março" },
+    { value: "4", label: "Abril" },
+    { value: "5", label: "Maio" },
+    { value: "6", label: "Junho" },
+    { value: "7", label: "Julho" },
+    { value: "8", label: "Agosto" },
+    { value: "9", label: "Setembro" },
+    { value: "10", label: "Outubro" },
+    { value: "11", label: "Novembro" },
+    { value: "12", label: "Dezembro" },
+  ];
+
   return (
-    <div className="min-h-screen bg-linear-to-b from-background via-background to-background/95">
+    <div className="min-h-screen bg-linear-to-b from-background to-background/95">
       <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -394,24 +500,24 @@ export function NewEpisodeForm({
                     <TabsList className="grid grid-cols-3 w-full bg-background/50 border border-border/30">
                       <TabsTrigger
                         value="basic"
-                        className="flex items-center gap-2 py-2.5 data-[state=active]:bg-linear-to-r data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:text-primary"
+                        className="flex items-center justify-center gap-2 py-3 data-[state=active]:bg-linear-to-r data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:text-primary"
                       >
                         <Info className="h-4 w-4" />
-                        <span className="hidden sm:inline">Básico</span>
+                        <span>Básico</span>
                       </TabsTrigger>
                       <TabsTrigger
                         value="rating"
-                        className="flex items-center gap-2 py-2.5 data-[state=active]:bg-linear-to-r data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:text-primary"
+                        className="flex items-center justify-center gap-2 py-3 data-[state=active]:bg-linear-to-r data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:text-primary"
                       >
                         <Star className="h-4 w-4" />
-                        <span className="hidden sm:inline">Avaliação</span>
+                        <span>Avaliação</span>
                       </TabsTrigger>
                       <TabsTrigger
                         value="advanced"
-                        className="flex items-center gap-2 py-2.5 data-[state=active]:bg-linear-to-r data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:text-primary"
+                        className="flex items-center justify-center gap-2 py-3 data-[state=active]:bg-linear-to-r data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:text-primary"
                       >
                         <Sparkles className="h-4 w-4" />
-                        <span className="hidden sm:inline">Avançado</span>
+                        <span>Avançado</span>
                       </TabsTrigger>
                     </TabsList>
                   </div>
@@ -445,7 +551,7 @@ export function NewEpisodeForm({
                             <div className="flex items-start gap-2 mt-2">
                               <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
                               <p className="text-sm text-muted-foreground">
-                                Próximo número sugerido: {nextEpisodeNumber}.
+                                Próximo número sugerido: {calculatedNextNumber}.
                                 Cada número deve ser único por temporada.
                               </p>
                             </div>
@@ -511,8 +617,9 @@ export function NewEpisodeForm({
                           />
                         </div>
 
+                        {/* Status de Visualização ATUALIZADO */}
                         <div className="bg-linear-to-br from-card to-card/80 rounded-lg border border-border/30 p-4">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between mb-4">
                             <div className="space-y-1">
                               <Label className="text-base font-semibold flex items-center gap-2">
                                 {formData.is_watched ? (
@@ -536,6 +643,166 @@ export function NewEpisodeForm({
                               className="data-[state=checked]:bg-emerald-500"
                             />
                           </div>
+
+                          {formData.is_watched && (
+                            <div className="space-y-4 mt-4 p-3 bg-muted/20 rounded-lg">
+                              <div>
+                                <Label className="text-sm font-medium mb-2 flex items-center gap-2">
+                                  <CalendarDays className="h-4 w-4" />
+                                  Precisão da Data de Visualização
+                                </Label>
+                                <Select
+                                  value={formData.watched_date_precision}
+                                  onValueChange={(value) =>
+                                    handleSelectChange(
+                                      "watched_date_precision",
+                                      value,
+                                    )
+                                  }
+                                  disabled={isLoading}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Selecione a precisão" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="full">
+                                      Data Completa
+                                    </SelectItem>
+                                    <SelectItem value="month">
+                                      Mês e Ano
+                                    </SelectItem>
+                                    <SelectItem value="year">
+                                      Apenas Ano
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              {formData.watched_date_precision === "full" && (
+                                <div>
+                                  <Label
+                                    htmlFor="watched_date"
+                                    className="text-sm"
+                                  >
+                                    Data de Visualização
+                                  </Label>
+                                  <Input
+                                    id="watched_date"
+                                    name="watched_date"
+                                    type="date"
+                                    value={
+                                      formData.watched_date ||
+                                      new Date().toISOString().split("T")[0]
+                                    }
+                                    onChange={handleInputChange}
+                                    className="mt-1"
+                                    disabled={isLoading}
+                                  />
+                                </div>
+                              )}
+
+                              {formData.watched_date_precision === "month" && (
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <Label
+                                      htmlFor="watched_month"
+                                      className="text-sm"
+                                    >
+                                      Mês
+                                    </Label>
+                                    <Select
+                                      value={formData.watched_month}
+                                      onValueChange={(value) =>
+                                        handleSelectChange(
+                                          "watched_month",
+                                          value,
+                                        )
+                                      }
+                                      disabled={isLoading}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Selecione o mês" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {months.map((month) => (
+                                          <SelectItem
+                                            key={month.value}
+                                            value={month.value}
+                                          >
+                                            {month.label}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div>
+                                    <Label
+                                      htmlFor="watched_year"
+                                      className="text-sm"
+                                    >
+                                      Ano
+                                    </Label>
+                                    <Select
+                                      value={formData.watched_year}
+                                      onValueChange={(value) =>
+                                        handleSelectChange(
+                                          "watched_year",
+                                          value,
+                                        )
+                                      }
+                                      disabled={isLoading}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Selecione o ano" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {years.map((year) => (
+                                          <SelectItem
+                                            key={year}
+                                            value={year.toString()}
+                                          >
+                                            {year}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+                              )}
+
+                              {formData.watched_date_precision === "year" && (
+                                <div>
+                                  <Label
+                                    htmlFor="watched_year"
+                                    className="text-sm"
+                                  >
+                                    Ano de Visualização
+                                  </Label>
+                                  <Select
+                                    value={formData.watched_year}
+                                    onValueChange={(value) =>
+                                      handleSelectChange("watched_year", value)
+                                    }
+                                    disabled={isLoading}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecione o ano" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {years.map((year) => (
+                                        <SelectItem
+                                          key={year}
+                                          value={year.toString()}
+                                        >
+                                          {year}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </form>
@@ -697,7 +964,6 @@ export function NewEpisodeForm({
 
           {/* Preview & Info Section - 1/3 width */}
           <div className="space-y-6">
-            {/* Preview Card */}
             <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg overflow-hidden">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2">
@@ -708,90 +974,98 @@ export function NewEpisodeForm({
                   Como o episódio aparecerá após criação
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-linear-to-br from-gray-800 to-gray-900 rounded-lg p-4 text-white">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge
-                          variant="outline"
-                          className="bg-blue-500/20 text-blue-300 border-blue-500/30"
-                        >
-                          {isSpecialSeason
-                            ? "Especial"
-                            : `Temporada ${seasonNumber}`}
-                        </Badge>
-                        <Badge
-                          variant="outline"
-                          className="bg-primary/20 text-primary-foreground border-primary/30"
-                        >
-                          Episódio #{formData.episode_number || "1"}
-                        </Badge>
-                      </div>
-                      <h3 className="font-bold text-xl">
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <span className="font-bold text-primary">
+                        #{formData.episode_number || "1"}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-lg truncate">
                         {formData.name ||
                           `Episódio ${formData.episode_number || "1"}`}
                       </h3>
-                    </div>
-                    <div
-                      className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
-                        formData.is_watched
-                          ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                          : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                      }`}
-                    >
-                      {formData.is_watched ? "✓ Assistido" : "Não Assistido"}
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 text-sm text-gray-300">
-                    {formData.duration > 0 && (
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-3.5 w-3.5" />
-                        <span>{formData.duration || 45} minutos</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge
+                          variant={
+                            formData.is_watched ? "default" : "secondary"
+                          }
+                          className={`text-xs ${formData.is_watched ? "bg-emerald-500 hover:bg-emerald-600" : "bg-yellow-500 hover:bg-yellow-600"}`}
+                        >
+                          {formData.is_watched
+                            ? "✓ Assistido"
+                            : "Não Assistido"}
+                        </Badge>
+                        {formData.duration > 0 && (
+                          <span className="text-sm text-muted-foreground">
+                            {formData.duration} min
+                          </span>
+                        )}
                       </div>
-                    )}
-
-                    {formData.release_date && (
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-3.5 w-3.5" />
-                        <span>
-                          {new Date(formData.release_date).toLocaleDateString(
-                            "pt-PT",
-                          )}
-                        </span>
-                      </div>
-                    )}
-
-                    {formData.rating > 0 && (
-                      <div className="flex items-center gap-2">
-                        <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
-                        <span className="font-medium">
-                          {formData.rating}/10
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="pt-2 border-t border-gray-700">
-                      <p className="text-xs text-gray-400">
-                        Série: {seriesName}
-                      </p>
                     </div>
                   </div>
-                </div>
 
-                {/* Additional Info */}
-                <div className="space-y-3">
-                  {(formData.would_recommend || formData.would_rewatch) && (
-                    <div className="space-y-2">
-                      <p className="text-xs text-muted-foreground">
-                        Preferências
-                      </p>
-                      <div className="flex flex-wrap gap-1">
+                  {/* Informações adicionais */}
+                  <div className="space-y-2 text-sm">
+                    {(formData.release_date || formData.rating > 0) && (
+                      <div className="flex items-center gap-4">
+                        {formData.release_date && (
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Calendar className="h-3.5 w-3.5" />
+                            <span>
+                              {new Date(
+                                formData.release_date,
+                              ).toLocaleDateString("pt-PT")}
+                            </span>
+                          </div>
+                        )}
+                        {formData.rating > 0 && (
+                          <div className="flex items-center gap-1">
+                            <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
+                            <span className="font-medium">
+                              {formData.rating}/10
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Data de visualização se aplicável */}
+                    {formData.is_watched && (
+                      <div className="pt-2 border-t">
+                        <p className="text-xs text-muted-foreground mb-1">
+                          Visualizado em:
+                        </p>
+                        <div className="flex items-center gap-1">
+                          <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                          <span className="text-sm">
+                            {formData.watched_date_precision === "full" &&
+                            formData.watched_date
+                              ? new Date(
+                                  formData.watched_date,
+                                ).toLocaleDateString("pt-PT")
+                              : formData.watched_date_precision === "month" &&
+                                  formData.watched_month &&
+                                  formData.watched_year
+                                ? `${months.find((m) => m.value === formData.watched_month)?.label} ${formData.watched_year}`
+                                : formData.watched_date_precision === "year" &&
+                                    formData.watched_year
+                                  ? formData.watched_year
+                                  : "Data não especificada"}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Preferências */}
+                    {(formData.would_recommend || formData.would_rewatch) && (
+                      <div className="flex flex-wrap gap-1 pt-2">
                         {formData.would_recommend && (
                           <Badge
                             variant="outline"
-                            className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs"
+                            className="text-xs bg-emerald-500/10 text-emerald-700 border-emerald-500/30"
                           >
                             Recomendaria
                           </Badge>
@@ -799,25 +1073,61 @@ export function NewEpisodeForm({
                         {formData.would_rewatch && (
                           <Badge
                             variant="outline"
-                            className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-xs"
+                            className="text-xs bg-blue-500/10 text-blue-700 border-blue-500/30"
                           >
                             Assistiria novamente
                           </Badge>
                         )}
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {formData.review && (
-                    <div className="space-y-2">
+                    {/* Série */}
+                    <div className="pt-2 border-t">
                       <p className="text-xs text-muted-foreground">
-                        Comentário
+                        Série:{" "}
+                        <span className="font-medium text-foreground">
+                          {seriesName}
+                        </span>
                       </p>
-                      <p className="text-sm line-clamp-3 bg-muted/10 rounded p-2">
-                        {formData.review}
+                      <p className="text-xs text-muted-foreground">
+                        {isSpecialSeason
+                          ? "Especial"
+                          : `Temporada ${seasonNumber}`}
                       </p>
                     </div>
-                  )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Informações da Temporada */}
+            <Card className="border-border/50 bg-linear-to-br from-blue-500/5 to-purple-500/5 backdrop-blur-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Info className="h-4 w-4 text-primary" />
+                  Informações da Temporada
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Série</span>
+                    <span className="font-medium truncate">{seriesName}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Temporada</span>
+                    <span className="font-medium">
+                      {isSpecialSeason
+                        ? "Especial"
+                        : `Temporada ${seasonNumber}`}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">
+                      Próximo episódio
+                    </span>
+                    <span className="font-medium">#{calculatedNextNumber}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>

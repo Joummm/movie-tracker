@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -25,15 +25,32 @@ import {
   Eye,
   MoreVertical,
   Plus,
+  Trash2,
+  Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
 interface Episode {
   id: string;
@@ -62,13 +79,16 @@ interface SeasonsListProps {
   seasons: Season[];
   seriesId: string;
   seriesName: string;
+  userId?: string;
 }
 
 export function SeasonsList({
   seasons,
   seriesId,
   seriesName,
+  userId,
 }: SeasonsListProps) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "regular" | "special">(
     "all",
@@ -77,6 +97,60 @@ export function SeasonsList({
     "number" | "progress" | "rating" | "episodes"
   >("number");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [seasonToDelete, setSeasonToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Função para deletar temporada
+  const handleDeleteSeason = async () => {
+    if (!seasonToDelete || !userId) return;
+
+    setIsDeleting(true);
+    const supabase = createClient();
+
+    try {
+      // Primeiro, deletar episódios relacionados
+      const { error: episodesError } = await supabase
+        .from("series_episodes")
+        .delete()
+        .eq("season_id", seasonToDelete);
+
+      if (episodesError) throw episodesError;
+
+      // Deletar a temporada
+      const { error } = await supabase
+        .from("series_seasons")
+        .delete()
+        .eq("id", seasonToDelete)
+        .eq("user_id", userId);
+
+      if (error) throw error;
+
+      toast.success("Temporada excluída com sucesso", {
+        description: "A temporada e seus episódios foram removidos.",
+      });
+
+      // Atualizar a página
+      router.refresh();
+    } catch (error) {
+      console.error("Erro ao excluir temporada:", error);
+      toast.error("Erro ao excluir temporada", {
+        description: "Não foi possível excluir a temporada. Tente novamente.",
+      });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+      setSeasonToDelete(null);
+    }
+  };
+
+  // Função para abrir o diálogo de confirmação
+  const openDeleteDialog = (seasonId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setSeasonToDelete(seasonId);
+    setShowDeleteDialog(true);
+  };
 
   // Filter and sort seasons
   const filteredSeasons = seasons
@@ -163,27 +237,27 @@ export function SeasonsList({
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-card/40 backdrop-blur-sm rounded-lg border border-border/30 p-4">
         <div className="flex flex-1 items-center gap-2">
           <div className="relative flex-1 md:max-w-sm">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Pesquisar temporadas..."
+              placeholder="Pesquisar temporadas por nome ou número..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
+              className="pl-9 bg-background/50 border-border/50 focus:border-primary/50"
             />
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           {/* View Mode */}
-          <div className="flex rounded-lg border">
+          <div className="flex rounded-lg border border-border/50 bg-background/50">
             <Button
               variant={viewMode === "grid" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("grid")}
-              className="h-9 px-3"
+              className="h-9 px-3 rounded-r-none border-r"
             >
               <Grid3X3 className="h-4 w-4" />
             </Button>
@@ -191,7 +265,7 @@ export function SeasonsList({
               variant={viewMode === "list" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("list")}
-              className="h-9 px-3"
+              className="h-9 px-3 rounded-l-none"
             >
               <List className="h-4 w-4" />
             </Button>
@@ -202,7 +276,7 @@ export function SeasonsList({
             value={filterType}
             onValueChange={(value: any) => setFilterType(value)}
           >
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-32.5 bg-background/50 border-border/50">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filtrar" />
             </SelectTrigger>
@@ -218,7 +292,7 @@ export function SeasonsList({
             value={sortBy}
             onValueChange={(value: any) => setSortBy(value)}
           >
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-32.5 bg-background/50 border-border/50">
               <SelectValue placeholder="Ordenar" />
             </SelectTrigger>
             <SelectContent>
@@ -229,6 +303,34 @@ export function SeasonsList({
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      {/* Results Info */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          <span className="font-medium">{filteredSeasons.length}</span> de{" "}
+          <span className="font-medium">{seasons.length}</span> temporadas
+          {filterType !== "all" && (
+            <span className="ml-2 px-2 py-1 rounded-full bg-primary/10 text-primary text-xs">
+              {filterType === "regular" ? "Regulares" : "Especiais"}
+            </span>
+          )}
+        </div>
+
+        {(searchQuery || filterType !== "all" || sortBy !== "number") && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSearchQuery("");
+              setFilterType("all");
+              setSortBy("number");
+            }}
+            className="h-8 text-xs gap-1 hover:bg-primary/10"
+          >
+            Limpar Filtros
+          </Button>
+        )}
       </div>
 
       {/* Results Info */}
@@ -252,7 +354,7 @@ export function SeasonsList({
                 className="group hover:shadow-lg transition-shadow"
               >
                 {/* Season Image */}
-                <div className="relative aspect-[2/3] overflow-hidden rounded-t-lg bg-muted">
+                <div className="relative aspect-2/3 overflow-hidden rounded-t-lg bg-muted">
                   {season.poster_vertical ? (
                     <Image
                       src={season.poster_vertical}
@@ -304,6 +406,13 @@ export function SeasonsList({
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
                           <Link
+                            href={`/series/${seriesId}/seasons/${season.id}`}
+                          >
+                            Ver Detalhes
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link
                             href={`/series/${seriesId}/seasons/${season.id}/edit`}
                           >
                             Editar
@@ -322,6 +431,14 @@ export function SeasonsList({
                           >
                             Ver Episódios
                           </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={(e) => openDeleteDialog(season.id, e)}
+                          className="text-destructive focus:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Excluir Temporada
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -406,7 +523,7 @@ export function SeasonsList({
               >
                 <div className="flex">
                   {/* Season Image */}
-                  <div className="relative w-24 h-32 md:w-32 md:h-40 flex-shrink-0">
+                  <div className="relative w-24 h-32 md:w-32 md:h-40 shrink-0">
                     {season.poster_vertical ? (
                       <Image
                         src={season.poster_vertical}
@@ -505,6 +622,14 @@ export function SeasonsList({
                                   Adicionar Episódio
                                 </Link>
                               </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={(e) => openDeleteDialog(season.id, e)}
+                                className="text-destructive focus:text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir Temporada
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
@@ -562,6 +687,53 @@ export function SeasonsList({
           })}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Excluir Temporada
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta temporada?
+              <br />
+              <span className="text-destructive font-medium">
+                Esta ação não pode ser desfeita.
+              </span>
+              <br />
+              <br />
+              <span className="text-muted-foreground">
+                • Todos os episódios serão permanentemente removidos
+                <br />• Estatísticas da série serão recalculadas
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteSeason}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir Temporada
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -401,24 +401,24 @@ export function EditEpisodeForm({
                     <TabsList className="grid grid-cols-3 w-full bg-background/50 border border-border/30">
                       <TabsTrigger
                         value="basic"
-                        className="flex items-center gap-2 py-2.5 data-[state=active]:bg-linear-to-r data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:text-primary"
+                        className="flex items-center justify-center gap-2 py-3 data-[state=active]:bg-linear-to-r data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:text-primary"
                       >
                         <Info className="h-4 w-4" />
-                        <span className="hidden sm:inline">Básico</span>
+                        <span>Básico</span>
                       </TabsTrigger>
                       <TabsTrigger
                         value="rating"
-                        className="flex items-center gap-2 py-2.5 data-[state=active]:bg-linear-to-r data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:text-primary"
+                        className="flex items-center justify-center gap-2 py-3 data-[state=active]:bg-linear-to-r data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:text-primary"
                       >
                         <Star className="h-4 w-4" />
-                        <span className="hidden sm:inline">Avaliação</span>
+                        <span>Avaliação</span>
                       </TabsTrigger>
                       <TabsTrigger
                         value="advanced"
-                        className="flex items-center gap-2 py-2.5 data-[state=active]:bg-linear-to-r data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:text-primary"
+                        className="flex items-center justify-center gap-2 py-3 data-[state=active]:bg-linear-to-r data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:text-primary"
                       >
                         <FileText className="h-4 w-4" />
-                        <span className="hidden sm:inline">Avançado</span>
+                        <span>Avançado</span>
                       </TabsTrigger>
                     </TabsList>
                   </div>
@@ -514,6 +514,7 @@ export function EditEpisodeForm({
                           />
                         </div>
 
+                        {/* Status de Visualização SIMPLIFICADO */}
                         <div className="bg-linear-to-br from-card to-card/80 rounded-lg border border-border/30 p-4">
                           <div className="flex items-center justify-between">
                             <div className="space-y-1">
@@ -734,88 +735,86 @@ export function EditEpisodeForm({
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-linear-to-br from-gray-800 to-gray-900 rounded-lg p-4 text-white">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge
-                          variant="outline"
-                          className="bg-blue-500/20 text-blue-300 border-blue-500/30"
-                        >
-                          {isSpecialSeason
-                            ? "Especial"
-                            : `Temporada ${seasonNumber}`}
-                        </Badge>
-                        <Badge
-                          variant="outline"
-                          className="bg-primary/20 text-primary-foreground border-primary/30"
-                        >
-                          Episódio #{formData.episode_number}
-                        </Badge>
-                      </div>
-                      <h3 className="font-bold text-xl">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <span className="font-bold text-primary">
+                        #{formData.episode_number}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-lg truncate">
                         {formData.name || `Episódio ${formData.episode_number}`}
                       </h3>
-                    </div>
-                    <div
-                      className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
-                        formData.is_watched
-                          ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                          : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                      }`}
-                    >
-                      {formData.is_watched ? "✓ Assistido" : "Não Assistido"}
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 text-sm text-gray-300">
-                    {formData.duration > 0 && (
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-3.5 w-3.5" />
-                        <span>{formData.duration || 45} minutos</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge
+                          variant={
+                            formData.is_watched ? "default" : "secondary"
+                          }
+                          className={`text-xs ${formData.is_watched ? "bg-emerald-500 hover:bg-emerald-600" : "bg-yellow-500 hover:bg-yellow-600"}`}
+                        >
+                          {formData.is_watched
+                            ? "✓ Assistido"
+                            : "Não Assistido"}
+                        </Badge>
+                        {formData.duration > 0 && (
+                          <span className="text-sm text-muted-foreground">
+                            {formData.duration} min
+                          </span>
+                        )}
                       </div>
-                    )}
-
-                    {formData.release_date && (
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-3.5 w-3.5" />
-                        <span>
-                          {new Date(formData.release_date).toLocaleDateString(
-                            "pt-PT",
-                          )}
-                        </span>
-                      </div>
-                    )}
-
-                    {formData.rating > 0 && (
-                      <div className="flex items-center gap-2">
-                        <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
-                        <span className="font-medium">
-                          {formData.rating}/10
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="pt-2 border-t border-gray-700">
-                      <p className="text-xs text-gray-400">
-                        Série: {seriesName}
-                      </p>
                     </div>
                   </div>
-                </div>
 
-                {/* Additional Info */}
-                <div className="space-y-3">
-                  {(formData.would_recommend || formData.would_rewatch) && (
-                    <div className="space-y-2">
-                      <p className="text-xs text-muted-foreground">
-                        Preferências
-                      </p>
-                      <div className="flex flex-wrap gap-1">
+                  {/* Informações adicionais */}
+                  <div className="space-y-2 text-sm">
+                    {(formData.release_date || formData.rating > 0) && (
+                      <div className="flex items-center gap-4">
+                        {formData.release_date && (
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Calendar className="h-3.5 w-3.5" />
+                            <span>
+                              {new Date(
+                                formData.release_date,
+                              ).toLocaleDateString("pt-PT")}
+                            </span>
+                          </div>
+                        )}
+                        {formData.rating > 0 && (
+                          <div className="flex items-center gap-1">
+                            <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
+                            <span className="font-medium">
+                              {formData.rating}/10
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Data de visualização se aplicável */}
+                    {formData.is_watched && formData.last_rewatch_date && (
+                      <div className="pt-2 border-t">
+                        <p className="text-xs text-muted-foreground mb-1">
+                          Visualizado em:
+                        </p>
+                        <div className="flex items-center gap-1">
+                          <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                          <span className="text-sm">
+                            {new Date(
+                              formData.last_rewatch_date,
+                            ).toLocaleDateString("pt-PT")}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Preferências */}
+                    {(formData.would_recommend || formData.would_rewatch) && (
+                      <div className="flex flex-wrap gap-1 pt-2">
                         {formData.would_recommend && (
                           <Badge
                             variant="outline"
-                            className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs"
+                            className="text-xs bg-emerald-500/10 text-emerald-700 border-emerald-500/30"
                           >
                             Recomendaria
                           </Badge>
@@ -823,25 +822,29 @@ export function EditEpisodeForm({
                         {formData.would_rewatch && (
                           <Badge
                             variant="outline"
-                            className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-xs"
+                            className="text-xs bg-blue-500/10 text-blue-700 border-blue-500/30"
                           >
                             Assistiria novamente
                           </Badge>
                         )}
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {formData.review && (
-                    <div className="space-y-2">
+                    {/* Série */}
+                    <div className="pt-2 border-t">
                       <p className="text-xs text-muted-foreground">
-                        Comentário
+                        Série:{" "}
+                        <span className="font-medium text-foreground">
+                          {seriesName}
+                        </span>
                       </p>
-                      <p className="text-sm line-clamp-3 bg-muted/10 rounded p-2">
-                        {formData.review}
+                      <p className="text-xs text-muted-foreground">
+                        {isSpecialSeason
+                          ? "Especial"
+                          : `Temporada ${seasonNumber}`}
                       </p>
                     </div>
-                  )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

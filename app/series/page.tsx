@@ -258,7 +258,7 @@ export default async function SeriesPage() {
 
       <main className="container mx-auto p-4 md:p-6 lg:p-8">
         <div className="flex flex-col gap-8">
-          {/* Header Section - ATUALIZADO */}
+          {/* Header Section */}
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="flex items-center gap-3 mb-2">
@@ -466,24 +466,24 @@ export default async function SeriesPage() {
               <div className="space-y-4">
                 {mostWatchedSeries.length > 0 ? (
                   mostWatchedSeries.map((series) => (
-                    <div
+                    <Link
                       key={series.id}
-                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                      href={`/series/${series.id}`}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-all duration-300 group"
                     >
                       {series.cover_image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={series.cover_image}
                           alt={series.name || "Série sem nome"}
-                          className="h-12 w-12 rounded-lg object-cover"
+                          className="h-12 w-12 rounded-lg object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : (
-                        <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
-                          <Tv className="h-5 w-5 text-muted-foreground" />
+                        <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center group-hover:bg-blue-500/10 transition-colors">
+                          <Tv className="h-5 w-5 text-muted-foreground group-hover:text-blue-500" />
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">
+                        <p className="font-medium truncate group-hover:text-blue-500 transition-colors">
                           {series.name || "Série sem nome"}
                         </p>
                         <p className="text-sm text-muted-foreground">
@@ -493,7 +493,7 @@ export default async function SeriesPage() {
                       <Badge variant="secondary" className="whitespace-nowrap">
                         {series.stats.completion_percentage}%
                       </Badge>
-                    </div>
+                    </Link>
                   ))
                 ) : (
                   <p className="text-muted-foreground text-sm">
@@ -512,24 +512,24 @@ export default async function SeriesPage() {
               <div className="space-y-4">
                 {topRatedSeries.length > 0 ? (
                   topRatedSeries.map((series) => (
-                    <div
+                    <Link
                       key={series.id}
-                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                      href={`/series/${series.id}`}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-all duration-300 group"
                     >
                       {series.cover_image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={series.cover_image}
                           alt={series.name || "Série sem nome"}
-                          className="h-12 w-12 rounded-lg object-cover"
+                          className="h-12 w-12 rounded-lg object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : (
-                        <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
-                          <Star className="h-5 w-5 text-muted-foreground" />
+                        <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center group-hover:bg-amber-500/10 transition-colors">
+                          <Star className="h-5 w-5 text-muted-foreground group-hover:text-amber-500" />
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">
+                        <p className="font-medium truncate group-hover:text-amber-500 transition-colors">
                           {series.name || "Série sem nome"}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
@@ -544,7 +544,7 @@ export default async function SeriesPage() {
                           </span>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))
                 ) : (
                   <p className="text-muted-foreground text-sm">

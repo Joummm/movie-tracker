@@ -39,7 +39,7 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
     .select(
       `
       *,
-      actors!series_cast_actor_id_fkey (
+      actors (
         id,
         name,
         photo_url,
@@ -49,10 +49,18 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
     )
     .eq("series_id", seriesId)
     .order("is_main_cast", { ascending: false })
-    .order("credit_order", { ascending: true });
+    .order("created_at", { ascending: true });
 
   // Calcular estatísticas
   const stats = await calculateSeriesStats(supabase, seriesId, user.id);
+
+  // Buscar temporadas
+  const { data: seasons } = await supabase
+    .from("series_seasons")
+    .select("*")
+    .eq("series_id", seriesId)
+    .eq("user_id", user.id)
+    .order("season_number", { ascending: true });
 
   // Preparar dados da série
   const seriesData = {
@@ -92,7 +100,7 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
         (series.total_watch_time || stats.total_watch_time) / 60,
       ),
     },
-    seasons: stats.seasons,
+    seasons: seasons || stats.seasons || [],
     cast: cast || [],
   };
 

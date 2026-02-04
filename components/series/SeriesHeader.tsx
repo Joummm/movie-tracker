@@ -1,6 +1,8 @@
 // components/series/series-header.tsx (versão atualizada)
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -15,17 +17,33 @@ import {
   Clock,
   TrendingUp,
   Eye,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import Image from "next/image";
 import Link from "next/link";
 import { User } from "@supabase/supabase-js";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
 
 interface SeriesWithStats {
   id: string;
@@ -52,6 +70,74 @@ interface SeriesHeaderProps {
 }
 
 export function SeriesHeader({ series, user }: SeriesHeaderProps) {
+  const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+
+  const handleDeleteSeries = async () => {
+    setIsDeleting(true);
+    try {
+      const supabase = createClient();
+
+      // Primeiro, deletar dados relacionados para evitar erros de chave estrangeira
+      const tablesToDelete = [
+        "series_cast",
+        "series_seasons",
+        "series_episodes",
+        "series_episode_structure",
+        "content_actors",
+        "content_genres",
+        "collection_items",
+        "list_items",
+      ];
+
+      // Deletar dados relacionados
+      for (const table of tablesToDelete) {
+        await supabase.from(table).delete().eq("series_id", series.id);
+      }
+
+      // Deletar conteúdo relacionado
+      const { data: relatedContent } = await supabase
+        .from("content")
+        .select("id")
+        .eq("series_id", series.id)
+        .eq("user_id", user.id);
+
+      if (relatedContent && relatedContent.length > 0) {
+        const contentIds = relatedContent.map((item) => item.id);
+
+        // Deletar visualizações relacionadas
+        await supabase
+          .from("content_viewings")
+          .delete()
+          .in("content_id", contentIds);
+
+        // Deletar conteúdo
+        await supabase.from("content").delete().in("id", contentIds);
+      }
+
+      // Finalmente, deletar a série
+      const { error } = await supabase
+        .from("series")
+        .delete()
+        .eq("id", series.id)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast.success("Série excluída com sucesso!");
+      router.push("/series");
+      router.refresh();
+    } catch (error) {
+      console.error("Erro ao excluir série:", error);
+      toast.error("Erro ao excluir série. Tente novamente.");
+    } finally {
+      setIsDeleting(false);
+      setIsAlertOpen(false);
+    }
+  };
+
   const statusConfig: Record<string, { color: string; label: string }> = {
     in_progress: { color: "bg-blue-500", label: "Em Progresso" },
     completed: { color: "bg-emerald-500", label: "Completada" },
@@ -119,10 +205,11 @@ export function SeriesHeader({ series, user }: SeriesHeaderProps) {
                   variant="ghost"
                   size="sm"
                   asChild
-                  className="h-9 w-9 p-0 rounded-full hover:bg-primary/10"
+                  className="h-9 w-9 p-0 rounded-full hover:bg-primary/10 gap-0"
                 >
                   <Link href="/series">
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    <span className="text-sm hidden md:inline">Voltar</span>
                   </Link>
                 </Button>
 
@@ -136,34 +223,84 @@ export function SeriesHeader({ series, user }: SeriesHeaderProps) {
                     {status.label}
                   </Badge>
 
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem asChild>
-                        <Link href={`/series/${series.id}/edit`}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar Série
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href={`/series/${series.id}/seasons/new`}>
-                          <Tv2 className="h-4 w-4 mr-2" />
-                          Nova Temporada
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive focus:text-destructive">
-                        Excluir Série
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+                    <DropdownMenu
+                      open={isDropdownOpen}
+                      onOpenChange={setIsDropdownOpen}
+                    >
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/series/${series.id}/edit`}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar Série
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={`/series/${series.id}/seasons/new`}>
+                            <Tv2 className="h-4 w-4 mr-2" />
+                            Nova Temporada
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <AlertDialogTrigger asChild>
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                            onSelect={(e) => e.preventDefault()}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir Série
+                          </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                          <AlertTriangle className="h-5 w-5 text-destructive" />
+                          Excluir série
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja excluir a série "
+                          {series.name || "Série sem nome"}"? Esta ação não pode
+                          ser desfeita. Todos os dados relacionados (temporadas,
+                          episódios, elenco, estatísticas) serão removidos
+                          permanentemente.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>
+                          Cancelar
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteSeries}
+                          disabled={isDeleting}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-2"
+                        >
+                          {isDeleting ? (
+                            <>
+                              <span className="animate-spin">⏳</span>
+                              Excluindo...
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="h-4 w-4" />
+                              Sim, excluir série
+                            </>
+                          )}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
 

@@ -3,12 +3,14 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Info, Tv, Users, BarChart3 } from "lucide-react";
+import { Info, Tv, Users, BarChart3, ChevronLeft } from "lucide-react";
 import { SeriesHeader } from "./SeriesHeader";
 import { SeriesSeasons } from "./series-seasons";
 import { SeriesCast } from "./SeriesCast";
 import { SeriesWithStats } from "@/lib/types/series";
 import { User } from "@supabase/supabase-js";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface SeriesDetailViewProps {
   series: SeriesWithStats & {
@@ -29,6 +31,21 @@ export function SeriesDetailView({ series, user }: SeriesDetailViewProps) {
 
   return (
     <div className="space-y-8">
+      {/* Botão Voltar */}
+      <div className="flex items-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="gap-2 hover:bg-primary/10 hover:text-primary transition-all duration-300"
+        >
+          <Link href="/series">
+            <ChevronLeft className="h-4 w-4" />
+            <span>Voltar para séries</span>
+          </Link>
+        </Button>
+      </div>
+
       {/* Series Header */}
       <SeriesHeader series={series} user={user} />
 
@@ -72,7 +89,7 @@ export function SeriesDetailView({ series, user }: SeriesDetailViewProps) {
           </div>
 
           <div className="p-6">
-            {/* Overview Tab - Agora inclui os detalhes */}
+            {/* Overview Tab */}
             <TabsContent value="overview" className="m-0">
               <div className="space-y-6">
                 {/* Description Section */}
@@ -230,7 +247,7 @@ export function SeriesDetailView({ series, user }: SeriesDetailViewProps) {
               />
             </TabsContent>
 
-            {/* Cast Tab - corrigido com seriesId */}
+            {/* Cast Tab */}
             <TabsContent value="cast" className="m-0">
               <SeriesCast cast={series.cast || []} seriesId={series.id} />
             </TabsContent>

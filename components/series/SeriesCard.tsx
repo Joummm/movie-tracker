@@ -25,6 +25,8 @@ import {
   CheckCircle,
   Loader2,
   BarChart3,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -34,6 +36,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -45,7 +57,7 @@ import { toast } from "sonner";
 
 interface SeriesCardProps {
   series: SeriesWithStats;
-  viewMode: "grid" | "list";
+  viewMode: "grid" | "list" | "compact";
   user: User;
   onStatusChange?: () => void;
 }
@@ -114,6 +126,8 @@ export function SeriesCard({
 }: SeriesCardProps) {
   const router = useRouter();
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(series.status);
   const supabase = createClient();
 
@@ -147,7 +161,7 @@ export function SeriesCard({
 
       // Atualiza o estado local
       setCurrentStatus(
-        newStatus as "in_progress" | "abandoned" | "completed" | "planned",
+        newStatus as "in_progress" | "abandoned" | "completed" /*| "planned"*/,
       );
 
       // Mostra notificação de sucesso
@@ -172,6 +186,57 @@ export function SeriesCard({
       });
     } finally {
       setIsUpdatingStatus(false);
+    }
+  };
+
+  // Função para deletar série
+  const handleDeleteSeries = async () => {
+    setIsDeleting(true);
+
+    try {
+      // Primeiro, deletar temporadas e episódios relacionados
+      const { error: seasonsError } = await supabase
+        .from("series_seasons")
+        .delete()
+        .eq("series_id", series.id);
+
+      if (seasonsError) throw seasonsError;
+
+      // Deletar elenco
+      const { error: castError } = await supabase
+        .from("series_cast")
+        .delete()
+        .eq("series_id", series.id);
+
+      if (castError) throw castError;
+
+      // Deletar a série principal
+      const { error } = await supabase
+        .from("series")
+        .delete()
+        .eq("id", series.id)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast.success("Série excluída com sucesso", {
+        description: `"${series.name || "Série sem nome"}" foi removida da sua coleção.`,
+      });
+
+      // Atualiza a lista
+      if (onStatusChange) {
+        setTimeout(() => {
+          onStatusChange();
+        }, 500);
+      }
+    } catch (error) {
+      console.error("Erro ao excluir série:", error);
+      toast.error("Erro ao excluir série", {
+        description: "Não foi possível excluir a série. Tente novamente.",
+      });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -341,439 +406,730 @@ export function SeriesCard({
     </div>
   );
 
-  if (viewMode === "grid") {
+  // Vista Compacta
+  if (viewMode === "compact") {
     return (
-      <Card
-        className="group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-primary/30 cursor-pointer"
-        onClick={handleCardClick}
-      >
-        {/* Container da imagem de capa */}
-        <div className="relative aspect-3/4 overflow-hidden rounded-t-xl">
-          {series.cover_image ? (
-            <div className="relative h-full w-full">
-              <Image
-                src={series.cover_image}
-                alt={series.name || "Série"}
-                fill
-                className="object-cover transition-all duration-500 group-hover:scale-105 group-hover:brightness-110"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                priority={false}
-              />
-              {/* Overlay gradiente */}
-              <div className="absolute inset-0 bg-linear-to-t from-background/90 via-background/30 to-transparent" />
-            </div>
-          ) : (
-            <div className="flex h-full items-center justify-center bg-linear-to-br from-muted to-muted/50">
-              <Tv2 className="h-16 w-16 text-muted-foreground/50" />
-            </div>
-          )}
-
-          {/* Badges no topo */}
-          <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-            <Badge className="bg-background/90 backdrop-blur-sm border-border/50 shadow-sm">
-              <div className="flex items-center gap-1 text-white">
-                <Layers className="h-3 w-3" />
-                <span className="font-medium">{totalSeasons} temp</span>
-              </div>
-            </Badge>
-
-            <StatusBadge />
-          </div>
-
-          {/* Informações na parte inferior da imagem */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-background/95 via-background/80 to-transparent">
-            <div className="flex items-center justify-between">
-              {series.stats?.average_rating &&
-              series.stats.average_rating > 0 ? (
-                <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30">
-                  <div className="flex items-center gap-1">
-                    <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                    <span className="font-bold text-sm">
-                      {series.stats.average_rating.toFixed(1)}
-                    </span>
-                  </div>
-                </Badge>
-              ) : (
-                <Badge variant="outline">
-                  <span className="text-muted-foreground text-sm">
-                    Sem avaliação
-                  </span>
-                </Badge>
-              )}
-
-              {series.release_year && (
-                <Badge variant="outline">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-3.5 w-3.5" />
-                    <span className="text-sm">{series.release_year}</span>
-                  </div>
-                </Badge>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <CardContent className="p-3">
-          <div className="space-y-3">
-            {/* Título e descrição */}
-            <div>
-              <h3 className="font-bold text-lg line-clamp-1 group-hover:text-primary transition-colors duration-300">
-                {series.name || "Série sem nome"}
-              </h3>
-            </div>
-
-            {/* Seção de progresso */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">Progresso</span>
-                </div>
-                <span className="text-sm font-semibold">
-                  {series.stats?.watched_episodes || 0}/
-                  {series.stats?.total_episodes || 0}
-                </span>
-              </div>
-
-              <GradientProgress
-                value={series.stats?.completion_percentage || 0}
-              />
-
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" />
-                    <span>{series.stats?.total_watch_hours || 0}h</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="h-3.5 w-3.5" />
-                    <span>
-                      {watchedSeasons}/{totalSeasons} temp
-                    </span>
-                  </div>
-                </div>
-                <span className="font-semibold text-primary">
-                  {series.stats?.completion_percentage || 0}%
-                </span>
-              </div>
-            </div>
-
-            {/* Estatísticas rápidas */}
-            <div className="grid grid-cols-3 gap-3 pt-2">
-              <div className="text-center p-3 rounded-lg bg-muted/20 border border-border/20">
-                <p className="text-xs text-muted-foreground mb-1">Episódios</p>
-                <p className="text-lg font-bold">
-                  {series.stats?.total_episodes || 0}
-                </p>
-              </div>
-              <div className="text-center p-3 rounded-lg bg-muted/20 border border-border/20">
-                <p className="text-xs text-muted-foreground mb-1">Assistidos</p>
-                <p className="text-lg font-bold text-primary">
-                  {series.stats?.watched_episodes || 0}
-                </p>
-              </div>
-              <div className="text-center p-3 rounded-lg bg-muted/20 border border-border/20">
-                <p className="text-xs text-muted-foreground mb-1">Tempo</p>
-                <p className="text-lg font-bold">
-                  {series.stats?.total_watch_hours || 0}h
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-
-        <CardFooter
-          className="p-5 pt-0 flex gap-2"
-          onClick={(e) => e.stopPropagation()}
+      <>
+        <Card
+          className="group relative overflow-hidden border-border/30 bg-card/40 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/20 cursor-pointer"
+          onClick={handleCardClick}
         >
-          <Button
-            variant="default"
-            size="sm"
-            className="flex-1 gap-2 bg-linear-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
-            onClick={() => router.push(`/series/${series.id}`)}
-          >
-            <Eye className="h-4 w-4" />
-            Ver Detalhes
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-10 w-10">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel className="text-primary font-semibold">
-                Ações Rápidas
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => router.push(`/series/${series.id}`)}
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                Ver Série
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => router.push(`/series/${series.id}/edit`)}
-              >
-                <Pencil className="h-4 w-4 mr-2" />
-                Editar Série
-              </DropdownMenuItem>
-              {/* <DropdownMenuItem onClick={() => router.push(`/series/${series.id}/seasons`)}>
-                <Layers className="h-4 w-4 mr-2" />
-                Gerenciar Temporadas
-              </DropdownMenuItem> */}
-              {/* <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push(`/series/${series.id}/cast`)}>
-                <Users className="h-4 w-4 mr-2" />
-                Elenco
-              </DropdownMenuItem> */}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </CardFooter>
-      </Card>
-    );
-  }
-
-  // List View
-  return (
-    <Card
-      className="group overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:border-primary/20 cursor-pointer"
-      onClick={handleCardClick}
-    >
-      <div className="flex relative">
-        {/* Imagem de capa - estilo sidebar */}
-        <div className="relative w-28 md:w-36 h-40 md:h-48 shrink-0">
-          {series.cover_image ? (
-            <div className="relative h-full w-full">
-              <Image
-                src={series.cover_image}
-                alt={series.name || "Série"}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100px, 150px"
-              />
+          <div className="flex items-center gap-3 p-4">
+            {/* Imagem pequena */}
+            <div className="relative h-16 w-16 shrink-0 rounded-lg overflow-hidden">
+              {series.cover_image ? (
+                <Image
+                  src={series.cover_image}
+                  alt={series.name || "Série"}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-110"
+                  sizes="(max-width: 768px) 64px, 64px"
+                />
+              ) : (
+                <div className="h-full w-full bg-muted flex items-center justify-center">
+                  <Tv2 className="h-6 w-6 text-muted-foreground/60" />
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="flex h-full items-center justify-center bg-linear-to-br from-muted to-muted/50">
-              <Tv2 className="h-10 w-10 text-muted-foreground/50" />
-            </div>
-          )}
 
-          {/* Status badge na imagem */}
-          <div
-            className="absolute bottom-2 left-2"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="status-badge-container">
+            {/* Conteúdo principal */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
+                  {series.name || "Série sem nome"}
+                </h3>
+                <div onClick={(e) => e.stopPropagation()}>
+                  <StatusBadge />
+                </div>
+              </div>
+
+              {/* Estatísticas rápidas */}
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3" />
+                  <span>
+                    {series.stats?.watched_episodes || 0}/
+                    {series.stats?.total_episodes || 0}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Layers className="h-3 w-3" />
+                  <span>
+                    {watchedSeasons}/{totalSeasons}
+                  </span>
+                </div>
+                {series.stats?.average_rating &&
+                  series.stats.average_rating > 0 && (
+                    <div className="flex items-center gap-1">
+                      <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                      <span className="font-medium">
+                        {series.stats.average_rating.toFixed(1)}
+                      </span>
+                    </div>
+                  )}
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  <span>{series.stats?.total_watch_hours || 0}h</span>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="mt-2">
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span>Progresso</span>
+                  <span className="font-semibold">
+                    {series.stats?.completion_percentage || 0}%
+                  </span>
+                </div>
+                <GradientProgress
+                  value={series.stats?.completion_percentage || 0}
+                  className="h-1.5"
+                />
+              </div>
+            </div>
+
+            {/* Ações rápidas */}
+            <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <div className="cursor-pointer">
-                    <Badge
-                      className={cn(
-                        "border-none text-white shadow-md text-xs px-3 py-1.5",
-                        status.color,
-                        status.hoverColor,
-                        "hover:shadow-lg transition-all duration-200",
-                      )}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        {isUpdatingStatus ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <>
-                            {status.icon}
-                            <span>{status.label}</span>
-                          </>
-                        )}
-                      </div>
-                    </Badge>
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-56">
-                  <DropdownMenuLabel className="text-primary font-semibold">
-                    Alterar Status
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel className="text-xs">
+                    Ações Rápidas
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {Object.entries(STATUS_CONFIG).map(([key, config]) => (
-                    <DropdownMenuItem
-                      key={key}
-                      onClick={() => handleStatusChange(key)}
-                      disabled={currentStatus === key || isUpdatingStatus}
-                      className={cn(
-                        "flex items-center gap-2 py-2.5",
-                        currentStatus === key && "bg-primary/10",
-                      )}
-                    >
-                      <div
-                        className={cn("h-2 w-2 rounded-full", config.color)}
-                      />
-                      <span className="flex-1">{config.label}</span>
-                      {currentStatus === key && (
-                        <CheckCircle className="h-3.5 w-3.5 text-primary" />
-                      )}
-                    </DropdownMenuItem>
-                  ))}
+                  <DropdownMenuItem
+                    onClick={() => router.push(`/series/${series.id}`)}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Ver Detalhes
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => router.push(`/series/${series.id}/edit`)}
+                  >
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => setShowDeleteDialog(true)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
-        </div>
+        </Card>
 
-        {/* Conteúdo */}
-        <div className="flex-1 p-5 md:p-6">
-          <div className="flex flex-col h-full">
-            {/* Cabeçalho */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-xl font-bold">
-                    {series.name || "Série sem nome"}
-                  </h3>
-                  {series.stats?.average_rating &&
-                    series.stats.average_rating > 0 && (
-                      <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30">
-                        <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500 mr-1" />
-                        <span className="font-bold text-sm">
-                          {series.stats.average_rating.toFixed(1)}
-                        </span>
-                      </Badge>
-                    )}
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                Excluir Série
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir a série{" "}
+                <span className="font-semibold text-foreground">
+                  "{series.name || "Série sem nome"}"
+                </span>
+                ?
+                <br />
+                <span className="text-destructive font-medium">
+                  Esta ação não pode ser desfeita.
+                </span>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteSeries}
+                disabled={isDeleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Excluindo...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir Série
+                  </>
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
+    );
+  }
+
+  // Vista Grid (mantida igual)
+  if (viewMode === "grid") {
+    return (
+      <>
+        <Card
+          className="group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-primary/30 cursor-pointer"
+          onClick={handleCardClick}
+        >
+          {/* Container da imagem de capa */}
+          <div className="relative aspect-3/4 overflow-hidden rounded-t-xl">
+            {series.cover_image ? (
+              <div className="relative h-full w-full">
+                <Image
+                  src={series.cover_image}
+                  alt={series.name || "Série"}
+                  fill
+                  className="object-cover transition-all duration-500 group-hover:scale-105 group-hover:brightness-110"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                  priority={false}
+                />
+                {/* Overlay gradiente */}
+                <div className="absolute inset-0 bg-linear-to-t from-background/90 via-background/30 to-transparent" />
+              </div>
+            ) : (
+              <div className="flex h-full items-center justify-center bg-linear-to-br from-muted to-muted/50">
+                <Tv2 className="h-16 w-16 text-muted-foreground/50" />
+              </div>
+            )}
+
+            {/* Badges no topo */}
+            <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+              <Badge className="bg-background/90 backdrop-blur-sm border-border/50 shadow-sm">
+                <div className="flex items-center gap-1 text-white">
+                  <Layers className="h-3 w-3" />
+                  <span className="font-medium">{totalSeasons} temp</span>
+                </div>
+              </Badge>
+
+              <StatusBadge />
+            </div>
+
+            {/* Informações na parte inferior da imagem */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-background/95 via-background/80 to-transparent">
+              <div className="flex items-center justify-between">
+                {series.stats?.average_rating &&
+                series.stats.average_rating > 0 ? (
+                  <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30">
+                    <div className="flex items-center gap-1">
+                      <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                      <span className="font-bold text-sm">
+                        {series.stats.average_rating.toFixed(1)}
+                      </span>
+                    </div>
+                  </Badge>
+                ) : (
+                  <Badge variant="outline">
+                    <span className="text-muted-foreground text-sm">
+                      Sem avaliação
+                    </span>
+                  </Badge>
+                )}
+
+                {series.release_year && (
+                  <Badge variant="outline">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3.5 w-3.5" />
+                      <span className="text-sm">{series.release_year}</span>
+                    </div>
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <CardContent className="p-3">
+            <div className="space-y-3">
+              {/* Título e descrição */}
+              <div>
+                <h3 className="font-bold text-lg line-clamp-1 group-hover:text-primary transition-colors duration-300">
+                  {series.name || "Série sem nome"}
+                </h3>
+              </div>
+
+              {/* Seção de progresso */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">Progresso</span>
+                  </div>
+                  <span className="text-sm font-semibold">
+                    {series.stats?.watched_episodes || 0}/
+                    {series.stats?.total_episodes || 0}
+                  </span>
+                </div>
+
+                <GradientProgress
+                  value={series.stats?.completion_percentage || 0}
+                />
+
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>{series.stats?.total_watch_hours || 0}h</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Users className="h-3.5 w-3.5" />
+                      <span>
+                        {watchedSeasons}/{totalSeasons} temp
+                      </span>
+                    </div>
+                  </div>
+                  <span className="font-semibold text-primary">
+                    {series.stats?.completion_percentage || 0}%
+                  </span>
                 </div>
               </div>
 
-              <div onClick={(e) => e.stopPropagation()}>
+              {/* Estatísticas rápidas */}
+              <div className="grid grid-cols-3 gap-3 pt-2">
+                <div className="text-center p-3 rounded-lg bg-muted/20 border border-border/20">
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Episódios
+                  </p>
+                  <p className="text-lg font-bold">
+                    {series.stats?.total_episodes || 0}
+                  </p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/20 border border-border/20">
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Assistidos
+                  </p>
+                  <p className="text-lg font-bold text-primary">
+                    {series.stats?.watched_episodes || 0}
+                  </p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/20 border border-border/20">
+                  <p className="text-xs text-muted-foreground mb-1">Tempo</p>
+                  <p className="text-lg font-bold">
+                    {series.stats?.total_watch_hours || 0}h
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+
+          <CardFooter
+            className="p-5 pt-0 flex gap-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              variant="default"
+              size="sm"
+              className="flex-1 gap-2 bg-linear-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
+              onClick={() => router.push(`/series/${series.id}`)}
+            >
+              <Eye className="h-4 w-4" />
+              Ver Detalhes
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-10 w-10">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="text-primary font-semibold">
+                  Ações Rápidas
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => router.push(`/series/${series.id}`)}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  Ver Série
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => router.push(`/series/${series.id}/edit`)}
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Editar Série
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setShowDeleteDialog(true)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir Série
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </CardFooter>
+        </Card>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                Excluir Série
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir a série{" "}
+                <span className="font-semibold text-foreground">
+                  "{series.name || "Série sem nome"}"
+                </span>
+                ?
+                <br />
+                <span className="text-destructive font-medium">
+                  Esta ação não pode ser desfeita.
+                </span>
+                <br />
+                <br />
+                <span className="text-muted-foreground">
+                  • Todos os dados serão permanentemente removidos
+                  <br />
+                  • Temporadas e episódios relacionados serão excluídos
+                  <br />• Estatísticas serão recalculadas
+                </span>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteSeries}
+                disabled={isDeleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Excluindo...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir Série
+                  </>
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
+    );
+  }
+
+  // Vista Lista
+  return (
+    <>
+      <Card
+        className="group overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:border-primary/20 cursor-pointer"
+        onClick={handleCardClick}
+      >
+        <div className="flex relative">
+          {/* Imagem de capa - estilo sidebar */}
+          <div className="relative w-28 md:w-36 h-40 md:h-48 shrink-0">
+            {series.cover_image ? (
+              <div className="relative h-full w-full">
+                <Image
+                  src={series.cover_image}
+                  alt={series.name || "Série"}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100px, 150px"
+                />
+              </div>
+            ) : (
+              <div className="flex h-full items-center justify-center bg-linear-to-br from-muted to-muted/50">
+                <Tv2 className="h-10 w-10 text-muted-foreground/50" />
+              </div>
+            )}
+
+            {/* Status badge na imagem */}
+            <div
+              className="absolute bottom-2 left-2"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="status-badge-container">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
+                    <div className="cursor-pointer">
+                      <Badge
+                        className={cn(
+                          "border-none text-white shadow-md text-xs px-3 py-1.5",
+                          status.color,
+                          status.hoverColor,
+                          "hover:shadow-lg transition-all duration-200",
+                        )}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          {isUpdatingStatus ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <>
+                              {status.icon}
+                              <span>{status.label}</span>
+                            </>
+                          )}
+                        </div>
+                      </Badge>
+                    </div>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="start" className="w-56">
                     <DropdownMenuLabel className="text-primary font-semibold">
-                      Ações Rápidas
+                      Alterar Status
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => router.push(`/series/${series.id}`)}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Ver Série
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => router.push(`/series/${series.id}/edit`)}
-                    >
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Editar Série
-                    </DropdownMenuItem>
-                    {/* <DropdownMenuItem onClick={() => router.push(`/series/${series.id}/seasons`)}>
-                      <Layers className="h-4 w-4 mr-2" />
-                      Gerenciar Temporadas
-                    </DropdownMenuItem> */}
+                    {Object.entries(STATUS_CONFIG).map(([key, config]) => (
+                      <DropdownMenuItem
+                        key={key}
+                        onClick={() => handleStatusChange(key)}
+                        disabled={currentStatus === key || isUpdatingStatus}
+                        className={cn(
+                          "flex items-center gap-2 py-2.5",
+                          currentStatus === key && "bg-primary/10",
+                        )}
+                      >
+                        <div
+                          className={cn("h-2 w-2 rounded-full", config.color)}
+                        />
+                        <span className="flex-1">{config.label}</span>
+                        {currentStatus === key && (
+                          <CheckCircle className="h-3.5 w-3.5 text-primary" />
+                        )}
+                      </DropdownMenuItem>
+                    ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
             </div>
+          </div>
 
-            {/* Grid de estatísticas */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-              <div className="bg-muted/20 rounded-lg p-3 border border-border/20">
-                <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                  <TrendingUp className="h-3 w-3" />
-                  Progresso
-                </p>
-                <p className="text-lg font-bold">
-                  {series.stats?.watched_episodes || 0}/
-                  {series.stats?.total_episodes || 0}
-                </p>
+          {/* Conteúdo */}
+          <div className="flex-1 p-5 md:p-6">
+            <div className="flex flex-col h-full">
+              {/* Cabeçalho */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-xl font-bold">
+                      {series.name || "Série sem nome"}
+                    </h3>
+                    {series.stats?.average_rating &&
+                      series.stats.average_rating > 0 && (
+                        <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30">
+                          <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500 mr-1" />
+                          <span className="font-bold text-sm">
+                            {series.stats.average_rating.toFixed(1)}
+                          </span>
+                        </Badge>
+                      )}
+                  </div>
+                </div>
+
+                <div onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuLabel className="text-primary font-semibold">
+                        Ações Rápidas
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => router.push(`/series/${series.id}`)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Ver Série
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => router.push(`/series/${series.id}/edit`)}
+                      >
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Editar Série
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => setShowDeleteDialog(true)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Excluir Série
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
 
-              <div className="bg-muted/20 rounded-lg p-3 border border-border/20">
-                <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                  <Layers className="h-3 w-3" />
-                  Temporadas
-                </p>
-                <p className="text-lg font-bold">
-                  {watchedSeasons}/{totalSeasons}
-                </p>
+              {/* Grid de estatísticas */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+                <div className="bg-muted/20 rounded-lg p-3 border border-border/20">
+                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" />
+                    Progresso
+                  </p>
+                  <p className="text-lg font-bold">
+                    {series.stats?.watched_episodes || 0}/
+                    {series.stats?.total_episodes || 0}
+                  </p>
+                </div>
+
+                <div className="bg-muted/20 rounded-lg p-3 border border-border/20">
+                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <Layers className="h-3 w-3" />
+                    Temporadas
+                  </p>
+                  <p className="text-lg font-bold">
+                    {watchedSeasons}/{totalSeasons}
+                  </p>
+                </div>
+
+                <div className="bg-muted/20 rounded-lg p-3 border border-border/20">
+                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Tempo Total
+                  </p>
+                  <p className="text-lg font-bold">
+                    {series.stats?.total_watch_hours || 0}h
+                  </p>
+                </div>
+
+                <div className="bg-muted/20 rounded-lg p-3 border border-border/20">
+                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    Ano
+                  </p>
+                  <p className="text-lg font-bold">
+                    {series.release_year || "-"}
+                  </p>
+                </div>
               </div>
 
-              <div className="bg-muted/20 rounded-lg p-3 border border-border/20">
-                <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  Tempo Total
-                </p>
-                <p className="text-lg font-bold">
-                  {series.stats?.total_watch_hours || 0}h
-                </p>
-              </div>
-
-              <div className="bg-muted/20 rounded-lg p-3 border border-border/20">
-                <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  Ano
-                </p>
-                <p className="text-lg font-bold">
-                  {series.release_year || "-"}
-                </p>
-              </div>
-            </div>
-
-            {/* Seção de progresso */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">
-                    Progresso da Série
+              {/* Seção de progresso */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">
+                      Progresso da Série
+                    </span>
+                  </div>
+                  <span className="text-sm font-bold text-primary">
+                    {series.stats?.completion_percentage || 0}% concluído
                   </span>
                 </div>
-                <span className="text-sm font-bold text-primary">
-                  {series.stats?.completion_percentage || 0}% concluído
-                </span>
+
+                <GradientProgress
+                  value={series.stats?.completion_percentage || 0}
+                />
               </div>
 
-              <GradientProgress
-                value={series.stats?.completion_percentage || 0}
-              />
-            </div>
+              {/* Ações do rodapé */}
+              <div
+                className="flex items-center justify-between pt-5 border-t border-border/30"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center gap-3">
+                  <StatusButton />
 
-            {/* Ações do rodapé */}
-            <div
-              className="flex items-center justify-between pt-5 border-t border-border/30"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center gap-3">
-                <StatusButton />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="gap-2 hover:bg-primary/10 hover:text-primary"
+                    onClick={() => router.push(`/series/${series.id}/edit`)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Editar
+                  </Button>
+                </div>
 
                 <Button
                   size="sm"
-                  variant="ghost"
-                  className="gap-2 hover:bg-primary/10 hover:text-primary"
-                  onClick={() => router.push(`/series/${series.id}/edit`)}
+                  className="gap-2 bg-linear-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
+                  onClick={() => router.push(`/series/${series.id}`)}
                 >
-                  <Pencil className="h-4 w-4" />
-                  Editar
+                  Ver Detalhes
+                  <ExternalLink className="h-4 w-4" />
                 </Button>
               </div>
-
-              <Button
-                size="sm"
-                className="gap-2 bg-linear-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
-                onClick={() => router.push(`/series/${series.id}`)}
-              >
-                Ver Detalhes
-                <ExternalLink className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Excluir Série
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a série{" "}
+              <span className="font-semibold text-foreground">
+                "{series.name || "Série sem nome"}"
+              </span>
+              ?
+              <br />
+              <span className="text-destructive font-medium">
+                Esta ação não pode ser desfeita.
+              </span>
+              <br />
+              <br />
+              <span className="text-muted-foreground">
+                • Todos os dados serão permanentemente removidos
+                <br />
+                • Temporadas e episódios relacionados serão excluídos
+                <br />• Estatísticas serão recalculadas
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteSeries}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir Série
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
