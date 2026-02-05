@@ -55,7 +55,7 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
     .single();
 
   if (!season) {
-    redirect(`/series/${seriesId}/seasons/${seasonId}`);
+    redirect(`/series/${seriesId}/seasons/${seasonId}/episodes`);
   }
 
   // Get episode information
@@ -67,7 +67,7 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
     .single();
 
   if (!episode) {
-    redirect(`/series/${seriesId}/seasons/${seasonId}`);
+    redirect(`/series/${seriesId}/seasons/${seasonId}/episodes`);
   }
 
   return (

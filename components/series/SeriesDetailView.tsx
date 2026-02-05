@@ -5,12 +5,10 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Info, Tv, Users, BarChart3, ChevronLeft } from "lucide-react";
 import { SeriesHeader } from "./SeriesHeader";
-import { SeriesSeasons } from "./series-seasons";
+import { SeriesSeasons } from "./SeriesSeasons";
 import { SeriesCast } from "./SeriesCast";
 import { SeriesWithStats } from "@/lib/types/series";
 import { User } from "@supabase/supabase-js";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 interface SeriesDetailViewProps {
   series: SeriesWithStats & {
@@ -31,21 +29,6 @@ export function SeriesDetailView({ series, user }: SeriesDetailViewProps) {
 
   return (
     <div className="space-y-8">
-      {/* Botão Voltar */}
-      <div className="flex items-center">
-        <Button
-          variant="ghost"
-          size="sm"
-          asChild
-          className="gap-2 hover:bg-primary/10 hover:text-primary transition-all duration-300"
-        >
-          <Link href="/series">
-            <ChevronLeft className="h-4 w-4" />
-            <span>Voltar para séries</span>
-          </Link>
-        </Button>
-      </div>
-
       {/* Series Header */}
       <SeriesHeader series={series} user={user} />
 

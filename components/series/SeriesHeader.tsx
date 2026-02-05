@@ -1,4 +1,4 @@
-// components/series/series-header.tsx (versão atualizada)
+// components/series/series-header.tsx
 "use client";
 
 import { useState } from "react";
@@ -205,11 +205,13 @@ export function SeriesHeader({ series, user }: SeriesHeaderProps) {
                   variant="ghost"
                   size="sm"
                   asChild
-                  className="h-9 w-9 p-0 rounded-full hover:bg-primary/10 gap-0"
+                  className="h-9 px-3 rounded-full hover:bg-primary/10 gap-2"
                 >
-                  <Link href="/series">
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    <span className="text-sm hidden md:inline">Voltar</span>
+                  <Link href="/series" className="flex items-center">
+                    <ChevronLeft className="h-4 w-4" />
+                    <span className="text-sm font-medium">
+                      Voltar para Séries
+                    </span>
                   </Link>
                 </Button>
 

@@ -382,7 +382,7 @@ export function NewEpisodeForm({
 
       // Redirecionar após 1.5 segundos
       setTimeout(() => {
-        router.push(`/series/${seriesId}/seasons/${seasonId}`);
+        router.push(`/series/${seriesId}/seasons/${seasonId}/episodes`);
         router.refresh();
       }, 1500);
     } catch (error: any) {
@@ -425,7 +425,7 @@ export function NewEpisodeForm({
             variant="ghost"
             size="sm"
             onClick={() =>
-              router.push(`/series/${seriesId}/seasons/${seasonId}`)
+              router.push(`/series/${seriesId}/seasons/${seasonId}/episodes`)
             }
             className="mb-6 gap-2 hover:bg-primary/10"
           >
@@ -455,7 +455,9 @@ export function NewEpisodeForm({
                 type="button"
                 variant="outline"
                 onClick={() =>
-                  router.push(`/series/${seriesId}/seasons/${seasonId}`)
+                  router.push(
+                    `/series/${seriesId}/seasons/${seasonId}/episodes`,
+                  )
                 }
                 disabled={isLoading}
                 className="gap-2 border-border/50 hover:border-primary/30"

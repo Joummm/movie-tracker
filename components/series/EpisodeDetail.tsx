@@ -146,7 +146,7 @@ export function EpisodeDetail({
             variant="outline"
             size="icon"
             onClick={() =>
-              router.push(`/series/${series.id}/seasons/${season.id}`)
+              router.push(`/series/${series.id}/seasons/${season.id}/episodes`)
             }
             className="h-10 w-10"
           >
@@ -165,7 +165,9 @@ export function EpisodeDetail({
               <Button
                 variant="link"
                 onClick={() =>
-                  router.push(`/series/${series.id}/seasons/${season.id}`)
+                  router.push(
+                    `/series/${series.id}/seasons/${season.id}/episodes`,
+                  )
                 }
                 className="text-muted-foreground hover:text-primary p-0 h-auto"
               >

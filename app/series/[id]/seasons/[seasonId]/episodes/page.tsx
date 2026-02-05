@@ -2,7 +2,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { EpisodesList } from "@/components/series/episodes-list";
+import { EpisodesList } from "@/components/series/EpisodesList";
 
 interface EpisodesPageProps {
   params: Promise<{
@@ -83,13 +83,16 @@ export default async function EpisodesPage({ params }: EpisodesPageProps) {
     .eq("series_id", seriesId)
     .order("episode_number");
 
+  // Usar array vazio como fallback
+  const episodesData = episodes || [];
+
   // Calculate statistics
-  const totalEpisodes = episodes?.length || 0;
-  const watchedEpisodes = episodes?.filter((ep) => ep.is_watched).length || 0;
+  const totalEpisodes = episodesData.length;
+  const watchedEpisodes = episodesData.filter((ep) => ep.is_watched).length;
   const averageRating =
-    episodes?.length > 0
-      ? episodes.reduce((sum, ep) => sum + (ep.rating || 0), 0) /
-        episodes.length
+    episodesData.length > 0
+      ? episodesData.reduce((sum, ep) => sum + (ep.rating || 0), 0) /
+        episodesData.length
       : 0;
 
   const stats = {
@@ -104,7 +107,7 @@ export default async function EpisodesPage({ params }: EpisodesPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/20">
       <DashboardHeader userName={profile?.display_name || "User"} />
       <main className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
@@ -113,7 +116,7 @@ export default async function EpisodesPage({ params }: EpisodesPageProps) {
             seriesName={series.name || "Série"}
             seasonId={seasonId}
             season={season}
-            episodes={episodes || []}
+            episodes={episodesData}
             stats={stats}
             userId={user.id}
           />

@@ -44,7 +44,7 @@ export interface SeriesWithStats {
   name?: string;
   cover_image?: string;
   release_year?: number;
-  status: SeriesStatus; // Usar o tipo específico
+  status: SeriesStatus;
   total_seasons: number;
   total_episodes: number;
   description?: string;

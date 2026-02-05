@@ -98,10 +98,10 @@ async function fetchSeriesData(userId: string) {
 
           if (episodes) {
             episodes.forEach((ep) => {
-              if (ep.duration) {
+              if (ep.is_watched && ep.duration) {
                 seasonWatchTime += ep.duration;
               }
-              if (ep.rating && ep.rating > 0) {
+              if (ep.is_watched && ep.rating && ep.rating > 0) {
                 seasonRatings.push(ep.rating);
               }
             });
