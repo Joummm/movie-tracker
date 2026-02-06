@@ -12,15 +12,14 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Movie Tracker",
   description: "Acompanhe filmes e séries que você assiste",
-  generator: "v0.app",
   icons: {
     icon: [
       {
-        url: "/icon-light-32x32.png",
+        url: "/movie.svg",
         media: "(prefers-color-scheme: light)",
       },
       {
-        url: "/icon-dark-32x32.png",
+        url: "/movie.svg",
         media: "(prefers-color-scheme: dark)",
       },
       {
@@ -28,7 +27,7 @@ export const metadata: Metadata = {
         type: "image/x-icon",
       },
     ],
-    apple: "/apple-icon.png",
+    apple: "/movie.svg",
   },
 };
 
