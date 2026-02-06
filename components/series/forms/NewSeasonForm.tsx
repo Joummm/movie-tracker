@@ -262,7 +262,7 @@ export function NewSeasonForm({
 
       // Redirecionar após 1.5 segundos
       setTimeout(() => {
-        router.push(`/series/${seriesId}/seasons/${newSeason.id}`);
+        router.push(`/series/${seriesId}/seasons/${newSeason.id}/episodes`);
         router.refresh();
       }, 1500);
     } catch (error: any) {
@@ -828,10 +828,10 @@ export function NewSeasonForm({
                     Campos obrigatórios:
                   </p>
                   <div className="space-y-1 text-muted-foreground">
-                    <p className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full bg-red-500" />
                       Número da temporada
-                    </p>
+                    </div>
                   </div>
                 </div>
 

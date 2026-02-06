@@ -12,6 +12,7 @@ import {
   Star,
   TrendingUp,
   Film,
+  CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
 import { SeriesWithStats, StatusCounts } from "@/lib/types/series";
@@ -174,6 +175,25 @@ async function fetchSeriesData(userId: string) {
   return seriesWithDetails;
 }
 
+async function calculateTotalEpisodeHours(userId: string) {
+  const supabase = await createClient();
+
+  // Buscar todos os episódios das séries do usuário
+  const { data: episodes, error } = await supabase
+    .from("series_episodes")
+    .select("duration, series!inner(user_id)")
+    .eq("series.user_id", userId);
+
+  if (error) {
+    console.error("Error calculating total episode hours:", error);
+    return 0;
+  }
+
+  const totalMinutes =
+    episodes?.reduce((sum, ep) => sum + (ep.duration || 0), 0) || 0;
+  return Math.round(totalMinutes / 60);
+}
+
 export default async function SeriesPage() {
   const supabase = await createClient();
 
@@ -195,6 +215,9 @@ export default async function SeriesPage() {
 
   // Buscar dados das séries
   const seriesWithDetails = await fetchSeriesData(user.id);
+
+  // Calcular total de horas em episódios
+  const totalEpisodeHours = await calculateTotalEpisodeHours(user.id);
 
   // Calcular estatísticas gerais
   const totalSeries = seriesWithDetails.length;
@@ -274,6 +297,12 @@ export default async function SeriesPage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
+              <Button variant="outline" className="gap-2" asChild>
+                <Link href="/series/episodes-to-watch">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Episódios por Ver
+                </Link>
+              </Button>
               <Button
                 asChild
                 className="gap-2 bg-linear-to-r from-blue-500 to-cyan-600 hover:from-blue-500/90 hover:to-cyan-600/90 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95"
@@ -287,7 +316,7 @@ export default async function SeriesPage() {
           </div>
 
           {/* Statistics Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
             <div className="bg-linear-to-br from-card to-card/80 rounded-xl border p-5 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-3">
                 <Film className="h-5 w-5 text-primary" />
@@ -408,6 +437,35 @@ export default async function SeriesPage() {
                 </div>
                 <span className="text-xs text-muted-foreground">
                   {allSeriesRatings.length} séries avaliadas
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-linear-to-br from-card to-card/80 rounded-xl border p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <Clock className="h-5 w-5 text-violet-500" />
+                <Badge variant="outline" className="text-xs">
+                  Episódios
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Total Horas em Episódios
+              </p>
+              <p className="text-3xl font-bold mt-1">{totalEpisodeHours}h</p>
+              <div className="flex items-center gap-2 mt-3">
+                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-linear-to-r from-violet-500 to-purple-500 rounded-full"
+                    style={{
+                      width: `${Math.min((totalEpisodeHours / 500) * 100, 100)}%`,
+                    }}
+                  />
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {totalEpisodes > 0
+                    ? Math.round((totalEpisodeHours / totalEpisodes) * 10) / 10
+                    : 0}
+                  h/ep
                 </span>
               </div>
             </div>

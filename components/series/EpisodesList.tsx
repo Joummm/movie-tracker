@@ -35,6 +35,18 @@ import {
   Target,
   TrendingUp,
   CheckCircle,
+  CalendarDays,
+  Filter,
+  Grid3x3,
+  List,
+  Calendar as CalendarIcon,
+  Hash,
+  Percent,
+  Timer,
+  Heart,
+  ThumbsUp,
+  RefreshCw,
+  Zap,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -58,6 +70,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
+import { Separator } from "@/components/ui/separator";
 
 interface Episode {
   id: string;
@@ -68,8 +81,10 @@ interface Episode {
   rating?: number;
   release_date?: string;
   review?: string;
-  would_recommend?: boolean;
-  would_rewatch?: boolean;
+  would_recommend?: boolean | null;
+  would_rewatch?: boolean | null;
+  last_rewatch_date?: string;
+  rewatch_count?: number;
   content_id?: string;
   content?: {
     id: string;
@@ -81,7 +96,7 @@ interface Episode {
     watched_day?: number;
     date_unknown?: boolean;
     date_precision?: string;
-    review?: string; // Adicionado aqui
+    review?: string;
   };
 }
 
@@ -134,6 +149,7 @@ export function EpisodesList({
   const supabase = createClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "watched" | "unwatched">("all");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("episodes");
@@ -146,6 +162,8 @@ export function EpisodesList({
   const [watchDate, setWatchDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [watchRating, setWatchRating] = useState<string>("");
   const [watchReview, setWatchReview] = useState("");
+  const [watchRecommend, setWatchRecommend] = useState<boolean | null>(null);
+  const [watchRewatch, setWatchRewatch] = useState<boolean | null>(null);
 
   // Estados para estatísticas em tempo real
   const [currentStats, setCurrentStats] = useState(stats);
@@ -187,21 +205,24 @@ export function EpisodesList({
     });
   }, [currentEpisodes]);
 
-  const filteredEpisodes = currentEpisodes.filter((episode) => {
-    // Apply search filter
-    const matchesSearch =
-      episode.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      `Episódio ${episode.episode_number}`.includes(searchQuery) ||
-      episode.review?.toLowerCase().includes(searchQuery.toLowerCase());
+  // Filtrar episódios
+  const filteredEpisodes = currentEpisodes
+    .filter((episode) => {
+      // Apply search filter
+      const matchesSearch =
+        episode.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        `Episódio ${episode.episode_number}`.includes(searchQuery) ||
+        episode.review?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Apply status filter
-    const matchesFilter =
-      filter === "all" ||
-      (filter === "watched" && episode.is_watched) ||
-      (filter === "unwatched" && !episode.is_watched);
+      // Apply status filter
+      const matchesFilter =
+        filter === "all" ||
+        (filter === "watched" && episode.is_watched) ||
+        (filter === "unwatched" && !episode.is_watched);
 
-    return matchesSearch && matchesFilter;
-  });
+      return matchesSearch && matchesFilter;
+    })
+    .sort((a, b) => a.episode_number - b.episode_number); // Sempre ordenar por número
 
   const formatDuration = (minutes?: number) => {
     if (!minutes) return "-";
@@ -227,14 +248,19 @@ export function EpisodesList({
   };
 
   const getEpisodeWatchedDate = (episode: Episode) => {
-    // Se houver conteúdo vinculado, usar a data do conteúdo
+    if (episode.last_rewatch_date) {
+      return episode.last_rewatch_date;
+    }
     if (episode.content?.watched_date) {
       return episode.content.watched_date;
     }
     return undefined;
   };
 
-  const handleMarkAllAsWatched = async () => {
+  // Marcar todos como assistidos com opções
+  const handleMarkAllAsWatched = async (
+    dateType: "today" | "unknown" = "today",
+  ) => {
     setIsLoading(true);
     try {
       const unwatchedEpisodes = currentEpisodes.filter((ep) => !ep.is_watched);
@@ -245,22 +271,40 @@ export function EpisodesList({
         return;
       }
 
-      // Atualizar todos os episódios - NÃO USAR user_id pois não existe na tabela
+      // Preparar dados de atualização
+      const updateData: any = {
+        is_watched: true,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Definir data baseado no tipo selecionado
+      if (dateType === "today") {
+        const today = new Date().toISOString().split("T")[0];
+        updateData.last_rewatch_date = today;
+      } else if (dateType === "unknown") {
+        updateData.last_rewatch_date = null;
+      }
+
+      // Atualizar episódios
       const { error } = await supabase
         .from("series_episodes")
-        .update({
-          is_watched: true,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .in("id", episodeIds);
 
       if (error) throw error;
 
       // Atualizar estado local
-      const updatedEpisodes = currentEpisodes.map((ep) => ({
-        ...ep,
-        is_watched: true,
-      }));
+      const updatedEpisodes = currentEpisodes.map((ep) => {
+        if (episodeIds.includes(ep.id)) {
+          return {
+            ...ep,
+            is_watched: true,
+            last_rewatch_date:
+              dateType === "today" ? updateData.last_rewatch_date : undefined,
+          };
+        }
+        return ep;
+      });
 
       setCurrentEpisodes(updatedEpisodes);
 
@@ -275,7 +319,7 @@ export function EpisodesList({
         .eq("user_id", userId);
 
       toast.success("Todos os episódios marcados como assistidos!", {
-        description: `${unwatchedEpisodes.length} episódios atualizados.`,
+        description: `${unwatchedEpisodes.length} episódios atualizados ${dateType === "today" ? "com data de hoje" : "com data desconhecida"}.`,
         duration: 3000,
       });
 
@@ -304,11 +348,16 @@ export function EpisodesList({
         return;
       }
 
-      // Atualizar todos os episódios - NÃO USAR user_id
+      // Atualizar todos os episódios
       const { error } = await supabase
         .from("series_episodes")
         .update({
           is_watched: false,
+          last_rewatch_date: null,
+          rating: null,
+          review: null,
+          would_recommend: null,
+          would_rewatch: null,
           updated_at: new Date().toISOString(),
         })
         .in("id", episodeIds);
@@ -318,7 +367,14 @@ export function EpisodesList({
       // Atualizar estado local
       const updatedEpisodes = currentEpisodes.map((ep) => ({
         ...ep,
-        is_watched: false,
+        is_watched: episodeIds.includes(ep.id) ? false : ep.is_watched,
+        last_rewatch_date: episodeIds.includes(ep.id)
+          ? undefined
+          : ep.last_rewatch_date,
+        rating: episodeIds.includes(ep.id) ? undefined : ep.rating,
+        review: episodeIds.includes(ep.id) ? undefined : ep.review,
+        would_recommend: episodeIds.includes(ep.id) ? null : ep.would_recommend,
+        would_rewatch: episodeIds.includes(ep.id) ? null : ep.would_rewatch,
       }));
 
       setCurrentEpisodes(updatedEpisodes);
@@ -328,6 +384,7 @@ export function EpisodesList({
         .from("series_seasons")
         .update({
           watched_episode_count: 0,
+          average_rating: null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", seasonId)
@@ -355,9 +412,14 @@ export function EpisodesList({
   const openWatchStatusDialog = (episode: Episode, markAsWatched: boolean) => {
     setSelectedEpisode(episode);
     setIsMarkingAsWatched(markAsWatched);
-    setWatchDate(format(new Date(), "yyyy-MM-dd"));
+
+    const existingDate = getEpisodeWatchedDate(episode);
+    setWatchDate(existingDate || format(new Date(), "yyyy-MM-dd"));
+
     setWatchRating(episode.rating?.toString() || "");
     setWatchReview(episode.review || "");
+    setWatchRecommend(episode.would_recommend ?? null);
+    setWatchRewatch(episode.would_rewatch ?? null);
     setWatchStatusDialogOpen(true);
   };
 
@@ -372,117 +434,68 @@ export function EpisodesList({
       };
 
       if (isMarkingAsWatched) {
-        // Se estamos marcando como assistido, atualizar rating e review se fornecidos
+        updateData.last_rewatch_date =
+          watchDate || new Date().toISOString().split("T")[0];
+
         if (watchRating && !isNaN(parseFloat(watchRating))) {
           updateData.rating = parseFloat(watchRating);
+        } else {
+          updateData.rating = null;
         }
+
         if (watchReview) {
           updateData.review = watchReview;
+        } else {
+          updateData.review = null;
         }
+
+        updateData.would_recommend = watchRecommend;
+        updateData.would_rewatch = watchRewatch;
       } else {
-        // Se estamos marcando como não assistido, limpar rating e review
+        updateData.last_rewatch_date = null;
         updateData.rating = null;
         updateData.review = null;
+        updateData.would_recommend = null;
+        updateData.would_rewatch = null;
       }
 
-      console.log("Atualizando episódio com dados:", updateData);
-
-      // IMPORTANTE: series_episodes NÃO TEM user_id, usar series_id e season_id para garantir segurança
       const { error } = await supabase
         .from("series_episodes")
         .update(updateData)
-        .eq("id", selectedEpisode.id)
-        .eq("series_id", seriesId) // Usar series_id em vez de user_id
-        .eq("season_id", seasonId); // Usar season_id em vez de user_id
+        .eq("id", selectedEpisode.id);
 
-      if (error) {
-        console.error("Erro detalhado do Supabase:", error);
-        throw new Error(error.message || "Erro ao atualizar episódio");
-      }
-
-      // Se houver conteúdo vinculado, também atualizá-lo
-      if (selectedEpisode.content_id && isMarkingAsWatched) {
-        const contentUpdateData: any = {
-          watch_status: "completed",
-          updated_at: new Date().toISOString(),
-        };
-
-        // Adicionar data de visualização se fornecida
-        if (watchDate) {
-          contentUpdateData.watched_date = watchDate;
-          const date = new Date(watchDate);
-          contentUpdateData.watched_year = date.getFullYear();
-          contentUpdateData.watched_month = date.getMonth() + 1;
-          contentUpdateData.watched_day = date.getDate();
-        }
-
-        if (watchRating && !isNaN(parseFloat(watchRating))) {
-          contentUpdateData.rating = parseFloat(watchRating);
-        }
-        if (watchReview) {
-          contentUpdateData.review = watchReview;
-        }
-
-        const { error: contentError } = await supabase
-          .from("content")
-          .update(contentUpdateData)
-          .eq("id", selectedEpisode.content_id)
-          .eq("user_id", userId); // content TEM user_id
-
-        if (contentError) {
-          console.error("Erro ao atualizar conteúdo:", contentError);
-          // Continuar mesmo se o conteúdo não for atualizado
-        }
-      }
+      if (error) throw error;
 
       // Atualizar estado local
       const updatedEpisodes = currentEpisodes.map((ep) => {
         if (ep.id === selectedEpisode.id) {
-          const updatedEpisode = {
+          return {
             ...ep,
             is_watched: isMarkingAsWatched,
+            last_rewatch_date: isMarkingAsWatched ? watchDate : undefined,
             rating:
-              watchRating && !isNaN(parseFloat(watchRating))
+              isMarkingAsWatched &&
+              watchRating &&
+              !isNaN(parseFloat(watchRating))
                 ? parseFloat(watchRating)
                 : undefined,
-            review: watchReview || undefined,
+            review: isMarkingAsWatched ? watchReview || undefined : undefined,
+            would_recommend: isMarkingAsWatched ? watchRecommend : null,
+            would_rewatch: isMarkingAsWatched ? watchRewatch : null,
           };
-
-          // Atualizar conteúdo se existir
-          if (ep.content && isMarkingAsWatched && watchDate) {
-            updatedEpisode.content = {
-              ...ep.content,
-              watched_date: watchDate,
-              rating:
-                watchRating && !isNaN(parseFloat(watchRating))
-                  ? parseFloat(watchRating)
-                  : ep.content.rating,
-              review: watchReview || ep.content.review,
-            };
-          } else if (ep.content && !isMarkingAsWatched) {
-            updatedEpisode.content = {
-              ...ep.content,
-              watched_date: undefined,
-              rating: undefined,
-              review: undefined,
-            };
-          }
-
-          return updatedEpisode;
         }
         return ep;
       });
 
       setCurrentEpisodes(updatedEpisodes);
 
-      // Atualizar temporada
+      // Atualizar estatísticas da temporada
       const watchedCount = updatedEpisodes.filter((ep) => ep.is_watched).length;
       const totalWatchTime = updatedEpisodes.reduce(
         (sum, ep) => sum + (ep.duration || 0),
         0,
       );
 
-      // Calcular média de avaliação
       const ratedEpisodes = updatedEpisodes.filter(
         (ep) => ep.rating && ep.rating > 0,
       );
@@ -492,7 +505,7 @@ export function EpisodesList({
             ratedEpisodes.length
           : null;
 
-      const { error: seasonError } = await supabase
+      await supabase
         .from("series_seasons")
         .update({
           watched_episode_count: watchedCount,
@@ -501,12 +514,7 @@ export function EpisodesList({
           updated_at: new Date().toISOString(),
         })
         .eq("id", seasonId)
-        .eq("user_id", userId); // series_seasons TEM user_id
-
-      if (seasonError) {
-        console.error("Erro ao atualizar temporada:", seasonError);
-        // Continuar mesmo se a temporada não for atualizada
-      }
+        .eq("user_id", userId);
 
       toast.success(
         isMarkingAsWatched
@@ -543,9 +551,7 @@ export function EpisodesList({
       const { error } = await supabase
         .from("series_episodes")
         .delete()
-        .eq("id", episodeId)
-        .eq("series_id", seriesId) // Usar series_id em vez de user_id
-        .eq("season_id", seasonId); // Usar season_id em vez de user_id
+        .eq("id", episodeId);
 
       if (error) throw error;
 
@@ -620,6 +626,9 @@ export function EpisodesList({
     const episodesWithRecommendation = currentEpisodes.filter(
       (ep) => ep.would_recommend === true,
     ).length;
+    const episodesWithRewatch = currentEpisodes.filter(
+      (ep) => ep.would_rewatch === true,
+    ).length;
 
     // Distribuição de notas
     const ratingDistribution = Array(11)
@@ -639,6 +648,19 @@ export function EpisodesList({
       (ep) => ep.duration && ep.duration > 45,
     ).length;
 
+    // Episódios por ano de lançamento
+    const episodesByYear: { [year: number]: number } = {};
+    currentEpisodes.forEach((ep) => {
+      if (ep.release_date) {
+        const year = new Date(ep.release_date).getFullYear();
+        episodesByYear[year] = (episodesByYear[year] || 0) + 1;
+      }
+    });
+
+    // Status dos episódios
+    const completedEpisodes = watchedEpisodes;
+    const pendingEpisodes = unwatchedEpisodes;
+
     return {
       totalEpisodes,
       watchedEpisodes,
@@ -648,10 +670,14 @@ export function EpisodesList({
       averageDuration,
       episodesWithReview,
       episodesWithRecommendation,
+      episodesWithRewatch,
       ratingDistribution,
       shortEpisodes,
       mediumEpisodes,
       longEpisodes,
+      episodesByYear,
+      completedEpisodes,
+      pendingEpisodes,
       completionPercentage:
         totalEpisodes > 0
           ? Math.round((watchedEpisodes / totalEpisodes) * 100)
@@ -675,7 +701,7 @@ export function EpisodesList({
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight bg-linear-to-r from-foreground to-foreground/80 bg-clip-text">
+            <h1 className="text-3xl font-bold tracking-tight bg-linear-to-r from-primary via-primary/80 to-blue-600 bg-clip-text text-transparent">
               Episódios
             </h1>
             <div className="flex items-center gap-2 mt-2">
@@ -703,7 +729,7 @@ export function EpisodesList({
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-wrap gap-3">
           <Button variant="outline" asChild className="gap-2">
             <Link href={`/series/${seriesId}/seasons/${seasonId}/edit`}>
               <Pencil className="h-4 w-4" />
@@ -752,13 +778,13 @@ export function EpisodesList({
 
         {/* Episodes Tab Content */}
         <TabsContent value="episodes" className="space-y-6">
-          {/* Stats Overview */}
+          {/* Stats Overview Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             <Card className="bg-linear-to-br from-card to-card/80 border-border/30 hover:shadow-md transition-all duration-300 hover:-translate-y-1">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="p-2 rounded-lg bg-blue-500/10">
-                    <Tv className="h-5 w-5 text-blue-500" />
+                    <Hash className="h-5 w-5 text-blue-500" />
                   </div>
                   <Badge variant="outline" className="text-xs bg-blue-500/10">
                     Total
@@ -775,7 +801,7 @@ export function EpisodesList({
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="p-2 rounded-lg bg-emerald-500/10">
-                    <Eye className="h-5 w-5 text-emerald-500" />
+                    <Percent className="h-5 w-5 text-emerald-500" />
                   </div>
                   <Badge
                     variant="outline"
@@ -815,7 +841,7 @@ export function EpisodesList({
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="p-2 rounded-lg bg-purple-500/10">
-                    <Clock className="h-5 w-5 text-purple-500" />
+                    <Timer className="h-5 w-5 text-purple-500" />
                   </div>
                   <Badge variant="outline" className="text-xs bg-purple-500/10">
                     Duração
@@ -834,13 +860,13 @@ export function EpisodesList({
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="p-2 rounded-lg bg-amber-500/10">
-                    <TrendingUp className="h-5 w-5 text-amber-500" />
+                    <CalendarIcon className="h-5 w-5 text-amber-500" />
                   </div>
                   <Badge variant="outline" className="text-xs bg-amber-500/10">
-                    Status
+                    Ano
                   </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground mb-1">Ano</p>
+                <p className="text-sm text-muted-foreground mb-1">Lançamento</p>
                 <p className="text-3xl font-bold">
                   {season.release_year || "-"}
                 </p>
@@ -849,7 +875,7 @@ export function EpisodesList({
           </div>
 
           {/* Progress Bar */}
-          <Card>
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-sm">
             <CardContent className="p-6">
               <div className="space-y-3">
                 <div className="flex items-center gap-2 mb-2">
@@ -865,7 +891,7 @@ export function EpisodesList({
                   </div>
                   <Progress
                     value={currentStats.completion_percentage}
-                    className="h-2"
+                    className="h-3 bg-linear-to-r from-emerald-500/20 to-emerald-500/40"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>
@@ -901,12 +927,12 @@ export function EpisodesList({
             </div>
 
             {/* Filter Buttons */}
-            <div className="flex rounded-lg border">
+            <div className="flex rounded-lg border border-border/50">
               <Button
                 variant={filter === "all" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setFilter("all")}
-                className="h-9 px-3"
+                className="h-9 px-3 rounded-none first:rounded-l-lg last:rounded-r-lg"
               >
                 Todos
               </Button>
@@ -914,7 +940,7 @@ export function EpisodesList({
                 variant={filter === "watched" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setFilter("watched")}
-                className="h-9 px-3"
+                className="h-9 px-3 rounded-none first:rounded-l-lg last:rounded-r-lg"
               >
                 <Eye className="h-4 w-4 mr-2" />
                 Assistidos
@@ -923,10 +949,30 @@ export function EpisodesList({
                 variant={filter === "unwatched" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setFilter("unwatched")}
-                className="h-9 px-3"
+                className="h-9 px-3 rounded-none first:rounded-l-lg last:rounded-r-lg"
               >
                 <EyeOff className="h-4 w-4 mr-2" />
                 Não Assistidos
+              </Button>
+            </div>
+
+            {/* View Mode Toggle */}
+            <div className="flex rounded-lg border border-border/50">
+              <Button
+                variant={viewMode === "list" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("list")}
+                className="h-9 px-3 rounded-none first:rounded-l-lg last:rounded-r-lg"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "grid" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("grid")}
+                className="h-9 px-3 rounded-none first:rounded-l-lg last:rounded-r-lg"
+              >
+                <Grid3x3 className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -937,7 +983,7 @@ export function EpisodesList({
             episódios
           </div>
 
-          {/* Episodes List */}
+          {/* Episodes List/Grid */}
           {filteredEpisodes.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Tv className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -958,7 +1004,7 @@ export function EpisodesList({
                 </Button>
               )}
             </div>
-          ) : (
+          ) : viewMode === "list" ? (
             <div className="space-y-3">
               {filteredEpisodes.map((episode) => (
                 <EpisodeCard
@@ -966,6 +1012,24 @@ export function EpisodesList({
                   episode={episode}
                   seriesId={seriesId}
                   seasonId={seasonId}
+                  seasonReleaseYear={season.release_year}
+                  onToggleWatchStatus={(markAsWatched) =>
+                    openWatchStatusDialog(episode, markAsWatched)
+                  }
+                  onDelete={() => handleDelete(episode.id)}
+                  isDeleting={isDeleting === episode.id}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredEpisodes.map((episode) => (
+                <EpisodeGridCard
+                  key={episode.id}
+                  episode={episode}
+                  seriesId={seriesId}
+                  seasonId={seasonId}
+                  seasonReleaseYear={season.release_year}
                   onToggleWatchStatus={(markAsWatched) =>
                     openWatchStatusDialog(episode, markAsWatched)
                   }
@@ -979,7 +1043,8 @@ export function EpisodesList({
 
         {/* Statistics Tab Content */}
         <TabsContent value="statistics" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="pt-6">
                 <div className="space-y-2">
@@ -1114,7 +1179,7 @@ export function EpisodesList({
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
+                  <Timer className="h-5 w-5" />
                   Distribuição por Duração
                 </CardTitle>
               </CardHeader>
@@ -1246,6 +1311,25 @@ export function EpisodesList({
                       className="h-2 bg-blue-100 dark:bg-blue-900/30"
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm">Para Reassistir</span>
+                      <span className="font-semibold">
+                        {detailedStats.episodesWithRewatch}
+                      </span>
+                    </div>
+                    <Progress
+                      value={
+                        detailedStats.totalEpisodes > 0
+                          ? (detailedStats.episodesWithRewatch /
+                              detailedStats.totalEpisodes) *
+                            100
+                          : 0
+                      }
+                      className="h-2 bg-indigo-100 dark:bg-indigo-900/30"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -1299,6 +1383,25 @@ export function EpisodesList({
                       <Badge variant="outline">{season.special_type}</Badge>
                     </div>
                   )}
+
+                  <Separator />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Episódios</p>
+                      <p className="text-xl font-bold">
+                        {detailedStats.totalEpisodes}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">
+                        Tempo Total
+                      </p>
+                      <p className="text-xl font-bold">
+                        {formatDuration(detailedStats.totalDuration)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -1321,27 +1424,51 @@ export function EpisodesList({
 
           <div className="space-y-6 py-4">
             <div className="space-y-3">
+              {/* Opção 1: Marcar com data de hoje */}
               <div
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
-                onClick={handleMarkAllAsWatched}
+                onClick={() => handleMarkAllAsWatched("today")}
               >
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-full bg-emerald-100 dark:bg-emerald-900/30">
-                    <Eye className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    <Calendar className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <div>
                     <p className="font-semibold">
-                      Marcar Todos como Assistidos
+                      Marcar Todos como Assistidos (Hoje)
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {currentEpisodes.filter((ep) => !ep.is_watched).length}{" "}
-                      episódios serão marcados
+                      episódios serão marcados com data atual
                     </p>
                   </div>
                 </div>
                 <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
 
+              {/* Opção 2: Marcar com data desconhecida */}
+              <div
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
+                onClick={() => handleMarkAllAsWatched("unknown")}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/30">
+                    <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">
+                      Marcar Todos como Assistidos (Data Desconhecida)
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {currentEpisodes.filter((ep) => !ep.is_watched).length}{" "}
+                      episódios serão marcados sem data específica
+                    </p>
+                  </div>
+                </div>
+                <Calendar className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              </div>
+
+              {/* Opção 3: Marcar como não assistidos */}
               <div
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
                 onClick={handleMarkAllAsUnwatched}
@@ -1420,19 +1547,28 @@ export function EpisodesList({
                   <Label htmlFor="watchDate">
                     Data de Visualização (opcional)
                   </Label>
-                  <Input
-                    id="watchDate"
-                    type="date"
-                    value={watchDate}
-                    onChange={(e) => setWatchDate(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Esta data será usada apenas se houver conteúdo vinculado
-                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      id="watchDate"
+                      type="date"
+                      value={watchDate}
+                      onChange={(e) => setWatchDate(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        setWatchDate(format(new Date(), "yyyy-MM-dd"))
+                      }
+                    >
+                      Hoje
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="watchRating">Avaliação (opcional)</Label>
+                  <Label htmlFor="watchRating">Avaliação (0-10)</Label>
                   <Input
                     id="watchRating"
                     type="number"
@@ -1444,7 +1580,7 @@ export function EpisodesList({
                     onChange={(e) => setWatchRating(e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Nota de 0 a 10 (apenas números)
+                    Deixe vazio para não avaliar
                   </p>
                 </div>
 
@@ -1457,6 +1593,112 @@ export function EpisodesList({
                     onChange={(e) => setWatchReview(e.target.value)}
                     rows={3}
                   />
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Recomendaria este episódio?
+                    </Label>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant={
+                          watchRecommend === null ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => setWatchRecommend(null)}
+                        className={
+                          watchRecommend === null
+                            ? "bg-gray-500 hover:bg-gray-600"
+                            : ""
+                        }
+                      >
+                        Não Definido
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={
+                          watchRecommend === true ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => setWatchRecommend(true)}
+                        className={
+                          watchRecommend === true
+                            ? "bg-emerald-500 hover:bg-emerald-600"
+                            : ""
+                        }
+                      >
+                        <ThumbsUp className="h-3 w-3 mr-1" />
+                        Sim
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={
+                          watchRecommend === false ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => setWatchRecommend(false)}
+                        className={
+                          watchRecommend === false
+                            ? "bg-rose-500 hover:bg-rose-600"
+                            : ""
+                        }
+                      >
+                        <X className="h-3 w-3 mr-1" />
+                        Não
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Assistiria novamente?
+                    </Label>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant={watchRewatch === null ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setWatchRewatch(null)}
+                        className={
+                          watchRewatch === null
+                            ? "bg-gray-500 hover:bg-gray-600"
+                            : ""
+                        }
+                      >
+                        Não Definido
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={watchRewatch === true ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setWatchRewatch(true)}
+                        className={
+                          watchRewatch === true
+                            ? "bg-blue-500 hover:bg-blue-600"
+                            : ""
+                        }
+                      >
+                        <RefreshCw className="h-3 w-3 mr-1" />
+                        Sim
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={watchRewatch === false ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setWatchRewatch(false)}
+                        className={
+                          watchRewatch === false
+                            ? "bg-rose-500 hover:bg-rose-600"
+                            : ""
+                        }
+                      >
+                        <X className="h-3 w-3 mr-1" />
+                        Não
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1485,7 +1727,8 @@ export function EpisodesList({
             <>
               <div className="py-4">
                 <p className="text-muted-foreground">
-                  Esta ação removerá a avaliação e crítica do episódio.
+                  Esta ação removerá a avaliação, crítica, data de visualização
+                  e preferências do episódio.
                 </p>
               </div>
 
@@ -1524,6 +1767,7 @@ interface EpisodeCardProps {
   episode: Episode;
   seriesId: string;
   seasonId: string;
+  seasonReleaseYear?: number;
   onToggleWatchStatus: (markAsWatched: boolean) => void;
   onDelete: () => void;
   isDeleting: boolean;
@@ -1533,6 +1777,7 @@ function EpisodeCard({
   episode,
   seriesId,
   seasonId,
+  seasonReleaseYear,
   onToggleWatchStatus,
   onDelete,
   isDeleting,
@@ -1540,11 +1785,24 @@ function EpisodeCard({
   const router = useRouter();
 
   const getWatchedDate = () => {
-    return episode.content?.watched_date;
+    if (episode.last_rewatch_date) {
+      return episode.last_rewatch_date;
+    }
+    if (episode.content?.watched_date) {
+      return episode.content.watched_date;
+    }
+    return undefined;
+  };
+
+  const getReleaseYear = () => {
+    if (episode.release_date) {
+      return new Date(episode.release_date).getFullYear();
+    }
+    return seasonReleaseYear;
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow group">
+    <Card className="hover:shadow-md transition-shadow group border-border/50">
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
           {/* Episode Number */}
@@ -1552,12 +1810,12 @@ function EpisodeCard({
             <div
               className={`h-12 w-12 rounded-lg flex items-center justify-center ${
                 episode.is_watched
-                  ? "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400"
-                  : "bg-muted text-muted-foreground"
+                  ? "bg-linear-to-br from-emerald-500 to-green-600 text-white"
+                  : "bg-linear-to-br from-muted to-muted/80 text-muted-foreground"
               }`}
             >
               <span className="font-bold text-lg">
-                {episode.episode_number}
+                #{episode.episode_number}
               </span>
             </div>
           </div>
@@ -1582,9 +1840,15 @@ function EpisodeCard({
                     </h3>
                   </Button>
                   {episode.is_watched && (
-                    <Badge className="bg-green-500 text-white border-none">
+                    <Badge className="bg-emerald-500 text-white border-none">
                       <Eye className="h-3 w-3 mr-1" />
                       Assistido
+                    </Badge>
+                  )}
+                  {getReleaseYear() && (
+                    <Badge variant="outline" className="text-xs">
+                      <Calendar className="h-3 w-3 mr-1" />
+                      {getReleaseYear()}
                     </Badge>
                   )}
                 </div>
@@ -1598,13 +1862,13 @@ function EpisodeCard({
                   )}
                   {getWatchedDate() && (
                     <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
+                      <CalendarDays className="h-3 w-3" />
                       {format(new Date(getWatchedDate()!), "dd/MM/yyyy", {
                         locale: pt,
                       })}
                     </span>
                   )}
-                  {episode.rating && (
+                  {episode.rating && episode.rating > 0 && (
                     <span className="flex items-center gap-1">
                       <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                       {episode.rating.toFixed(1)}
@@ -1620,13 +1884,13 @@ function EpisodeCard({
                 )}
               </div>
 
-              {/* Action Buttons - VISÍVEIS FORA DO MENU */}
+              {/* Action Buttons */}
               <div className="flex items-center gap-2 ml-4">
                 <Button
                   size="sm"
                   variant={episode.is_watched ? "outline" : "default"}
                   onClick={() => onToggleWatchStatus(!episode.is_watched)}
-                  className="gap-2"
+                  className={`gap-2 ${episode.is_watched ? "hover:bg-emerald-500 hover:text-emerald-50" : "bg-linear-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"}`}
                 >
                   {episode.is_watched ? (
                     <>
@@ -1668,12 +1932,12 @@ function EpisodeCard({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={onDelete}
-                      className="text-red-600"
+                      className="text-rose-600"
                       disabled={isDeleting}
                     >
                       {isDeleting ? (
                         <>
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent mr-2" />
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-rose-600 border-t-transparent mr-2" />
                           Excluindo...
                         </>
                       ) : (
@@ -1688,65 +1952,239 @@ function EpisodeCard({
               </div>
             </div>
 
-            {/* Content Link */}
-            {episode.content && (
-              <div className="mt-3 pt-3 border-t">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">
-                      Conteúdo vinculado:{" "}
-                    </span>
-                    <span className="font-medium">
-                      {episode.content.name || "Sem nome"}
-                    </span>
-                    {episode.content.watched_date && (
-                      <span className="text-xs text-muted-foreground ml-2">
-                        Assistido em{" "}
-                        {format(
-                          new Date(episode.content.watched_date),
-                          "dd/MM/yyyy",
-                          { locale: pt },
-                        )}
-                      </span>
-                    )}
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    asChild
-                    className="h-7 text-xs"
+            {/* Preferences */}
+            {(episode.would_recommend !== null ||
+              episode.would_rewatch !== null) && (
+              <div className="flex items-center gap-3 mt-4 pt-4 border-t">
+                {episode.would_recommend !== null && (
+                  <Badge
+                    variant={episode.would_recommend ? "default" : "secondary"}
+                    className={
+                      episode.would_recommend
+                        ? "bg-linear-to-r from-emerald-500 to-green-600"
+                        : "bg-rose-500"
+                    }
                   >
-                    <Link href={`/content/${episode.content.id}`}>
-                      <Play className="h-3 w-3 mr-1" />
-                      Ver
-                    </Link>
-                  </Button>
-                </div>
+                    {episode.would_recommend
+                      ? "✓ Recomendaria"
+                      : "✗ Não Recomendaria"}
+                  </Badge>
+                )}
+                {episode.would_rewatch !== null && (
+                  <Badge
+                    variant={episode.would_rewatch ? "default" : "secondary"}
+                    className={
+                      episode.would_rewatch
+                        ? "bg-linear-to-r from-blue-500 to-indigo-600"
+                        : "bg-rose-500"
+                    }
+                  >
+                    {episode.would_rewatch
+                      ? "✓ Assistiria Novamente"
+                      : "✗ Não Assistiria Novamente"}
+                  </Badge>
+                )}
               </div>
             )}
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
 
-        {/* Preferences */}
-        {(episode.would_recommend !== null ||
-          episode.would_rewatch !== null) && (
-          <div className="flex items-center gap-3 mt-4 pt-4 border-t">
-            {episode.would_recommend !== null && (
-              <Badge
-                variant={episode.would_recommend ? "default" : "secondary"}
+// Grid Card Component
+function EpisodeGridCard({
+  episode,
+  seriesId,
+  seasonId,
+  seasonReleaseYear,
+  onToggleWatchStatus,
+  onDelete,
+  isDeleting,
+}: EpisodeCardProps) {
+  const router = useRouter();
+
+  const getWatchedDate = () => {
+    if (episode.last_rewatch_date) {
+      return episode.last_rewatch_date;
+    }
+    if (episode.content?.watched_date) {
+      return episode.content.watched_date;
+    }
+    return undefined;
+  };
+
+  const getReleaseYear = () => {
+    if (episode.release_date) {
+      return new Date(episode.release_date).getFullYear();
+    }
+    return seasonReleaseYear;
+  };
+
+  return (
+    <Card className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/50 group">
+      <CardContent className="p-4">
+        {/* Episode Header */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div
+              className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+                episode.is_watched
+                  ? "bg-linear-to-br from-emerald-500 to-green-600 text-white"
+                  : "bg-linear-to-br from-muted to-muted/80 text-muted-foreground"
+              }`}
+            >
+              <span className="font-bold">{episode.episode_number}</span>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm line-clamp-1">
+                {episode.name || `Episódio ${episode.episode_number}`}
+              </h3>
+              <div className="flex items-center gap-2 mt-1">
+                {episode.is_watched && (
+                  <Badge className="bg-emerald-500 text-white border-none text-xs">
+                    <Eye className="h-2.5 w-2.5 mr-1" />
+                  </Badge>
+                )}
+                {getReleaseYear() && (
+                  <Badge variant="outline" className="text-xs">
+                    {getReleaseYear()}
+                  </Badge>
+                )}
+                {episode.rating && episode.rating > 0 && (
+                  <Badge variant="outline" className="text-xs">
+                    <Star className="h-2.5 w-2.5 fill-yellow-400 text-yellow-400 mr-1" />
+                    {episode.rating.toFixed(1)}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() =>
+                  router.push(
+                    `/series/${seriesId}/seasons/${seasonId}/episodes/${episode.id}`,
+                  )
+                }
               >
-                {episode.would_recommend ? "Recomendaria" : "Não Recomendaria"}
-              </Badge>
-            )}
-            {episode.would_rewatch !== null && (
-              <Badge variant={episode.would_rewatch ? "default" : "secondary"}>
-                {episode.would_rewatch
-                  ? "Assistiria Novamente"
-                  : "Não Assistiria Novamente"}
-              </Badge>
+                <Eye className="h-4 w-4 mr-2" />
+                Ver Detalhes
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link
+                  href={`/series/${seriesId}/seasons/${seasonId}/episodes/${episode.id}/edit`}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onToggleWatchStatus(!episode.is_watched)}
+              >
+                {episode.is_watched ? (
+                  <>
+                    <EyeOff className="h-4 w-4 mr-2" />
+                    Desmarcar
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Marcar
+                  </>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={onDelete}
+                className="text-rose-600"
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-rose-600 border-t-transparent mr-2" />
+                    Excluindo...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir
+                  </>
+                )}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Episode Details */}
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              <span>{episode.duration ? `${episode.duration} min` : "-"}</span>
+            </div>
+            {getWatchedDate() && (
+              <div className="flex items-center gap-1">
+                <CalendarDays className="h-3 w-3" />
+                <span>
+                  {format(new Date(getWatchedDate()!), "dd/MM", { locale: pt })}
+                </span>
+              </div>
             )}
           </div>
-        )}
+
+          {episode.review && (
+            <p className="text-xs text-muted-foreground line-clamp-2">
+              {episode.review}
+            </p>
+          )}
+
+          {/* Preferences */}
+          {(episode.would_recommend !== null ||
+            episode.would_rewatch !== null) && (
+            <div className="flex flex-wrap gap-1 pt-2">
+              {episode.would_recommend !== null && (
+                <Badge
+                  variant="outline"
+                  className={`text-xs ${episode.would_recommend ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" : "bg-rose-500/10 text-rose-700 border-rose-500/30"}`}
+                >
+                  {episode.would_recommend ? "✓ Recomendo" : "✗ Não Recomendo"}
+                </Badge>
+              )}
+              {episode.would_rewatch !== null && (
+                <Badge
+                  variant="outline"
+                  className={`text-xs ${episode.would_rewatch ? "bg-blue-500/10 text-blue-700 border-blue-500/30" : "bg-rose-500/10 text-rose-700 border-rose-500/30"}`}
+                >
+                  {episode.would_rewatch
+                    ? "✓ Reassistiria"
+                    : "✗ Não Reassistiria"}
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Quick Action */}
+        <div className="mt-4 pt-4 border-t">
+          <Button
+            variant={episode.is_watched ? "outline" : "default"}
+            size="sm"
+            className="w-full"
+            onClick={() => onToggleWatchStatus(!episode.is_watched)}
+          >
+            {episode.is_watched
+              ? "Desmarcar como Assistido"
+              : "Marcar como Assistido"}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

@@ -32,6 +32,16 @@ import {
   FileText,
   SaveAll,
   Sparkles,
+  Minus,
+  Check,
+  Copy,
+  Trash2,
+  Settings,
+  Wand2,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  CalendarDays,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +53,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
 
 interface EpisodeFormData {
   episode_number: number;
@@ -52,8 +64,9 @@ interface EpisodeFormData {
   is_watched: boolean;
   rating: number;
   review: string;
-  would_recommend: boolean;
-  would_rewatch: boolean;
+  would_recommend: boolean | null;
+  would_rewatch: boolean | null;
+  watched_date?: string;
 }
 
 interface BulkAddEpisodesProps {
@@ -81,46 +94,22 @@ export function BulkAddEpisodes({
   const [episodeCount, setEpisodeCount] = useState(5);
   const [calculatedNextNumber, setCalculatedNextNumber] =
     useState(nextEpisodeNumber);
+  const [activeTab, setActiveTab] = useState("quick");
+  const [expandedEpisodes, setExpandedEpisodes] = useState<number[]>([]);
 
   const [baseData, setBaseData] = useState({
-    // Base data that applies to all episodes
     name_prefix: "",
     duration: 45,
     release_date: "",
     is_watched: false,
     rating: 0,
     review: "",
-    would_recommend: false,
-    would_rewatch: false,
-    // Date precision
-    watched_date_precision: "full",
-    watched_year: new Date().getFullYear().toString(),
-    watched_month: (new Date().getMonth() + 1).toString().padStart(2, "0"),
+    would_recommend: null as boolean | null,
+    would_rewatch: null as boolean | null,
     watched_date: new Date().toISOString().split("T")[0],
   });
 
   const [episodes, setEpisodes] = useState<EpisodeFormData[]>([]);
-
-  // Initialize episodes based on count
-  useEffect(() => {
-    const newEpisodes: EpisodeFormData[] = [];
-    for (let i = 0; i < episodeCount; i++) {
-      newEpisodes.push({
-        episode_number: calculatedNextNumber + i,
-        name: baseData.name_prefix
-          ? `${baseData.name_prefix} ${i + 1}`
-          : `Episódio ${calculatedNextNumber + i}`,
-        duration: baseData.duration,
-        release_date: baseData.release_date,
-        is_watched: baseData.is_watched,
-        rating: baseData.rating,
-        review: baseData.review,
-        would_recommend: baseData.would_recommend,
-        would_rewatch: baseData.would_rewatch,
-      });
-    }
-    setEpisodes(newEpisodes);
-  }, [episodeCount, calculatedNextNumber, baseData]);
 
   // Buscar o verdadeiro último número de episódio
   useEffect(() => {
@@ -143,7 +132,6 @@ export function BulkAddEpisodes({
           const lastNumber = episodes[0].episode_number;
           setCalculatedNextNumber(lastNumber + 1);
         } else {
-          // Primeiro episódio da temporada
           setCalculatedNextNumber(1);
         }
       } catch (error) {
@@ -153,6 +141,29 @@ export function BulkAddEpisodes({
 
     fetchLastEpisodeNumber();
   }, [seasonId, seriesId, supabase]);
+
+  // Initialize episodes based on count
+  useEffect(() => {
+    const newEpisodes: EpisodeFormData[] = [];
+    for (let i = 0; i < episodeCount; i++) {
+      newEpisodes.push({
+        episode_number: calculatedNextNumber + i,
+        name: baseData.name_prefix
+          ? `${baseData.name_prefix} ${i + 1}`
+          : `Episódio ${calculatedNextNumber + i}`,
+        duration: baseData.duration,
+        release_date: baseData.release_date,
+        is_watched: baseData.is_watched,
+        rating: baseData.rating,
+        review: baseData.review,
+        would_recommend: baseData.would_recommend,
+        would_rewatch: baseData.would_rewatch,
+        watched_date: baseData.is_watched ? baseData.watched_date : undefined,
+      });
+    }
+    setEpisodes(newEpisodes);
+    setExpandedEpisodes([]); // Reset expanded episodes when count changes
+  }, [episodeCount, calculatedNextNumber, baseData]);
 
   const handleBaseInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -170,6 +181,16 @@ export function BulkAddEpisodes({
         [name]: value,
       }));
     }
+
+    // If watched date changes, update episodes
+    if (name === "watched_date" && baseData.is_watched) {
+      setEpisodes((prevEpisodes) =>
+        prevEpisodes.map((episode) => ({
+          ...episode,
+          watched_date: episode.is_watched ? value : undefined,
+        })),
+      );
+    }
   };
 
   const handleBaseSwitchChange = (name: string, checked: boolean) => {
@@ -183,15 +204,25 @@ export function BulkAddEpisodes({
       prevEpisodes.map((episode) => ({
         ...episode,
         [name]: checked,
+        watched_date:
+          name === "is_watched" && checked ? baseData.watched_date : undefined,
       })),
     );
   };
 
-  const handleBaseSelectChange = (name: string, value: string) => {
+  const handleBaseThreeWayToggle = (name: string, value: boolean | null) => {
     setBaseData((prev) => ({
       ...prev,
       [name]: value,
     }));
+
+    // Update all episodes with this change
+    setEpisodes((prevEpisodes) =>
+      prevEpisodes.map((episode) => ({
+        ...episode,
+        [name]: value,
+      })),
+    );
   };
 
   const handleEpisodeChange = (
@@ -209,6 +240,61 @@ export function BulkAddEpisodes({
     });
   };
 
+  const handleEpisodeThreeWayToggle = (
+    index: number,
+    field: keyof EpisodeFormData,
+    value: boolean | null,
+  ) => {
+    setEpisodes((prevEpisodes) => {
+      const newEpisodes = [...prevEpisodes];
+      newEpisodes[index] = {
+        ...newEpisodes[index],
+        [field]: value,
+      };
+      return newEpisodes;
+    });
+  };
+
+  const toggleEpisodeExpanded = (index: number) => {
+    setExpandedEpisodes((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
+    );
+  };
+
+  const applyToAll = (field: keyof EpisodeFormData, value: any) => {
+    setEpisodes((prevEpisodes) =>
+      prevEpisodes.map((episode) => ({
+        ...episode,
+        [field]: value,
+      })),
+    );
+  };
+
+  const copyFromPrevious = (index: number) => {
+    if (index === 0) return;
+
+    setEpisodes((prevEpisodes) => {
+      const newEpisodes = [...prevEpisodes];
+      const previousEpisode = prevEpisodes[index - 1];
+
+      newEpisodes[index] = {
+        ...newEpisodes[index],
+        duration: previousEpisode.duration,
+        rating: previousEpisode.rating,
+        review: previousEpisode.review,
+        would_recommend: previousEpisode.would_recommend,
+        would_rewatch: previousEpisode.would_rewatch,
+      };
+
+      return newEpisodes;
+    });
+
+    toast.success("Copiado do episódio anterior", {
+      description: "As configurações foram copiadas.",
+      duration: 2000,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -218,6 +304,7 @@ export function BulkAddEpisodes({
       const episodeNumbers = episodes.map((ep) => ep.episode_number);
       const hasDuplicates =
         new Set(episodeNumbers).size !== episodeNumbers.length;
+
       if (hasDuplicates) {
         throw new Error(
           "Há números de episódio duplicados. Por favor, verifique os números.",
@@ -253,33 +340,14 @@ export function BulkAddEpisodes({
           review: episode.review || null,
           would_recommend: episode.would_recommend,
           would_rewatch: episode.would_rewatch,
+          last_rewatch_date:
+            episode.is_watched && episode.watched_date
+              ? episode.watched_date
+              : null,
         };
-
-        // Add watched date if applicable
-        if (episode.is_watched) {
-          if (
-            baseData.watched_date_precision === "full" &&
-            baseData.watched_date
-          ) {
-            episodeData.watched_date = baseData.watched_date;
-          } else if (
-            baseData.watched_date_precision === "month" &&
-            baseData.watched_month &&
-            baseData.watched_year
-          ) {
-            episodeData.watched_date = `${baseData.watched_year}-${baseData.watched_month.padStart(2, "0")}-01`;
-          } else if (
-            baseData.watched_date_precision === "year" &&
-            baseData.watched_year
-          ) {
-            episodeData.watched_date = `${baseData.watched_year}-01-01`;
-          }
-        }
 
         return episodeData;
       });
-
-      console.log("Criando episódios em lote:", episodesData);
 
       // Insert all episodes
       const { data: newEpisodes, error } = await supabase
@@ -292,7 +360,44 @@ export function BulkAddEpisodes({
         throw error;
       }
 
-      console.log("Episódios criados com sucesso:", newEpisodes);
+      // Se os episódios foram marcados como assistidos, criar registros na tabela content
+      if (baseData.is_watched) {
+        try {
+          for (const episode of episodes) {
+            if (episode.is_watched && episode.watched_date) {
+              const { error: contentError } = await supabase
+                .from("content")
+                .insert({
+                  user_id: userId,
+                  name: episode.name || `Episódio ${episode.episode_number}`,
+                  series_id: seriesId,
+                  season_id: seasonId,
+                  episode_number: episode.episode_number,
+                  type: "episode",
+                  watch_status: "completed",
+                  watched_date: episode.watched_date,
+                  rating: episode.rating > 0 ? episode.rating : null,
+                  review: episode.review || null,
+                  would_recommend: episode.would_recommend,
+                  would_rewatch: episode.would_rewatch,
+                  duration: episode.duration > 0 ? episode.duration : null,
+                });
+
+              if (contentError) {
+                console.warn(
+                  "Não foi possível criar registro de visualização:",
+                  contentError,
+                );
+              }
+            }
+          }
+        } catch (contentError) {
+          console.warn(
+            "Erro ao criar registros de visualização:",
+            contentError,
+          );
+        }
+      }
 
       // Update season statistics
       try {
@@ -360,24 +465,51 @@ export function BulkAddEpisodes({
     }
   };
 
-  // Generate years for select
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 52 }, (_, i) => currentYear - 50 + i);
-
-  const months = [
-    { value: "1", label: "Janeiro" },
-    { value: "2", label: "Fevereiro" },
-    { value: "3", label: "Março" },
-    { value: "4", label: "Abril" },
-    { value: "5", label: "Maio" },
-    { value: "6", label: "Junho" },
-    { value: "7", label: "Julho" },
-    { value: "8", label: "Agosto" },
-    { value: "9", label: "Setembro" },
-    { value: "10", label: "Outubro" },
-    { value: "11", label: "Novembro" },
-    { value: "12", label: "Dezembro" },
-  ];
+  // Helper function to render three-way toggle
+  const renderThreeWayToggle = (
+    label: string,
+    description: string,
+    name: "would_recommend" | "would_rewatch",
+    value: boolean | null,
+    onValueChange: (value: boolean | null) => void,
+    icon: React.ReactNode,
+    colorClass: string,
+  ) => (
+    <div className="space-y-3">
+      <div className="space-y-1">
+        <Label className="text-base font-semibold flex items-center gap-2">
+          {icon}
+          {label}
+        </Label>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      <div className="flex gap-1 p-1 bg-muted/20 rounded-lg">
+        <button
+          type="button"
+          onClick={() => onValueChange(null)}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${value === null ? `${colorClass} text-white` : "bg-background hover:bg-muted"}`}
+        >
+          <Minus className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onValueChange(false)}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${value === false ? "bg-destructive text-destructive-foreground" : "bg-background hover:bg-muted"}`}
+        >
+          <X className="h-4 w-4" />
+          Não
+        </button>
+        <button
+          type="button"
+          onClick={() => onValueChange(true)}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${value === true ? `${colorClass} text-white` : "bg-background hover:bg-muted"}`}
+        >
+          <Check className="h-4 w-4" />
+          Sim
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-linear-to-b from-background to-background/95">
@@ -451,13 +583,13 @@ export function BulkAddEpisodes({
         </div>
 
         <form id="bulk-add-form" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Configuração Base - 1/3 width */}
             <div className="space-y-6">
               <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg overflow-hidden">
-                <CardHeader className="bg-linear-to-r from-primary/5 via-primary/5 to-transparent border-b border-border/30">
+                <CardHeader className="from-primary/5 via-primary/5 to-transparent border-b ">
                   <CardTitle className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-primary" />
+                    <Settings className="h-5 w-5 text-primary" />
                     Configuração Base
                   </CardTitle>
                   <CardDescription>
@@ -465,161 +597,246 @@ export function BulkAddEpisodes({
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
-                  {/* Episode Count */}
-                  <div>
-                    <Label className="text-base font-semibold mb-2 flex items-center gap-2">
-                      <Hash className="h-4 w-4 text-primary" />
-                      Número de Episódios
-                    </Label>
-                    <div className="flex items-center gap-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() =>
-                          setEpisodeCount(Math.max(1, episodeCount - 1))
-                        }
-                        disabled={episodeCount <= 1}
-                        className="h-10 w-10"
-                      >
-                        -
-                      </Button>
-                      <div className="flex-1 text-center">
+                  <Tabs value={activeTab} onValueChange={setActiveTab}>
+                    <TabsList className="grid grid-cols-2 w-full">
+                      <TabsTrigger value="quick">Rápido</TabsTrigger>
+                      <TabsTrigger value="advanced">Avançado</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="quick" className="space-y-6 mt-4">
+                      {/* Episode Count - Quick Control */}
+                      <div>
+                        <Label className="text-base font-semibold mb-2 flex items-center gap-2">
+                          <Hash className="h-4 w-4 text-primary" />
+                          Número de Episódios
+                        </Label>
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm">Quantidade</span>
+                            <span className="font-bold text-lg">
+                              {episodeCount}
+                            </span>
+                          </div>
+                          <Slider
+                            value={[episodeCount]}
+                            onValueChange={([value]) => setEpisodeCount(value)}
+                            min={1}
+                            max={20}
+                            step={1}
+                            className="w-full"
+                          />
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>1</span>
+                            <span>5</span>
+                            <span>10</span>
+                            <span>15</span>
+                            <span>20</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Quick Settings */}
+                      <div className="space-y-4">
+                        <div>
+                          <Label className="text-sm font-medium mb-2">
+                            Nome Base
+                          </Label>
+                          <Input
+                            value={baseData.name_prefix}
+                            onChange={(e) =>
+                              setBaseData((prev) => ({
+                                ...prev,
+                                name_prefix: e.target.value,
+                              }))
+                            }
+                            placeholder="Ex: Capítulo, Parte, Episódio"
+                            className="text-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium mb-2">
+                            Duração Padrão
+                          </Label>
+                          <div className="flex gap-2">
+                            {[30, 45, 60, 90].map((duration) => (
+                              <Button
+                                key={duration}
+                                type="button"
+                                variant={
+                                  baseData.duration === duration
+                                    ? "default"
+                                    : "outline"
+                                }
+                                size="sm"
+                                onClick={() =>
+                                  setBaseData((prev) => ({ ...prev, duration }))
+                                }
+                                className="flex-1"
+                              >
+                                {duration} min
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Quick Watched Toggle */}
+                        <div className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            {baseData.is_watched ? (
+                              <CheckCircle className="h-5 w-5 text-emerald-500" />
+                            ) : (
+                              <EyeOff className="h-5 w-5 text-yellow-500" />
+                            )}
+                            <div>
+                              <p className="font-medium">
+                                Marcar como Assistidos
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {baseData.is_watched
+                                  ? "Com data de hoje"
+                                  : "Não assistidos"}
+                              </p>
+                            </div>
+                          </div>
+                          <Switch
+                            checked={baseData.is_watched}
+                            onCheckedChange={(checked) =>
+                              handleBaseSwitchChange("is_watched", checked)
+                            }
+                          />
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="advanced" className="space-y-6 mt-4">
+                      {/* Episode Count - Advanced */}
+                      <div>
+                        <Label className="text-base font-semibold mb-2 flex items-center gap-2">
+                          <Hash className="h-4 w-4 text-primary" />
+                          Número de Episódios
+                        </Label>
+                        <div className="flex items-center gap-3">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() =>
+                              setEpisodeCount(Math.max(1, episodeCount - 1))
+                            }
+                            disabled={episodeCount <= 1}
+                            className="h-10 w-10"
+                          >
+                            -
+                          </Button>
+                          <div className="flex-1 text-center">
+                            <Input
+                              type="number"
+                              min="1"
+                              max="50"
+                              value={episodeCount}
+                              onChange={(e) =>
+                                setEpisodeCount(
+                                  Math.min(
+                                    50,
+                                    Math.max(1, parseInt(e.target.value) || 1),
+                                  ),
+                                )
+                              }
+                              className="text-center text-lg font-semibold"
+                            />
+                            <p className="text-xs text-muted-foreground mt-2 text-center">
+                              Episódios #{calculatedNextNumber} a #
+                              {calculatedNextNumber + episodeCount - 1}
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() =>
+                              setEpisodeCount(Math.min(50, episodeCount + 1))
+                            }
+                            disabled={episodeCount >= 50}
+                            className="h-10 w-10"
+                          >
+                            +
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Name Prefix */}
+                      <div>
+                        <Label className="text-base font-semibold mb-2 flex items-center gap-2">
+                          <Tv className="h-4 w-4 text-primary" />
+                          Prefixo do Nome
+                        </Label>
                         <Input
-                          type="number"
-                          min="1"
-                          max="50"
-                          value={episodeCount}
+                          value={baseData.name_prefix}
                           onChange={(e) =>
-                            setEpisodeCount(
-                              Math.min(
-                                50,
-                                Math.max(1, parseInt(e.target.value) || 1),
-                              ),
-                            )
+                            setBaseData((prev) => ({
+                              ...prev,
+                              name_prefix: e.target.value,
+                            }))
                           }
-                          className="text-center text-lg font-semibold"
+                          placeholder="Ex: Episódio, Capítulo, Parte"
+                          className="border-border/50"
                         />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          De {calculatedNextNumber} a{" "}
-                          {calculatedNextNumber + episodeCount - 1}
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Será usado como:{" "}
+                          <span className="font-medium">
+                            {baseData.name_prefix || "Episódio"} [número]
+                          </span>
                         </p>
                       </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() =>
-                          setEpisodeCount(Math.min(50, episodeCount + 1))
-                        }
-                        disabled={episodeCount >= 50}
-                        className="h-10 w-10"
-                      >
-                        +
-                      </Button>
-                    </div>
-                  </div>
 
-                  {/* Name Prefix */}
-                  <div>
-                    <Label
-                      htmlFor="name_prefix"
-                      className="text-base font-semibold mb-2 flex items-center gap-2"
-                    >
-                      <Tv className="h-4 w-4 text-primary" />
-                      Prefixo do Nome (opcional)
-                    </Label>
-                    <Input
-                      id="name_prefix"
-                      name="name_prefix"
-                      value={baseData.name_prefix}
-                      onChange={handleBaseInputChange}
-                      placeholder="Ex: Episódio, Capítulo, Parte"
-                      className="border-border/50"
-                      disabled={isLoading}
-                    />
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Será usado como:{" "}
-                      <span className="font-medium">
-                        {baseData.name_prefix || "Episódio"} [número]
-                      </span>
-                    </p>
-                  </div>
+                      {/* Duration */}
+                      <div>
+                        <Label className="text-base font-semibold mb-2 flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-blue-500" />
+                          Duração (minutos)
+                        </Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          value={baseData.duration}
+                          onChange={(e) =>
+                            setBaseData((prev) => ({
+                              ...prev,
+                              duration: parseInt(e.target.value) || 0,
+                            }))
+                          }
+                          placeholder="45"
+                          className="border-border/50"
+                        />
+                      </div>
 
-                  {/* Duration */}
-                  <div>
-                    <Label
-                      htmlFor="duration"
-                      className="text-base font-semibold mb-2 flex items-center gap-2"
-                    >
-                      <Clock className="h-4 w-4 text-blue-500" />
-                      Duração (minutos)
-                    </Label>
-                    <Input
-                      id="duration"
-                      name="duration"
-                      type="number"
-                      min="0"
-                      value={baseData.duration}
-                      onChange={handleBaseInputChange}
-                      placeholder="45"
-                      className="border-border/50"
-                      disabled={isLoading}
-                    />
-                  </div>
-
-                  {/* Release Date */}
-                  <div>
-                    <Label
-                      htmlFor="release_date"
-                      className="text-base font-semibold mb-2 flex items-center gap-2"
-                    >
-                      <Calendar className="h-4 w-4 text-primary" />
-                      Data de Lançamento (opcional)
-                    </Label>
-                    <Input
-                      id="release_date"
-                      name="release_date"
-                      type="date"
-                      value={baseData.release_date}
-                      onChange={handleBaseInputChange}
-                      className="border-border/50"
-                      disabled={isLoading}
-                    />
-                  </div>
-
-                  {/* Rating */}
-                  <div>
-                    <Label
-                      htmlFor="rating"
-                      className="text-base font-semibold mb-2 flex items-center gap-2"
-                    >
-                      <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                      Avaliação (0-10)
-                    </Label>
-                    <Input
-                      id="rating"
-                      name="rating"
-                      type="number"
-                      min="0"
-                      max="10"
-                      step="0.1"
-                      value={baseData.rating}
-                      onChange={handleBaseInputChange}
-                      placeholder="0"
-                      className="border-border/50"
-                      disabled={isLoading}
-                    />
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Deixe 0 para não avaliar
-                    </p>
-                  </div>
+                      {/* Release Date */}
+                      <div>
+                        <Label className="text-base font-semibold mb-2 flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-primary" />
+                          Data de Lançamento
+                        </Label>
+                        <Input
+                          type="date"
+                          value={baseData.release_date}
+                          onChange={(e) =>
+                            setBaseData((prev) => ({
+                              ...prev,
+                              release_date: e.target.value,
+                            }))
+                          }
+                          className="border-border/50"
+                        />
+                      </div>
+                    </TabsContent>
+                  </Tabs>
 
                   <Separator />
 
                   {/* Status de Visualização */}
-                  <div className="bg-linear-to-br from-card to-card/80 rounded-lg border border-border/30 p-4">
-                    <div className="flex items-center justify-between mb-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
                       <div className="space-y-1">
                         <Label className="text-base font-semibold flex items-center gap-2">
                           {baseData.is_watched ? (
@@ -634,196 +851,145 @@ export function BulkAddEpisodes({
                         </p>
                       </div>
                       <Switch
-                        id="is_watched"
                         checked={baseData.is_watched}
                         onCheckedChange={(checked) =>
                           handleBaseSwitchChange("is_watched", checked)
                         }
-                        disabled={isLoading}
                         className="data-[state=checked]:bg-emerald-500"
                       />
                     </div>
 
                     {baseData.is_watched && (
-                      <div className="space-y-4 mt-4 p-3 bg-muted/20 rounded-lg">
+                      <div className="space-y-4 p-3 bg-muted/20 rounded-lg">
                         <div>
                           <Label className="text-sm font-medium mb-2">
-                            Precisão da Data de Visualização
+                            Data de Visualização
                           </Label>
-                          <Select
-                            value={baseData.watched_date_precision}
-                            onValueChange={(value) =>
-                              handleBaseSelectChange(
-                                "watched_date_precision",
-                                value,
-                              )
-                            }
-                            disabled={isLoading}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Selecione a precisão" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="full">
-                                Data Completa
-                              </SelectItem>
-                              <SelectItem value="month">Mês e Ano</SelectItem>
-                              <SelectItem value="year">Apenas Ano</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Input
+                            type="date"
+                            value={baseData.watched_date}
+                            onChange={handleBaseInputChange}
+                            name="watched_date"
+                            className="w-full"
+                          />
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Esta data será aplicada a todos os episódios
+                            marcados como assistidos
+                          </p>
                         </div>
 
-                        {baseData.watched_date_precision === "full" && (
-                          <div>
-                            <Label htmlFor="watched_date" className="text-sm">
-                              Data de Visualização
-                            </Label>
+                        <div>
+                          <Label className="text-sm font-medium mb-2">
+                            Avaliação Padrão (0-10)
+                          </Label>
+                          <div className="flex items-center gap-2">
                             <Input
-                              id="watched_date"
-                              name="watched_date"
-                              type="date"
-                              value={baseData.watched_date}
+                              type="number"
+                              min="0"
+                              max="10"
+                              step="0.1"
+                              value={baseData.rating}
                               onChange={handleBaseInputChange}
-                              className="mt-1"
-                              disabled={isLoading}
+                              name="rating"
+                              placeholder="0"
+                              className="flex-1"
                             />
-                          </div>
-                        )}
-
-                        {baseData.watched_date_precision === "month" && (
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label
-                                htmlFor="watched_month"
-                                className="text-sm"
-                              >
-                                Mês
-                              </Label>
-                              <Select
-                                value={baseData.watched_month}
-                                onValueChange={(value) =>
-                                  handleBaseSelectChange("watched_month", value)
-                                }
-                                disabled={isLoading}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o mês" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {months.map((month) => (
-                                    <SelectItem
-                                      key={month.value}
-                                      value={month.value}
-                                    >
-                                      {month.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <Label htmlFor="watched_year" className="text-sm">
-                                Ano
-                              </Label>
-                              <Select
-                                value={baseData.watched_year}
-                                onValueChange={(value) =>
-                                  handleBaseSelectChange("watched_year", value)
-                                }
-                                disabled={isLoading}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o ano" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {years.map((year) => (
-                                    <SelectItem
-                                      key={year}
-                                      value={year.toString()}
-                                    >
-                                      {year}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                        )}
-
-                        {baseData.watched_date_precision === "year" && (
-                          <div>
-                            <Label htmlFor="watched_year" className="text-sm">
-                              Ano de Visualização
-                            </Label>
-                            <Select
-                              value={baseData.watched_year}
-                              onValueChange={(value) =>
-                                handleBaseSelectChange("watched_year", value)
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                applyToAll("rating", baseData.rating)
                               }
-                              disabled={isLoading}
                             >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o ano" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {years.map((year) => (
-                                  <SelectItem
-                                    key={year}
-                                    value={year.toString()}
-                                  >
-                                    {year}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              <Copy className="h-3 w-3" />
+                            </Button>
                           </div>
-                        )}
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium mb-2">
+                            Crítica Padrão
+                          </Label>
+                          <Textarea
+                            value={baseData.review}
+                            onChange={handleBaseInputChange}
+                            name="review"
+                            placeholder="Crítica que se aplica a todos os episódios..."
+                            rows={2}
+                            className="text-sm"
+                          />
+                        </div>
                       </div>
                     )}
                   </div>
 
                   {/* Preferences */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <Label className="text-base font-semibold flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-emerald-500" />
-                          Recomendaria estes episódios?
-                        </Label>
-                        <p className="text-sm text-muted-foreground">
-                          Recomendaria a outros utilizadores?
-                        </p>
-                      </div>
-                      <Switch
-                        id="would_recommend"
-                        checked={baseData.would_recommend}
-                        onCheckedChange={(checked) =>
-                          handleBaseSwitchChange("would_recommend", checked)
-                        }
-                        disabled={isLoading}
-                        className="data-[state=checked]:bg-emerald-500"
-                      />
-                    </div>
+                  <div className="space-y-6">
+                    {renderThreeWayToggle(
+                      "Recomendaria estes episódios?",
+                      "Recomendaria a outros utilizadores?",
+                      "would_recommend",
+                      baseData.would_recommend,
+                      (value) =>
+                        handleBaseThreeWayToggle("would_recommend", value),
+                      <CheckCircle className="h-4 w-4 text-emerald-500" />,
+                      "bg-emerald-500",
+                    )}
 
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <Label className="text-base font-semibold flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-blue-500" />
-                          Assistiria novamente?
-                        </Label>
-                        <p className="text-sm text-muted-foreground">
-                          Veria estes episódios novamente no futuro?
-                        </p>
-                      </div>
-                      <Switch
-                        id="would_rewatch"
-                        checked={baseData.would_rewatch}
-                        onCheckedChange={(checked) =>
-                          handleBaseSwitchChange("would_rewatch", checked)
-                        }
-                        disabled={isLoading}
-                        className="data-[state=checked]:bg-blue-500"
-                      />
+                    {renderThreeWayToggle(
+                      "Assistiria novamente?",
+                      "Veria estes episódios novamente no futuro?",
+                      "would_rewatch",
+                      baseData.would_rewatch,
+                      (value) =>
+                        handleBaseThreeWayToggle("would_rewatch", value),
+                      <CheckCircle className="h-4 w-4 text-blue-500" />,
+                      "bg-blue-500",
+                    )}
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Ações Rápidas</Label>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const today = new Date().toISOString().split("T")[0];
+                          setBaseData((prev) => ({
+                            ...prev,
+                            watched_date: today,
+                          }));
+                          applyToAll("watched_date", today);
+                        }}
+                        className="gap-1 text-xs"
+                      >
+                        <CalendarDays className="h-3 w-3" />
+                        Data Hoje
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => applyToAll("rating", 0)}
+                        className="gap-1 text-xs"
+                      >
+                        <Star className="h-3 w-3" />
+                        Sem Avaliação
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => applyToAll("review", "")}
+                        className="gap-1 text-xs"
+                      >
+                        <FileText className="h-3 w-3" />
+                        Limpar Críticas
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -880,6 +1046,14 @@ export function BulkAddEpisodes({
                           #{calculatedNextNumber}
                         </span>
                       </p>
+                      <p>
+                        <span className="text-muted-foreground">Status:</span>{" "}
+                        <span className="font-medium">
+                          {baseData.is_watched
+                            ? "Assistidos"
+                            : "Não Assistidos"}
+                        </span>
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -889,7 +1063,7 @@ export function BulkAddEpisodes({
             {/* Episodes List - 2/3 width */}
             <div className="lg:col-span-2">
               <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg overflow-hidden">
-                <CardHeader className="bg-linear-to-r from-primary/5 via-primary/5 to-transparent border-b border-border/30">
+                <CardHeader className=" from-primary/5 via-primary/5 to-transparent  ">
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle className="flex items-center gap-2">
@@ -911,150 +1085,363 @@ export function BulkAddEpisodes({
                     {episodes.map((episode, index) => (
                       <div
                         key={index}
-                        className="p-4 rounded-lg border border-border/30 bg-card/50 hover:bg-card/70 transition-colors"
+                        className={`p-4 rounded-lg border transition-all duration-300 ${
+                          expandedEpisodes.includes(index)
+                            ? "border-primary/50 bg-primary/5"
+                            : "border-border/30 bg-card/50 hover:bg-card/70"
+                        }`}
                       >
                         <div className="flex items-start gap-4">
                           <div className="shrink-0">
-                            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <div
+                              className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                                episode.is_watched
+                                  ? "bg-emerald-500/10 text-emerald-600"
+                                  : "bg-primary/10 text-primary"
+                              }`}
+                            >
                               <span className="font-bold text-lg">
                                 #{episode.episode_number}
                               </span>
                             </div>
                           </div>
                           <div className="flex-1 space-y-3">
-                            {/* Episode Name */}
-                            <div>
-                              <Label className="text-sm font-medium mb-1">
-                                Nome do Episódio
-                              </Label>
-                              <Input
-                                value={episode.name}
-                                onChange={(e) =>
-                                  handleEpisodeChange(
-                                    index,
-                                    "name",
-                                    e.target.value,
-                                  )
-                                }
-                                placeholder={`Episódio ${episode.episode_number}`}
-                                className="border-border/50"
-                                disabled={isLoading}
-                              />
-                            </div>
+                            {/* Episode Header */}
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Input
+                                    value={episode.name}
+                                    onChange={(e) =>
+                                      handleEpisodeChange(
+                                        index,
+                                        "name",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder={`Episódio ${episode.episode_number}`}
+                                    className="text-lg font-semibold border-none bg-transparent p-0 hover:bg-muted/50 focus:bg-background focus:border"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => toggleEpisodeExpanded(index)}
+                                    className="h-7 w-7 p-0"
+                                  >
+                                    {expandedEpisodes.includes(index) ? (
+                                      <ChevronUp className="h-4 w-4" />
+                                    ) : (
+                                      <ChevronDown className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </div>
 
-                            {/* Quick Info */}
-                            <div className="flex flex-wrap gap-3">
+                                {/* Quick Info */}
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <Badge
+                                    variant={
+                                      episode.is_watched
+                                        ? "default"
+                                        : "secondary"
+                                    }
+                                    className={`text-xs ${episode.is_watched ? "bg-emerald-500 hover:bg-emerald-600" : "bg-yellow-500 hover:bg-yellow-600"}`}
+                                  >
+                                    {episode.is_watched
+                                      ? "✓ Assistido"
+                                      : "Não Assistido"}
+                                  </Badge>
+                                  {episode.duration > 0 && (
+                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                      <Clock className="h-3 w-3" />
+                                      {episode.duration} min
+                                    </div>
+                                  )}
+                                  {episode.rating > 0 && (
+                                    <div className="flex items-center gap-1 text-xs">
+                                      <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                                      {episode.rating}/10
+                                    </div>
+                                  )}
+                                  {episode.watched_date && (
+                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                      <Calendar className="h-3 w-3" />
+                                      {new Date(
+                                        episode.watched_date,
+                                      ).toLocaleDateString("pt-PT")}
+                                    </div>
+                                  )}
+                                  {index > 0 && (
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 text-xs"
+                                      onClick={() => copyFromPrevious(index)}
+                                    >
+                                      <Copy className="h-3 w-3 mr-1" />
+                                      Copiar anterior
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Quick Toggles */}
                               <div className="flex items-center gap-2">
-                                <Badge
-                                  variant={
-                                    episode.is_watched ? "default" : "secondary"
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleEpisodeChange(
+                                      index,
+                                      "is_watched",
+                                      !episode.is_watched,
+                                    )
                                   }
-                                  className={`text-xs ${episode.is_watched ? "bg-emerald-500 hover:bg-emerald-600" : "bg-yellow-500 hover:bg-yellow-600"}`}
+                                  className="h-8 w-8 p-0"
                                 >
-                                  {episode.is_watched
-                                    ? "✓ Assistido"
-                                    : "Não Assistido"}
-                                </Badge>
-                              </div>
-                              {episode.duration > 0 && (
-                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                  <Clock className="h-3.5 w-3.5" />
-                                  {episode.duration} min
-                                </div>
-                              )}
-                              {episode.rating > 0 && (
-                                <div className="flex items-center gap-1 text-sm">
-                                  <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
-                                  {episode.rating}/10
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Custom Fields */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                              <div>
-                                <Label className="text-xs text-muted-foreground mb-1">
-                                  Duração Personalizada
-                                </Label>
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  value={episode.duration}
-                                  onChange={(e) =>
-                                    handleEpisodeChange(
-                                      index,
-                                      "duration",
-                                      parseInt(e.target.value) || 0,
-                                    )
-                                  }
-                                  placeholder={baseData.duration.toString()}
-                                  className="h-8 text-sm"
-                                  disabled={isLoading}
-                                />
-                              </div>
-                              <div>
-                                <Label className="text-xs text-muted-foreground mb-1">
-                                  Avaliação Personalizada
-                                </Label>
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  max="10"
-                                  step="0.1"
-                                  value={episode.rating}
-                                  onChange={(e) =>
-                                    handleEpisodeChange(
-                                      index,
-                                      "rating",
-                                      parseFloat(e.target.value) || 0,
-                                    )
-                                  }
-                                  placeholder={baseData.rating.toString()}
-                                  className="h-8 text-sm"
-                                  disabled={isLoading}
-                                />
-                              </div>
-                              {/* NOVO CAMPO - Data de Lançamento Personalizada */}
-                              <div>
-                                <Label className="text-xs text-muted-foreground mb-1">
-                                  Data Lançamento Personalizada
-                                </Label>
-                                <Input
-                                  type="date"
-                                  value={episode.release_date || ""}
-                                  onChange={(e) =>
-                                    handleEpisodeChange(
-                                      index,
-                                      "release_date",
-                                      e.target.value || "",
-                                    )
-                                  }
-                                  className="h-8 text-sm"
-                                  disabled={isLoading}
-                                />
+                                  {episode.is_watched ? (
+                                    <Eye className="h-4 w-4 text-emerald-500" />
+                                  ) : (
+                                    <EyeOff className="h-4 w-4" />
+                                  )}
+                                </Button>
                               </div>
                             </div>
 
-                            {/* Individual Review */}
-                            <div>
-                              <Label className="text-xs text-muted-foreground mb-1">
-                                Crítica Individual (opcional)
-                              </Label>
-                              <Textarea
-                                value={episode.review}
-                                onChange={(e) =>
-                                  handleEpisodeChange(
-                                    index,
-                                    "review",
-                                    e.target.value,
-                                  )
-                                }
-                                placeholder="Crítica específica para este episódio..."
-                                rows={2}
-                                className="text-sm border-border/50 resize-none"
-                                disabled={isLoading}
-                              />
-                            </div>
+                            {/* Expanded Content */}
+                            {expandedEpisodes.includes(index) && (
+                              <div className="space-y-4 pt-4 border-t">
+                                {/* Custom Fields */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                  <div>
+                                    <Label className="text-xs text-muted-foreground mb-1">
+                                      Duração
+                                    </Label>
+                                    <div className="flex gap-1">
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        value={episode.duration}
+                                        onChange={(e) =>
+                                          handleEpisodeChange(
+                                            index,
+                                            "duration",
+                                            parseInt(e.target.value) || 0,
+                                          )
+                                        }
+                                        placeholder={baseData.duration.toString()}
+                                        className="h-8 text-sm"
+                                      />
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 px-2"
+                                        onClick={() =>
+                                          applyToAll(
+                                            "duration",
+                                            episode.duration,
+                                          )
+                                        }
+                                      >
+                                        <Copy className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs text-muted-foreground mb-1">
+                                      Avaliação
+                                    </Label>
+                                    <div className="flex gap-1">
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        max="10"
+                                        step="0.1"
+                                        value={episode.rating}
+                                        onChange={(e) =>
+                                          handleEpisodeChange(
+                                            index,
+                                            "rating",
+                                            parseFloat(e.target.value) || 0,
+                                          )
+                                        }
+                                        placeholder={baseData.rating.toString()}
+                                        className="h-8 text-sm"
+                                      />
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 px-2"
+                                        onClick={() =>
+                                          applyToAll("rating", episode.rating)
+                                        }
+                                      >
+                                        <Copy className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs text-muted-foreground mb-1">
+                                      Data Lançamento
+                                    </Label>
+                                    <Input
+                                      type="date"
+                                      value={episode.release_date || ""}
+                                      onChange={(e) =>
+                                        handleEpisodeChange(
+                                          index,
+                                          "release_date",
+                                          e.target.value || "",
+                                        )
+                                      }
+                                      className="h-8 text-sm"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs text-muted-foreground mb-1">
+                                      Data Visualização
+                                    </Label>
+                                    <Input
+                                      type="date"
+                                      value={episode.watched_date || ""}
+                                      onChange={(e) =>
+                                        handleEpisodeChange(
+                                          index,
+                                          "watched_date",
+                                          e.target.value || "",
+                                        )
+                                      }
+                                      className="h-8 text-sm"
+                                      disabled={!episode.is_watched}
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Three-way toggles */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  <div>
+                                    <Label className="text-xs text-muted-foreground mb-2">
+                                      Recomendaria?
+                                    </Label>
+                                    <div className="flex gap-1 p-1 bg-muted/10 rounded-md">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleEpisodeThreeWayToggle(
+                                            index,
+                                            "would_recommend",
+                                            null,
+                                          )
+                                        }
+                                        className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded text-xs font-medium ${episode.would_recommend === null ? "bg-emerald-500 text-white" : "bg-background hover:bg-muted"}`}
+                                      >
+                                        <Minus className="h-3 w-3" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleEpisodeThreeWayToggle(
+                                            index,
+                                            "would_recommend",
+                                            false,
+                                          )
+                                        }
+                                        className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded text-xs font-medium ${episode.would_recommend === false ? "bg-destructive text-destructive-foreground" : "bg-background hover:bg-muted"}`}
+                                      >
+                                        <X className="h-3 w-3" />
+                                        Não
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleEpisodeThreeWayToggle(
+                                            index,
+                                            "would_recommend",
+                                            true,
+                                          )
+                                        }
+                                        className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded text-xs font-medium ${episode.would_recommend === true ? "bg-emerald-500 text-white" : "bg-background hover:bg-muted"}`}
+                                      >
+                                        <Check className="h-3 w-3" />
+                                        Sim
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs text-muted-foreground mb-2">
+                                      Reassistiria?
+                                    </Label>
+                                    <div className="flex gap-1 p-1 bg-muted/10 rounded-md">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleEpisodeThreeWayToggle(
+                                            index,
+                                            "would_rewatch",
+                                            null,
+                                          )
+                                        }
+                                        className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded text-xs font-medium ${episode.would_rewatch === null ? "bg-blue-500 text-white" : "bg-background hover:bg-muted"}`}
+                                      >
+                                        <Minus className="h-3 w-3" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleEpisodeThreeWayToggle(
+                                            index,
+                                            "would_rewatch",
+                                            false,
+                                          )
+                                        }
+                                        className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded text-xs font-medium ${episode.would_rewatch === false ? "bg-destructive text-destructive-foreground" : "bg-background hover:bg-muted"}`}
+                                      >
+                                        <X className="h-3 w-3" />
+                                        Não
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleEpisodeThreeWayToggle(
+                                            index,
+                                            "would_rewatch",
+                                            true,
+                                          )
+                                        }
+                                        className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded text-xs font-medium ${episode.would_rewatch === true ? "bg-blue-500 text-white" : "bg-background hover:bg-muted"}`}
+                                      >
+                                        <Check className="h-3 w-3" />
+                                        Sim
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Individual Review */}
+                                <div>
+                                  <Label className="text-xs text-muted-foreground mb-1">
+                                    Crítica Individual
+                                  </Label>
+                                  <Textarea
+                                    value={episode.review}
+                                    onChange={(e) =>
+                                      handleEpisodeChange(
+                                        index,
+                                        "review",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="Crítica específica para este episódio..."
+                                    rows={2}
+                                    className="text-sm resize-none"
+                                  />
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1065,18 +1452,39 @@ export function BulkAddEpisodes({
                   <div className="mt-6 p-4 bg-linear-to-r from-primary/5 via-primary/5 to-transparent rounded-lg border border-primary/20">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-semibold">Resumo</p>
-                        <p className="text-sm text-muted-foreground">
-                          {episodeCount} episódios serão criados
-                        </p>
+                        <p className="font-semibold">Resumo Final</p>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Tv className="h-3 w-3" />
+                            <span>{seriesName}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Hash className="h-3 w-3" />
+                            <span>
+                              #{calculatedNextNumber} → #
+                              {calculatedNextNumber + episodeCount - 1}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {baseData.is_watched ? (
+                              <CheckCircle className="h-3 w-3 text-emerald-500" />
+                            ) : (
+                              <EyeOff className="h-3 w-3 text-yellow-500" />
+                            )}
+                            <span>
+                              {baseData.is_watched
+                                ? "Assistidos"
+                                : "Não Assistidos"}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-lg">
-                          #{calculatedNextNumber} → #
-                          {calculatedNextNumber + episodeCount - 1}
+                        <p className="text-2xl font-bold">
+                          {episodeCount} episódios
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {seriesName}
+                          prontos para criar
                         </p>
                       </div>
                     </div>

@@ -407,16 +407,6 @@ export function SeriesHeader({ series, user }: SeriesHeaderProps) {
 
               {/* Actions */}
               <div className="flex flex-wrap gap-3 mt-auto pt-4 border-t border-border/30">
-                <Button
-                  asChild
-                  className="gap-2 bg-linear-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
-                >
-                  <Link href={`/series/${series.id}/watch`}>
-                    <Play className="h-4 w-4" />
-                    Marcar Episódio
-                  </Link>
-                </Button>
-
                 <Button variant="outline" asChild className="gap-2">
                   <Link href={`/series/${series.id}/edit`}>
                     <Edit className="h-4 w-4" />

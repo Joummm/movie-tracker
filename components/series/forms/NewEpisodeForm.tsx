@@ -30,18 +30,10 @@ import {
   AlertCircle,
   CheckCircle,
   EyeOff,
-  CalendarDays,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface NewEpisodeFormProps {
   userId: string;
@@ -112,12 +104,7 @@ export function NewEpisodeForm({
     would_recommend: false,
     would_rewatch: false,
     rewatch_count: 0,
-    last_rewatch_date: "",
-    // Campos para data de visualização
-    watched_date_precision: "full", // 'year', 'month', 'full'
-    watched_year: "",
-    watched_month: "",
-    watched_date: "",
+    last_rewatch_date: "", // USAR ESTE CAMPO PARA DATA DE VISUALIZAÇÃO
   });
 
   // Atualizar o número do episódio quando calculatedNextNumber mudar
@@ -150,13 +137,6 @@ export function NewEpisodeForm({
     setFormData((prev) => ({
       ...prev,
       [name]: checked,
-    }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
     }));
   };
 
@@ -216,7 +196,7 @@ export function NewEpisodeForm({
         );
       }
 
-      // Preparar dados do episódio
+      // Preparar dados do episódio - CONSISTENTE COM EditEpisodeForm
       const episodeData: any = {
         series_id: seriesId,
         season_id: seasonId,
@@ -230,31 +210,12 @@ export function NewEpisodeForm({
         would_recommend: formData.would_recommend,
         would_rewatch: formData.would_rewatch,
         rewatch_count: formData.rewatch_count || 0,
-        last_rewatch_date: formData.last_rewatch_date || null,
+        // USAR last_rewatch_date para data de visualização
+        last_rewatch_date:
+          formData.is_watched && formData.last_rewatch_date
+            ? formData.last_rewatch_date
+            : null,
       };
-
-      // Se foi assistido, adicionar data de visualização
-      if (formData.is_watched) {
-        if (
-          formData.watched_date_precision === "full" &&
-          formData.watched_date
-        ) {
-          episodeData.watched_date = formData.watched_date;
-        } else if (
-          formData.watched_date_precision === "month" &&
-          formData.watched_month &&
-          formData.watched_year
-        ) {
-          // Para precisão mês/ano, usar watched_date como YYYY-MM-01
-          episodeData.watched_date = `${formData.watched_year}-${formData.watched_month.padStart(2, "0")}-01`;
-        } else if (
-          formData.watched_date_precision === "year" &&
-          formData.watched_year
-        ) {
-          // Para precisão ano, usar watched_date como YYYY-01-01
-          episodeData.watched_date = `${formData.watched_year}-01-01`;
-        }
-      }
 
       console.log("Criando episódio:", episodeData);
 
@@ -296,6 +257,11 @@ export function NewEpisodeForm({
             review: formData.review || null,
             would_recommend: formData.would_recommend,
             would_rewatch: formData.would_rewatch,
+            // ADICIONAR data de visualização ao conteúdo se necessário
+            watched_date:
+              formData.is_watched && formData.last_rewatch_date
+                ? formData.last_rewatch_date
+                : null,
           };
 
           const { data: contentEpisode, error: contentError } = await supabase
@@ -396,25 +362,6 @@ export function NewEpisodeForm({
       setIsLoading(false);
     }
   };
-
-  // Gera anos para o select (dos últimos 50 anos até o próximo ano)
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 52 }, (_, i) => currentYear - 50 + i);
-
-  const months = [
-    { value: "1", label: "Janeiro" },
-    { value: "2", label: "Fevereiro" },
-    { value: "3", label: "Março" },
-    { value: "4", label: "Abril" },
-    { value: "5", label: "Maio" },
-    { value: "6", label: "Junho" },
-    { value: "7", label: "Julho" },
-    { value: "8", label: "Agosto" },
-    { value: "9", label: "Setembro" },
-    { value: "10", label: "Outubro" },
-    { value: "11", label: "Novembro" },
-    { value: "12", label: "Dezembro" },
-  ];
 
   return (
     <div className="min-h-screen bg-linear-to-b from-background to-background/95">
@@ -524,7 +471,7 @@ export function NewEpisodeForm({
                     </TabsList>
                   </div>
 
-                  {/* Basic Tab */}
+                  {/* Basic Tab - SIMPLIFICADO E CONSISTENTE */}
                   <TabsContent value="basic" className="m-0 p-4 md:p-6">
                     <form id="new-episode-form" onSubmit={handleSubmit}>
                       <div className="space-y-6">
@@ -619,9 +566,9 @@ export function NewEpisodeForm({
                           />
                         </div>
 
-                        {/* Status de Visualização ATUALIZADO */}
+                        {/* Status de Visualização - CONSISTENTE COM EditEpisodeForm */}
                         <div className="bg-linear-to-br from-card to-card/80 rounded-lg border border-border/30 p-4">
-                          <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center justify-between">
                             <div className="space-y-1">
                               <Label className="text-base font-semibold flex items-center gap-2">
                                 {formData.is_watched ? (
@@ -632,7 +579,9 @@ export function NewEpisodeForm({
                                 Status de Visualização
                               </Label>
                               <p className="text-sm text-muted-foreground">
-                                Já assistiu este episódio?
+                                {formData.is_watched
+                                  ? "Este episódio já foi assistido"
+                                  : "Este episódio ainda não foi assistido"}
                               </p>
                             </div>
                             <Switch
@@ -647,162 +596,22 @@ export function NewEpisodeForm({
                           </div>
 
                           {formData.is_watched && (
-                            <div className="space-y-4 mt-4 p-3 bg-muted/20 rounded-lg">
-                              <div>
-                                <Label className="text-sm font-medium mb-2 flex items-center gap-2">
-                                  <CalendarDays className="h-4 w-4" />
-                                  Precisão da Data de Visualização
-                                </Label>
-                                <Select
-                                  value={formData.watched_date_precision}
-                                  onValueChange={(value) =>
-                                    handleSelectChange(
-                                      "watched_date_precision",
-                                      value,
-                                    )
-                                  }
-                                  disabled={isLoading}
-                                >
-                                  <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Selecione a precisão" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="full">
-                                      Data Completa
-                                    </SelectItem>
-                                    <SelectItem value="month">
-                                      Mês e Ano
-                                    </SelectItem>
-                                    <SelectItem value="year">
-                                      Apenas Ano
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-
-                              {formData.watched_date_precision === "full" && (
-                                <div>
-                                  <Label
-                                    htmlFor="watched_date"
-                                    className="text-sm"
-                                  >
-                                    Data de Visualização
-                                  </Label>
-                                  <Input
-                                    id="watched_date"
-                                    name="watched_date"
-                                    type="date"
-                                    value={
-                                      formData.watched_date ||
-                                      new Date().toISOString().split("T")[0]
-                                    }
-                                    onChange={handleInputChange}
-                                    className="mt-1"
-                                    disabled={isLoading}
-                                  />
-                                </div>
-                              )}
-
-                              {formData.watched_date_precision === "month" && (
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <Label
-                                      htmlFor="watched_month"
-                                      className="text-sm"
-                                    >
-                                      Mês
-                                    </Label>
-                                    <Select
-                                      value={formData.watched_month}
-                                      onValueChange={(value) =>
-                                        handleSelectChange(
-                                          "watched_month",
-                                          value,
-                                        )
-                                      }
-                                      disabled={isLoading}
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Selecione o mês" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {months.map((month) => (
-                                          <SelectItem
-                                            key={month.value}
-                                            value={month.value}
-                                          >
-                                            {month.label}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <div>
-                                    <Label
-                                      htmlFor="watched_year"
-                                      className="text-sm"
-                                    >
-                                      Ano
-                                    </Label>
-                                    <Select
-                                      value={formData.watched_year}
-                                      onValueChange={(value) =>
-                                        handleSelectChange(
-                                          "watched_year",
-                                          value,
-                                        )
-                                      }
-                                      disabled={isLoading}
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Selecione o ano" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {years.map((year) => (
-                                          <SelectItem
-                                            key={year}
-                                            value={year.toString()}
-                                          >
-                                            {year}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                </div>
-                              )}
-
-                              {formData.watched_date_precision === "year" && (
-                                <div>
-                                  <Label
-                                    htmlFor="watched_year"
-                                    className="text-sm"
-                                  >
-                                    Ano de Visualização
-                                  </Label>
-                                  <Select
-                                    value={formData.watched_year}
-                                    onValueChange={(value) =>
-                                      handleSelectChange("watched_year", value)
-                                    }
-                                    disabled={isLoading}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Selecione o ano" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {years.map((year) => (
-                                        <SelectItem
-                                          key={year}
-                                          value={year.toString()}
-                                        >
-                                          {year}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
+                            <div className="mt-4 space-y-2">
+                              <Label
+                                htmlFor="last_rewatch_date"
+                                className="text-sm"
+                              >
+                                Data de Visualização (opcional)
+                              </Label>
+                              <Input
+                                id="last_rewatch_date"
+                                name="last_rewatch_date"
+                                type="date"
+                                value={formData.last_rewatch_date}
+                                onChange={handleInputChange}
+                                className="border-border/50"
+                                disabled={isLoading}
+                              />
                             </div>
                           )}
                         </div>
@@ -887,24 +696,6 @@ export function NewEpisodeForm({
                               value={formData.rewatch_count}
                               onChange={handleInputChange}
                               placeholder="0"
-                              className="border-border/50"
-                              disabled={isLoading}
-                            />
-                          </div>
-
-                          <div>
-                            <Label
-                              htmlFor="last_rewatch_date"
-                              className="text-base font-semibold mb-2"
-                            >
-                              Última Revisão (opcional)
-                            </Label>
-                            <Input
-                              id="last_rewatch_date"
-                              name="last_rewatch_date"
-                              type="date"
-                              value={formData.last_rewatch_date}
-                              onChange={handleInputChange}
                               className="border-border/50"
                               disabled={isLoading}
                             />
@@ -1035,7 +826,7 @@ export function NewEpisodeForm({
                     )}
 
                     {/* Data de visualização se aplicável */}
-                    {formData.is_watched && (
+                    {formData.is_watched && formData.last_rewatch_date && (
                       <div className="pt-2 border-t">
                         <p className="text-xs text-muted-foreground mb-1">
                           Visualizado em:
@@ -1043,19 +834,9 @@ export function NewEpisodeForm({
                         <div className="flex items-center gap-1">
                           <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
                           <span className="text-sm">
-                            {formData.watched_date_precision === "full" &&
-                            formData.watched_date
-                              ? new Date(
-                                  formData.watched_date,
-                                ).toLocaleDateString("pt-PT")
-                              : formData.watched_date_precision === "month" &&
-                                  formData.watched_month &&
-                                  formData.watched_year
-                                ? `${months.find((m) => m.value === formData.watched_month)?.label} ${formData.watched_year}`
-                                : formData.watched_date_precision === "year" &&
-                                    formData.watched_year
-                                  ? formData.watched_year
-                                  : "Data não especificada"}
+                            {new Date(
+                              formData.last_rewatch_date,
+                            ).toLocaleDateString("pt-PT")}
                           </span>
                         </div>
                       </div>
