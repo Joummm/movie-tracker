@@ -9,12 +9,14 @@ import { RecentContent } from "@/components/dashboard/recent-content";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { CommunitySection } from "@/components/dashboard/community-section";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [selectedYears, setSelectedYears] = useState<string[]>(["all"]);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"dashboard" | "community">("dashboard");
 
   useEffect(() => {
     loadDashboardData();
@@ -165,12 +167,36 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" suppressHydrationWarning>
       <DashboardHeader userName={stats.profile?.display_name || "User"} />
-      <main className="container mx-auto p-4 md:p-6 lg:p-8">
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <Label>Filtrar por Ano</Label>
+      <main className="container mx-auto p-4 md:p-6 lg:p-8" suppressHydrationWarning>
+        <div className="flex space-x-1 bg-muted p-1 rounded-lg w-fit mb-6">
+          <button
+            onClick={() => setActiveTab("dashboard")}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+              activeTab === "dashboard"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+            }`}
+          >
+            O Meu Painel
+          </button>
+          <button
+            onClick={() => setActiveTab("community")}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+              activeTab === "community"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+            }`}
+          >
+            Comunidade
+          </button>
+        </div>
+        
+        {activeTab === "dashboard" && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="flex flex-col gap-2">
+              <Label>Filtrar por Ano</Label>
             <div className="flex flex-wrap gap-2">
               <Button
                 variant={selectedYears.includes("all") ? "default" : "outline"}
@@ -210,7 +236,14 @@ export default function DashboardPage() {
             <ContentChart data={stats.monthsData} />
             <RecentContent content={stats.recentContent} />
           </div>
-        </div>
+          </div>
+        )}
+
+        {activeTab === "community" && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <CommunitySection currentUserId={stats.profile?.id} />
+          </div>
+        )}
       </main>
     </div>
   );
